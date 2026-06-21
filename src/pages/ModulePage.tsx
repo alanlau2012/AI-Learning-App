@@ -5,7 +5,7 @@ import { concepts } from '../data/concepts';
 import { ConceptCard } from '../components/concept/ConceptCard';
 import { ProgressBar } from '../components/progress/ProgressBar';
 import { useProgressStore } from '../store/progressStore';
-import { moduleProgress } from '../utils/progress';
+import { isPublishedConcept, moduleProgress } from '../utils/progress';
 import type { Difficulty, KnowledgePoint } from '../types';
 import styles from './ModulePage.module.css';
 
@@ -18,6 +18,12 @@ const DIFFICULTY_RANK: Record<Difficulty, number> = {
   basic: 1,
   intermediate: 2,
   advanced: 3,
+};
+
+const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  basic: '基础',
+  intermediate: '进阶',
+  advanced: '高级',
 };
 
 function sortConcepts(list: KnowledgePoint[], sort: SortKey): KnowledgePoint[] {
@@ -132,15 +138,34 @@ export function ModulePage() {
 
       <section className={styles.list} aria-label="知识点列表">
         {filtered.length > 0 ? (
-          filtered.map((concept) => (
-            <ConceptCard
-              key={concept.id}
-              concept={concept}
-              completed={completedSet.has(concept.id)}
-              favorite={favoriteSet.has(concept.id)}
-              onToggleFavorite={toggleFavorite}
-            />
-          ))
+          filtered.map((concept) => {
+            if (isPublishedConcept(concept)) {
+              return (
+                <ConceptCard
+                  key={concept.id}
+                  concept={concept}
+                  completed={completedSet.has(concept.id)}
+                  favorite={favoriteSet.has(concept.id)}
+                  onToggleFavorite={toggleFavorite}
+                />
+              );
+            }
+
+            return (
+              <article key={concept.id} className={styles.placeholderCard}>
+                <div className={styles.placeholderTopline}>
+                  <span className={styles.placeholderOrder}>
+                    {String(concept.order).padStart(2, '0')}
+                  </span>
+                  <span>{DIFFICULTY_LABEL[concept.difficulty]}</span>
+                  <span>{concept.estimatedMinutes} 分钟</span>
+                  <span className={styles.comingSoon}>即将上线</span>
+                </div>
+                <h2>{concept.title}</h2>
+                <p>该知识点已纳入 56 讲地图，正式内容正在审核入库。</p>
+              </article>
+            );
+          })
         ) : (
           <p className={styles.empty}>没有符合筛选条件的知识点。</p>
         )}

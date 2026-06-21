@@ -9,13 +9,10 @@ import { TakeawayBox } from '../components/concept/TakeawayBox';
 import { AnimationPlayer } from '../components/animation/AnimationPlayer';
 import { DiagnosticQuestion } from '../components/quiz/DiagnosticQuestion';
 import { useProgressStore } from '../store/progressStore';
+import { getOrderedPublishedConcepts, isPublishedConcept } from '../utils/progress';
 import styles from './ConceptPage.module.css';
 
-const orderedConcepts = modules.flatMap((module) =>
-  module.conceptIds
-    .map((id) => concepts.find((concept) => concept.id === id))
-    .filter((concept): concept is (typeof concepts)[number] => Boolean(concept)),
-);
+const orderedPublishedConcepts = getOrderedPublishedConcepts();
 
 export function ConceptPage() {
   const { slug } = useParams();
@@ -28,7 +25,7 @@ export function ConceptPage() {
   const recordVisit = useProgressStore((s) => s.recordVisit);
 
   useEffect(() => {
-    if (concept) recordVisit(concept.id);
+    if (concept && isPublishedConcept(concept)) recordVisit(concept.id);
   }, [concept, recordVisit]);
 
   if (!concept) {
@@ -45,8 +42,9 @@ export function ConceptPage() {
 
   const completed = completedConceptIds.includes(concept.id);
   const favorite = favoriteConceptIds.includes(concept.id);
-  const conceptIndex = orderedConcepts.findIndex((item) => item.id === concept.id);
-  const nextConcept = orderedConcepts[conceptIndex + 1];
+  const conceptIndex = orderedPublishedConcepts.findIndex((item) => item.id === concept.id);
+  const nextConcept =
+    conceptIndex >= 0 ? orderedPublishedConcepts[conceptIndex + 1] : orderedPublishedConcepts[0];
   const hasEnterpriseCase = Object.values(concept.enterpriseCase).some(Boolean);
 
   return (

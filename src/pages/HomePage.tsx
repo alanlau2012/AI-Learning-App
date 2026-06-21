@@ -8,6 +8,7 @@ import { modules } from '../data/modules';
 import { concepts } from '../data/concepts';
 import { useProgressStore } from '../store/progressStore';
 import {
+  getFirstPublishedConceptIdByModule,
   getContinueLearningConceptId,
   moduleProgress,
   overallProgress,
@@ -95,12 +96,28 @@ export function HomePage() {
       <section className={styles.paths}>
         <h2 className={styles.sectionTitle}>推荐学习路径</h2>
         <div className={styles.pathGrid}>
-          {RECOMMENDED_PATHS.map((p) => (
-            <Link key={p.moduleId} to={`/modules/${p.moduleId}`} className={styles.pathCard}>
-              <span className={styles.pathName}>{p.name}</span>
-              <span className={styles.pathDesc}>{p.desc}</span>
-            </Link>
-          ))}
+          {RECOMMENDED_PATHS.map((p) => {
+            const startConceptId = getFirstPublishedConceptIdByModule(p.moduleId);
+            const startConcept = startConceptId ? conceptById.get(startConceptId) : undefined;
+
+            if (!startConcept) {
+              return (
+                <div key={p.moduleId} className={`${styles.pathCard} ${styles.pathDisabled}`}>
+                  <span className={styles.pathName}>{p.name}</span>
+                  <span className={styles.pathDesc}>{p.desc}</span>
+                  <span className={styles.pathMeta}>即将上线</span>
+                </div>
+              );
+            }
+
+            return (
+              <Link key={p.moduleId} to={`/concepts/${startConcept.slug}`} className={styles.pathCard}>
+                <span className={styles.pathName}>{p.name}</span>
+                <span className={styles.pathDesc}>{p.desc}</span>
+                <span className={styles.pathMeta}>从 {startConcept.title} 开始</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

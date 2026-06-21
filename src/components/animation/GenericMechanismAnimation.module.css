@@ -8,15 +8,8 @@
   color: #f7f3ea;
 }
 
-.type,
-.current span,
-.targets {
+.current span {
   font-family: var(--font-mono);
-}
-
-.type {
-  color: #b4b0a6;
-  font-size: 12px;
 }
 
 .timeline {
@@ -46,25 +39,3 @@
   font-size: 12px;
 }
 
-.current strong {
-  font-size: 18px;
-}
-
-.current p {
-  max-width: 620px;
-  color: #ded8ca;
-}
-
-.targets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.targets span {
-  padding: 3px 7px;
-  border: 1px solid rgba(250, 249, 246, 0.18);
-  border-radius: 999px;
-  color: #ded8ca;
-  font-size: 11px;
-}

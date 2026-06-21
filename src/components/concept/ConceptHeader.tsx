@@ -31,7 +31,6 @@ export function ConceptHeader({
         <span>{DIFFICULTY_LABEL[concept.difficulty]}</span>
         <span>{concept.estimatedMinutes} 分钟</span>
         <span>{concept.hasAnimation ? '含动画演示' : '无动画'}</span>
-        <span>{concept.contentStatus}</span>
       </div>
       <h1>{concept.title}</h1>
       <div className={styles.actions}>

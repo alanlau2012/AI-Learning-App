@@ -1,4 +1,5 @@
 import type { KnowledgePoint } from '../types';
+import { isPublishedConcept } from './progress';
 
 export interface SearchResult {
   concept: KnowledgePoint;
@@ -37,13 +38,23 @@ export function searchConcepts(
   return concepts
     .map((concept): SearchResult | null => {
       const title = concept.title.toLowerCase();
-      if (title === query) return { concept, score: 100, reason: '标题完全匹配' };
-      if (title.includes(query)) return { concept, score: 80, reason: '标题匹配' };
+      const availabilityScore = isPublishedConcept(concept) ? 0 : -35;
+      const reasonSuffix = isPublishedConcept(concept) ? '' : ' · 即将上线';
+      if (title === query) {
+        return {
+          concept,
+          score: 100 + availabilityScore,
+          reason: `标题完全匹配${reasonSuffix}`,
+        };
+      }
+      if (title.includes(query)) {
+        return { concept, score: 80 + availabilityScore, reason: `标题匹配${reasonSuffix}` };
+      }
       if (concept.tags.some((tag) => includes(tag, query))) {
-        return { concept, score: 60, reason: '标签匹配' };
+        return { concept, score: 60 + availabilityScore, reason: `标签匹配${reasonSuffix}` };
       }
       if (textFields(concept).some((field) => includes(field, query))) {
-        return { concept, score: 40, reason: '正文匹配' };
+        return { concept, score: 40 + availabilityScore, reason: `正文匹配${reasonSuffix}` };
       }
       return null;
     })

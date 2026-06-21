@@ -8,7 +8,7 @@
  *
  * 版本策略见 docs/architecture.md §3.1。
  */
-import type { UserProgress } from '../types';
+import type { KnowledgePoint, UserProgress } from '../types';
 import { concepts } from '../data/concepts';
 import { modules } from '../data/modules';
 
@@ -116,27 +116,55 @@ export interface ModuleProgress {
   total: number;
 }
 
-const conceptIdSet = new Set(concepts.map((c) => c.id));
+const conceptById = new Map(concepts.map((c) => [c.id, c]));
+
+const orderedConcepts = modules.flatMap((module) =>
+  module.conceptIds
+    .map((id) => conceptById.get(id))
+    .filter((concept): concept is KnowledgePoint => Boolean(concept)),
+);
+
+export function isPublishedConcept(
+  concept: Pick<KnowledgePoint, 'contentStatus'> | null | undefined,
+): boolean {
+  return concept?.contentStatus !== undefined && concept.contentStatus !== 'stub';
+}
+
+const orderedPublishedConcepts = orderedConcepts.filter(isPublishedConcept);
+const publishedConceptIdSet = new Set(orderedPublishedConcepts.map((concept) => concept.id));
+
+export function getOrderedPublishedConcepts(): KnowledgePoint[] {
+  return orderedPublishedConcepts;
+}
+
+export function isPublishedConceptId(conceptId: string | undefined): boolean {
+  return Boolean(conceptId && publishedConceptIdSet.has(conceptId));
+}
+
+export function getFirstPublishedConceptIdByModule(moduleId: string): string | undefined {
+  const module = modules.find((item) => item.id === moduleId);
+  return module?.conceptIds.find((id) => publishedConceptIdSet.has(id));
+}
 
 /**
  * 「继续学习」目标（驱动首页核心动作）：
- * lastVisitedConceptId 仍存在 → 回到它；否则按模块顺序→概念 order 找第一个未完成；
+ * lastVisitedConceptId 仍存在且已上线 → 回到它；否则按模块顺序找第一个未完成的已上线内容；
  * 全部完成 → 第一个概念。返回 concept id（=== slug，可直接用于 /concepts/:slug）。
  */
 export function getContinueLearningConceptId(progress: UserProgress): string {
   if (
     progress.lastVisitedConceptId &&
-    conceptIdSet.has(progress.lastVisitedConceptId)
+    publishedConceptIdSet.has(progress.lastVisitedConceptId)
   ) {
     return progress.lastVisitedConceptId;
   }
   const completed = new Set(progress.completedConceptIds);
-  for (const m of modules) {
-    for (const id of m.conceptIds) {
-      if (!completed.has(id)) return id;
+  for (const concept of orderedPublishedConcepts) {
+    if (!completed.has(concept.id)) {
+      return concept.id;
     }
   }
-  return modules[0]?.conceptIds[0] ?? concepts[0]?.id ?? '';
+  return orderedPublishedConcepts[0]?.id ?? '';
 }
 
 /** 单模块进度：done / 该模块概念数。completed 用 Set 加速查找。 */
