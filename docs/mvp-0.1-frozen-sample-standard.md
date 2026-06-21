@@ -2,7 +2,7 @@
 
 > 本文件在 MVP 0.1 修复回合 1 封板后冻结。它定义「12 讲中哪些是可复制到后续 44 讲的样板、哪些只是 MVP 临时实现」，是 44 讲扩展时**内容 Agent / 审核 Agent / 主开发 / 动画工程师**的样板基线。
 > 配套文件：门禁见 [content-production-gate.md](content-production-gate.md)，扩展批次见 [expansion-plan-44-lessons.md](expansion-plan-44-lessons.md)，权威 schema 见 [content-schema.md](content-schema.md)，流水线见 [project-board.md](project-board.md) §3。
-> 冻结基线：`main` @ `fa73859`，已上线 12 讲 = `token / attention / prefill / decode / ttft / kv-cache / model-gateway / multi-model-routing / context-window / agent-loop / skill / issue-fix-agent`（`contentStatus ∈ {demo,mvp}`）。
+> 冻结基线：`main` @ `b6971f0`（标签 `mvp-0.1-fix-round1`），已上线 12 讲 = `token / attention / prefill / decode / ttft / kv-cache / model-gateway / multi-model-routing / context-window / agent-loop / skill / issue-fix-agent`（`contentStatus ∈ {demo,mvp}`）。
 
 ---
 

@@ -3,11 +3,12 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §5.1 文件所有权。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-21 · 维护人：总控 Agent（MVP 0.1 修复回合 1）
+**最后更新时间**：2026-06-21 · 维护人：主开发 Agent（MVP 0.1 封板基线）
 
 ## 1. 当前里程碑
 
-- 当前阶段：**MVP 0.1 修复回合 1 已完成**：主路径禁跳 stub、内部标识/raw key 收口、kv-cache 来源唯一、诊断题门禁修订与去模板化抽样回修已合入、prefill-decode 与 agent-loop 两个真实画布落地；端到端复验 `PASS_WITH_MINOR_ISSUES`（无 P0/P1 返修）。详见 `reports/mvp-0.1-fix-round1-summary.md`。
+- **封板基线**：`main` @ `b6971f0`，标签 `mvp-0.1-fix-round1`；Owner 验收 `PASS_WITH_MINOR_ISSUES`（见 `reports/mvp-0.1-fix-round1-owner-acceptance.md`）。冻结制度文档：`docs/mvp-0.1-frozen-sample-standard.md`、`docs/content-production-gate.md`、`docs/expansion-plan-44-lessons.md`。
+- 当前阶段：**MVP 0.1 修复回合 1 已封板**：主路径禁跳 stub、内部标识/raw key 收口、kv-cache 来源唯一、诊断题门禁修订与去模板化抽样回修已合入、prefill-decode 与 agent-loop 两个真实画布落地；端到端复验 `PASS_WITH_MINOR_ISSUES`（无 P0/P1 返修）。详见 `reports/mvp-0.1-fix-round1-summary.md`。
 - 上一阶段：**MVP 0.1 已封版：12 讲端到端验证通过，可作为演示版本**。
 - 已完成范围：工程骨架、内容门禁、首页、模块页、知识点详情页、动画播放器、诊断题、搜索、术语索引、我的学习页，以及 12 讲正式内容入库。
 - 封版验证：`npm run typecheck`、`npm run validate:structure`、`npm run build` 通过；完整回归见 [reports/e2e-verification-12-lessons.md](../reports/e2e-verification-12-lessons.md)。
