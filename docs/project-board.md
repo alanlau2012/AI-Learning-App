@@ -7,17 +7,17 @@
 
 ## 1. 当前里程碑
 
-- 当前阶段：**P0 项目初始化（未开始）**
+- 当前阶段：**P0 + P1.5 + P1a 已完成；下一步 P1b 模块页 + P2 详情页**。
 - 启动方式：P0/P1 由**主开发 Agent 单线启动**（见 [AGENTS.md](../AGENTS.md) §5.1）。内容 / 动画 / 审核 / E2E Agent 在 P3 之后按权限并入。
-- 大规模内容生产前置门禁：必须先具备 `npm run validate:content`（P1-2）与 draft→review→入库流水线（§3）。
+- 大规模内容生产前置门禁：必须先具备 `npm run validate:content`（P1.5 已落地）与 draft→review→入库流水线（§3）。
 
 ## 2. 阶段任务板
 
 | 阶段 | 任务 | Owner | 状态 | 依赖 | 验收命令 / 标准 | 阻塞项 |
 |---|---|---|---|---|---|---|
-| P0 | Vite+React+TS 骨架、路由、目录、tokens、mock 数据 | 主开发 | todo | — | `npm install` `npm run dev` 首页可访问、路由可跳转 | — |
-| P1 | 首页 + 模块页 + 知识点卡片 + 接入基础数据 | 主开发 | todo | P0 | 看到 6 模块、进模块页、卡片状态正确 | — |
-| P1.5 | 内容入库门禁：`scripts/validate-content.ts` + `validate:structure` | 主开发 | todo | P1 | `validate:structure` 全绿（规则见 [content-schema.md](content-schema.md) §6.1） | — |
+| P0 | Vite+React+TS 骨架、路由、目录、tokens、mock 数据 | 主开发 | done | — | `npm install` `npm run dev` 首页可访问、路由可跳转 | — |
+| P1 | 首页 + 模块页 + 知识点卡片 + 接入基础数据 | 主开发 | in-progress | P0 | 看到 6 模块、进模块页、卡片状态正确 | — |
+| P1.5 | 内容入库门禁：`scripts/validate-content.ts` + `validate:structure` | 主开发 | done | P1 | `validate:structure` 全绿（规则见 [content-schema.md](content-schema.md) §6.1） | — |
 | P2 | 知识点详情页（定义/机制/案例/误区/结论 + 关联 + 完成/收藏） | 主开发 | todo | P1 | 任意知识点可打开、结构完整、进度可保存 | — |
 | P3 | AnimationPlayer + 首版动画组件（8 个）；启用 `validate:animation` | 主开发(框架) / 动画 Agent(草稿) | todo | P2 | 可播放/暂停/切步/重置，步骤同步，移动端可用 | — |
 | P4 | 诊断题组件（单选/多选/解析/错题） | 主开发 | todo | P2 | 答题流程顺畅、判定准确、错题可记录 | — |
