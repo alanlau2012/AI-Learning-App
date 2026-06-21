@@ -2,6 +2,8 @@
 
 > 这是数据 schema 的唯一权威来源。`src/types/index.ts` 必须与本文件一致。
 > 字段命名采用 **PRD 的 TypeScript 接口**；56 讲写作模板字段仅用于写作，落库时按 §3 映射转换。
+>
+> **数量权威声明**：所有“讲数、模块计数、知识点清单”一律以本文件 §4 登记表为准（`56 讲`、`10/10/8/16/6/6`）。[`design.md`](../design.md) 中的 `50 讲`、Sidebar 示例 `0/12`、`0/10` 等仅为**视觉占位示例，不具权威性**，实现时不得复制其数字。
 
 ## 1. 权威 TypeScript 接口
 
@@ -9,6 +11,8 @@
 
 ```ts
 export type Difficulty = 'basic' | 'intermediate' | 'advanced';
+
+export type ContentStatus = 'stub' | 'demo' | 'mvp';
 
 export interface KnowledgePoint {
   id: string;
@@ -19,6 +23,7 @@ export interface KnowledgePoint {
   difficulty: Difficulty;
   estimatedMinutes: number;
   tags: string[];
+  contentStatus: ContentStatus;   // 内容成熟度，决定校验严格度（见 §2、§6）
   hasAnimation: boolean;
   definition: string;
   whyItMatters: string;
@@ -90,9 +95,20 @@ export interface UserProgress {
   lastStudyDate?: string;
   studyStreakDays: number;
 }
+
+export interface GlossaryTerm {
+  id: string;                 // kebab-case，唯一
+  name: string;               // 中文名
+  enName: string;             // 英文名
+  definition: string;         // 一句话解释
+  moduleId: string;           // 所属模块 m1–m6
+  relatedConceptIds: string[];// 指向已存在的 KnowledgePoint.id
+  tags?: string[];
+}
 ```
 
 `AnimationType` 的枚举值定义在 [animation-spec.md](animation-spec.md) §1，由 `types/index.ts` 统一导出。
+`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。
 
 ## 2. 字段级约束
 
@@ -103,7 +119,12 @@ export interface UserProgress {
 - `difficulty`：仅 `basic | intermediate | advanced`。
 - `estimatedMinutes`：正整数（分钟）。
 - `tags`：用于搜索与筛选，建议含英文术语（如 `Token`、`TTFT`、`MaaS`）。
-- `hasAnimation`：与 `animation` 是否存在保持一致；为 `true` 时该概念须被 [animation-spec.md](animation-spec.md) 的首版 8 组件覆盖。
+- `contentStatus`：内容成熟度，是校验范围的唯一依据（不靠脚本隐式名单）。
+  - `stub`：仅结构登记，正文可空。56 讲登记初始全部为 `stub`。
+  - `demo`：纳入 MVP Demo 的精做知识点，须通过“完整知识点”校验（§6.2）。
+  - `mvp`：纳入 MVP 1.0 的完整知识点，校验同 `demo`。
+  - 完整性校验只对 `demo` / `mvp` 生效；`stub` 只跑结构校验。
+- `hasAnimation`：与 `animation` 是否存在保持一致；为 `true` 时该概念须被 [animation-spec.md](animation-spec.md) 的首版 8 组件覆盖。`stub` 阶段建议 `hasAnimation:false`、`animation` 缺省，避免在动画组件实现前触发动画校验。
 - `relatedConceptIds`：每一项必须指向**已存在的** `KnowledgePoint.id`（构建期应校验，避免悬空引用）。
 - `LearningModule.conceptIds`：与该模块下所有 `KnowledgePoint` 的集合一致，且顺序等于其 `order`。
 - `DiagnosticQuestion.correctOptionIds`：每一项必须是该题 `options[].id` 之一；单选长度为 1，多选 ≥ 1。
@@ -243,6 +264,7 @@ const kvCache: KnowledgePoint = {
   difficulty: 'advanced',
   estimatedMinutes: 12,
   tags: ['KV Cache', 'TTFT', 'Session 亲和', 'MaaS'],
+  contentStatus: 'mvp',
   hasAnimation: true,
   definition:
     'KV Cache 是在大模型推理中缓存历史上下文的 Key 和 Value，避免每次生成新 Token 时重复计算全部历史。',
@@ -308,3 +330,48 @@ const kvCache: KnowledgePoint = {
   relatedConceptIds: ['prefill', 'decode', 'ttft', 'session-affinity', 'sla'],
 };
 ```
+
+## 6. 校验门禁（分级，避免在实现前卡住）
+
+校验脚本 `scripts/validate-content.ts` 拆成**三个独立子命令**，按阶段分别启用，避免在动画组件尚未实现时就强校验动画。聚合命令 `npm run validate:content` = 依次跑当前阶段应启用的子命令。
+
+| 子命令 | 启用阶段 | 校验范围 | 失败后果 |
+|---|---|---|---|
+| `validate:structure` | **P1.5 起，始终** | 全部 56 登记项的结构（§6.1） | 阻断入库与发布 |
+| `validate:published-content` | 有 `demo`/`mvp` 内容后 | 仅 `contentStatus ∈ {demo,mvp}` 的字段完整性（§6.2） | 阻断该内容入库 |
+| `validate:animation` | **P3（动画 registry 落地）起** | 动画一致性与注册（§6.3） | 阻断含动画内容入库/发布 |
+
+- **P1.5 只需 `validate:structure` 全绿**，不校验动画、不校验未上线内容的正文 → P1.5 不会因为动画未实现或 56 项为空而失败。
+- `npm run validate:content` 的组成随阶段递增：P1.5=`structure`；出现 demo/mvp 内容后加 `published-content`；P3 后加 `animation`。CI 中按阶段配置即可。
+
+### 6.1 结构校验 `validate:structure`（对全部 56 登记项始终生效）
+
+1. **登记完整**：`concepts` 恰好 56 项；模块构成等于 `m1=10, m2=10, m3=8, m4=16, m5=6, m6=6`。
+2. **id / slug 唯一**：全局唯一、kebab-case；首版 `slug === id`。
+3. **moduleId 合法**：∈ `{m1..m6}`；`LearningModule.conceptIds` 与该模块概念集合及 `order` 完全一致。
+4. **order 连续**：每个模块内 `order` 从 1 起连续、唯一。
+5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。
+6. **contentStatus 合法**：∈ `{stub, demo, mvp}`。
+7. **诊断题结构**（当存在 `diagnosticQuestion` 时）：`correctOptionIds` ⊆ `options[].id`；`single` 长度为 1、`multiple` ≥ 1；`options.length >= 2`。
+
+> 结构校验**不**碰动画 registry，也**不**要求 `stub` 的正文非空，因此可在动画/内容实现前先行通过。
+
+### 6.2 完整性校验 `validate:published-content`（仅对 `contentStatus ∈ {demo, mvp}` 生效）
+
+校验范围由 `contentStatus` 显式界定（不依赖脚本隐式名单）。`stub` 跳过本组。命中项必须满足：
+
+- `definition` / `whyItMatters` / `mentalModel`：非空字符串。
+- `mechanism`：至少 3 步。
+- `pitfalls`：至少 2 条。
+- `keyTakeaways`：至少 2 条。
+- `enterpriseCase`：`scenario / problem / analysis / solution / takeaway` 均为非空字符串（**不允许空字符串占位**）。
+- 若 `hasAnimation`：`animation.steps` 至少 3 步（动画类型/注册校验属于 §6.3）。
+
+### 6.3 动画校验 `validate:animation`（P3 起，动画 registry 落地后启用）
+
+1. **一致性**：`hasAnimation === (animation != null)`。
+2. **类型注册**：若有 `animation`，其 `type` 必须是已注册的 `AnimationType`（见 [animation-spec.md](animation-spec.md) §1 与 §3 registry）。
+3. **步骤合法**：`animation.steps.length >= 1`、每个 step 有唯一 `id`。
+
+> P1.5 之前 `stub` 应保持 `hasAnimation:false`，§6.3 自然为空集；P3 后随动画组件实现逐步开启。
+> 命令登记见 [AGENTS.md](../AGENTS.md) §6；阶段 P1.5/P3 见 [project-board.md](project-board.md) §2 与 [architecture.md](architecture.md) §6；验收勾选见 [acceptance-checklist.md](acceptance-checklist.md) §5。

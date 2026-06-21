@@ -45,6 +45,7 @@
 - [ ] 详情页正文最大宽度约 760–860px，长阅读节奏舒适
 - [ ] 移动端没有横向滚动
 - [ ] 页面不像“AI 工程监控后台”，而像“可交互的 AI 应用工程教材”
+- [ ] **Profile 可以有统计，但首页第一屏不得 dashboard 化**（统计/推荐/诊断题不挤进首屏）
 
 ## 4. 工程验收（来源：PRD §16.4 + architecture.md）
 
@@ -60,7 +61,27 @@
 - [ ] 无未使用的大型依赖
 - [ ] README 说明如何启动项目，可静态部署
 
-## 5. 成功标准（来源：PRD §20）
+## 5. 可执行门禁（来源：content-schema §6 + architecture §7.1）
+
+> 这些是**脚本化**的硬门禁，失败即阻断入库/发布，不依赖人工目检。
+
+- [ ] `npm run validate:content` 通过
+- [ ] 结构校验：56 登记 + 模块计数 `10/10/8/16/6/6`、id/slug 唯一、moduleId/order 合法
+- [ ] 关联无悬空：`relatedConceptIds` / 诊断题 / `GlossaryTerm` 的关联全部指向已存在 id
+- [ ] 动画一致：`hasAnimation === (animation != null)`，且 `animation.type` 已在 registry 注册
+- [ ] 诊断题合法：`correctOptionIds ⊆ options[].id`，单选 1 项、多选 ≥1，选项 ≥2
+- [ ] 已上线知识点字段完整：`mechanism ≥3`、`pitfalls ≥2`、`keyTakeaways ≥2`、`enterpriseCase` 五字段非空
+- [ ] `GlossaryTerm` 类型已在 `src/types/index.ts` 定义并被 `glossary.ts` 使用
+
+## 6. PWA 验收（来源：product-spec §3.5）
+
+> manifest 为**可选项**：首版默认“静态 Web，预留 PWA”。是否提供 manifest 由团队声明，与 product-spec §3.5 一致。
+
+- [ ] 作为静态站点可正常构建与部署（必选）
+- [ ] **未引入 Service Worker / 离线缓存**（首版明确不做，避免过早实现）（必选）
+- [ ] 若声明 PWA basic installability：提供 `manifest.webmanifest`（名称、图标、主题色）；未声明则本项不适用（可选）
+
+## 7. 成功标准（来源：PRD §20）
 
 - [ ] 用户打开后能立刻理解这是 AI 应用工程学习系统
 - [ ] 用户能沿 6 个模块形成完整知识地图

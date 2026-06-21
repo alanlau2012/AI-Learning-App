@@ -85,7 +85,7 @@ interface AnimationPlayerProps {
 ### 注册式分发
 
 ```ts
-const REGISTRY: Record<AnimationType, React.ComponentType<AnimationCanvasProps>> = {
+const REGISTRY: Partial<Record<AnimationType, React.ComponentType<AnimationCanvasProps>>> = {
   'token-flow': TokenFlowAnimation,
   'attention-map': AttentionAnimation,
   'context-window': ContextWindowAnimation,
@@ -97,6 +97,37 @@ const REGISTRY: Record<AnimationType, React.ComponentType<AnimationCanvasProps>>
   // 其余类型后续注册
 };
 ```
+
+> 用 `Partial<Record<...>>` 表达“枚举已定义但组件未实现”的中间态；`validate:content` 会校验任何 `hasAnimation` 概念引用的 `type` 必须在 REGISTRY 中存在实现（见 [content-schema.md](content-schema.md) §6.1）。
+
+### 3.1 AnimationCanvas 组件契约（8 个动画组件统一实现）
+
+每个机制画布组件都接收统一的只读 props，**自身不持有播放状态、不写步骤数据**，仅按当前步渲染：
+
+```ts
+interface AnimationCanvasProps {
+  config: AnimationConfig;   // 完整配置（type / title / steps）
+  step: AnimationStep;       // 当前步（= config.steps[stepIndex]）
+  stepIndex: number;         // 当前步下标，从 0 起
+  totalSteps: number;        // 总步数
+  reducedMotion: boolean;    // 是否启用减弱动效（见下）
+}
+```
+
+- `highlightTargets` 语义：`AnimationStep.highlightTargets` 是该步需要高亮的画布元素 key 列表；各 canvas 组件维护一个 `元素 key → 高亮样式` 的映射，仅高亮命中项，其余保持基态。key 命名在组件内自定义但需稳定。
+- 画布只读：组件不调用计时器、不修改 `config`；推进由 `AnimationPlayer` 负责。
+
+### 3.2 未注册类型 fallback
+
+- `AnimationPlayer` 通过 `config.type` 查 REGISTRY；命中则渲染对应 canvas。
+- **未命中**（类型未实现）时：渲染降级占位（标题 + 当前步 `title/description` 的纯文本步骤视图 + 步骤计数），保证页面不崩、阅读不中断，并在开发模式 `console.warn` 提示“未注册的 AnimationType”。
+- 生产环境不得因未注册类型抛错或白屏。
+
+### 3.3 移动端尺寸与可访问性
+
+- 画布自适应容器宽度，深色画布区设最小高度（约 236px）与最大宽度（约 600–640px 居中），移动端单列、可横向内部滚动但页面整体无横向滚动。
+- **reduced motion**：尊重 `prefers-reduced-motion`。开启时 `reducedMotion=true`，组件禁用自动过渡/循环动效，仅做“按步切换的静态状态”渲染；`AnimationPlayer` 关闭自动播放计时（保留手动上一步/下一步）。
+- 控制按钮可键盘聚焦与操作，提供可辨识的聚焦态。
 
 ## 4. 视觉约束（来自 design.md）
 
