@@ -1,7 +1,7 @@
 import type { KnowledgePoint } from '../types';
 
 /**
- * 12 讲 MVP 样板内容。
+ * MVP 样板与扩展内容。
  * 来源：content/drafts/*.json，经 reviews/content-review-12-lessons-round-02.md 复核通过后由主开发入库。
  */
 export const demoConcepts: KnowledgePoint[] = [
@@ -2275,5 +2275,449 @@ export const demoConcepts: KnowledgePoint[] = [
       "企业治理应使用评测、trace、人工复核和升级路径闭环。"
     ],
     "relatedConceptIds": ["autoregressive", "sampling", "attention", "context-window", "eval", "trace"]
+  },
+  {
+    "id": "reasoning-limit",
+    "title": "推理能力边界",
+    "slug": "reasoning-limit",
+    "moduleId": "m1",
+    "order": 10,
+    "difficulty": "intermediate",
+    "estimatedMinutes": 12,
+    "tags": ["Reasoning", "任务拆解", "工具调用", "Eval", "人审"],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "推理能力边界是模型在长链路任务、隐含约束、反事实判断、数学精确性和跨文件一致性上会失真的范围；它由上下文组织、任务拆解、工具可用性、反馈闭环和验证机制共同决定。",
+    "whyItMatters": "企业 AI 应用不能把模型当成一次性正确的决策者。推理边界一旦被忽略，用户看到的是“前面说得很像对，后面执行错了”：审批结论漏约束、Agent 改错文件、运营分析把口径混用、合规问答忽略例外条款。平台侧要看任务成功率、步骤级错误率、人工升级率、工具调用成功率、评测集回归和跨轮一致性，而不是只看单轮回答是否流畅。",
+    "mentalModel": "模型的推理像一个很强的临时分析师，但桌上资料、问题拆法、可用工具和复核机制决定了它能不能把复杂案子办完。短题里它可能表现很好；一旦任务跨越多份材料、多个约束和多轮动作，就必须把“聪明回答”改造成“可检查流程”。",
+    "mechanism": [
+      "模型先在给定上下文内完成模式匹配和链式生成，但不会天然知道哪些约束必须跨步骤保持。",
+      "上下文过长、证据冲突或关键条件被压缩掉时，模型会用看似合理的推断补空白。",
+      "任务拆解不清会让模型在子目标之间漂移，例如先解释、再计划、再执行时口径逐步偏离。",
+      "工具和外部校验能把部分推理转化为可验证操作，例如查询数据、运行测试、检查权限。",
+      "反馈闭环决定错误是否被拦住：无评测、无 trace、无人审的链路会把早期误判继续放大。",
+      "MaaS 或 Agent 平台要把复杂任务拆成计划、执行、检查、升级，而不是只放大 prompt。"
+    ],
+    "enterpriseCase": {
+      "title": "财务分析 Agent 在跨表口径中得出错误结论",
+      "scenario": "某集团把月度经营分析交给 Agent，任务涉及 8 张报表、3 个区域口径和一份例外政策，每月约 400 次分析请求。",
+      "problem": "模型生成的文字结构清晰，但把“确认收入”和“开票收入”混用，导致两个区域的毛利率解释错误；人工复核发现复杂任务首版通过率只有 71%。",
+      "analysis": "上下文里同时存在历史口径和新口径，任务没有拆成“口径确认 -> 数据查询 -> 计算校验 -> 文字生成”，模型在长链路里用语言连贯性补齐了缺失验证。",
+      "solution": "把任务拆为四个检查点：先确认口径和期间，再用工具取数，再运行公式校验，最后生成结论；高金额差异必须触发人工复核。",
+      "takeaway": "推理能力边界不是模型笨，而是复杂任务缺少可验证中间态。"
+    },
+    "pitfalls": [
+      "认为模型在短问答中表现好，就能稳定完成长链路企业任务。",
+      "把错误全部归因于模型能力，不检查上下文、工具权限、任务拆解和验证点。",
+      "用更长 prompt 堆约束，却不建立步骤级检查和失败升级。",
+      "把“让模型解释推理过程”当成可靠验证，忽略外部数据和测试结果。",
+      "只看最终答案正确率，不看中间步骤错误率和人工接管位置。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-reasoning-limit-1",
+      "type": "single",
+      "scenario": "财务 Agent 在 8 张报表上生成经营分析，文字流畅，但抽检发现它混用了确认收入和开票收入。日志显示模型没有调用公式校验工具，直接生成结论。",
+      "question": "最应该优先修复什么？",
+      "options": [
+        { "id": "a", "text": "换成参数更大的模型，提升复杂推理能力" },
+        { "id": "b", "text": "把所有财务制度全文加入系统提示词" },
+        { "id": "c", "text": "要求模型在答案里展示更完整的思考过程" },
+        { "id": "d", "text": "把任务拆成口径确认、取数、公式校验、结论生成，并对高风险差异加人审" }
+      ],
+      "correctOptionIds": ["d"],
+      "explanation": "D 把一次性生成变成可验证流程，直接覆盖口径混用和缺校验问题。A 是强干扰项，更大模型可能改善部分推理，但不能保证口径和公式被验证。B 会增加上下文负担，仍可能混用。C 展示过程不等于外部验证，甚至可能把错误解释得更像真的。",
+      "troubleshootingPath": ["找出错误发生在口径识别、取数、计算还是表达阶段", "查看是否调用了数据查询、公式校验和版本化规则工具", "为高风险报表建立步骤级 trace", "把复杂任务拆成可回放检查点", "用历史错例评测任务通过率和人工升级率"],
+      "relatedConceptIds": ["hallucination", "context-window", "agent-loop", "tool-calling", "eval", "trace", "human-in-the-loop"]
+    },
+    "keyTakeaways": [
+      "推理边界由模型、上下文、任务拆解、工具和验证机制共同决定。",
+      "企业应用不能假设模型一次性正确，必须设计检查点。",
+      "长链路任务要把推理转化为可观测、可回放、可升级的流程。",
+      "评测集和人工复核是推理边界的工程护栏。"
+    ],
+    "relatedConceptIds": ["hallucination", "context-window", "agent-loop", "tool-calling", "eval", "trace", "human-in-the-loop"]
+  },
+  {
+    "id": "tpot",
+    "title": "TPOT",
+    "slug": "tpot",
+    "moduleId": "m2",
+    "order": 4,
+    "difficulty": "intermediate",
+    "estimatedMinutes": 8,
+    "tags": ["TPOT", "Decode", "吞吐", "流式输出", "推理性能"],
+    "contentStatus": "mvp",
+    "hasAnimation": true,
+    "definition": "TPOT 是首个输出 token 之后，每个后续 token 的平均生成耗时，用来衡量 Decode 阶段“说得快不快”。",
+    "whyItMatters": "TTFT 决定用户等多久开始看到响应，TPOT 决定响应开始后是否顺滑。客服、代码生成、长文总结和 Agent 日志流中，TPOT 高会表现为文字一卡一卡、完整答案拖很久、流式输出体验差。平台侧要同时看 TPOT、输出 token 数、P50/P95/P99、batch 大小、KV Cache 命中、显存带宽和并发队列，而不能只看总耗时。",
+    "mentalModel": "首字像主持人终于开口，TPOT 像他说话的语速。开口慢可能是前面读材料和排队；说话慢多半发生在逐 token Decode 阶段，和模型大小、并发、缓存、batch、显存带宽以及解码策略有关。",
+    "mechanism": [
+      "Prefill 完成后，模型进入 Decode，每一步生成一个或少量 token。",
+      "TPOT 统计首 token 之后后续 token 的平均间隔，主要反映 Decode 阶段效率。",
+      "模型越大、并发越高、KV 读写越重、显存带宽越紧，TPOT 越容易上升。",
+      "Batch 调度会影响 TPOT：大 batch 提升吞吐，但可能让单个请求等待更久或间隔变宽。",
+      "投机解码、量化和缓存优化可能降低 TPOT，但收益取决于命中率、质量回归和硬件适配。"
+    ],
+    "animation": {
+      "type": "prefill-decode",
+      "title": "首 Token 后的 TPOT",
+      "steps": [
+        { "id": "s1", "title": "首个 Token 输出", "description": "Prefill 结束后，首个输出 token 出现，TTFT 到此结束。", "highlightTargets": ["first-output-token"] },
+        { "id": "s2", "title": "进入 Decode 循环", "description": "后续 token 逐步生成，体验从“等开口”变成“说得快不快”。", "highlightTargets": ["decode-loop"] },
+        { "id": "s3", "title": "观察 TPOT 标尺", "description": "TPOT 衡量首 token 之后相邻输出 token 的平均间隔。", "highlightTargets": ["tpot"] },
+        { "id": "s4", "title": "间隔变宽导致卡顿", "description": "并发、batch、显存带宽或 KV 读写压力会让 token 间隔变宽，流式输出像被卡住。", "highlightTargets": ["token-interval", "tpot"] },
+        { "id": "s5", "title": "长输出累计等待", "description": "输出越长，TPOT 的小幅上升越会放大成完整答案的明显等待。", "highlightTargets": ["long-output", "total-latency"] }
+      ]
+    },
+    "enterpriseCase": {
+      "title": "代码助手首字很快但输出像挤牙膏",
+      "scenario": "某研发平台的代码助手日均 9 万次补全，升级到更大模型后首字时间维持在 1.2 秒左右。",
+      "problem": "开发者反馈响应开始后明显变慢，平均 TPOT 从 38ms 升到 115ms，长函数生成的 P95 完成时间增加 2.4 倍。",
+      "analysis": "Prefill 优化和缓存仍有效，所以 TTFT 没有恶化；真正瓶颈在 Decode 阶段，模型更大、并发 batch 变深且 KV 读写压力增加。",
+      "solution": "按任务分层路由短补全和长生成，限制低价值长输出；在灰度中对比 TPOT、吞吐、质量回归和成本，评估量化与投机解码收益。",
+      "takeaway": "TPOT 是首字后体验的核心指标，不能被 TTFT 掩盖。"
+    },
+    "pitfalls": [
+      "把 TTFT 和 TPOT 混成一个“延迟”，导致优化方向错误。",
+      "只优化首字时间，却忽略长输出场景的完整等待。",
+      "看到流式输出就认为体验一定好，实际 token 间隔过宽仍会卡顿。",
+      "用扩容解决所有慢问题，不拆分 Decode、batch 和 KV 读写瓶颈。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-tpot-1",
+      "type": "single",
+      "scenario": "代码助手首字时间稳定在 1 秒左右，但开始输出后每几个字停顿一次。监控显示输出 token 数相近，TPOT 从 40ms 升到 120ms，KV 命中率没有明显下降。",
+      "question": "第一步应该优先看什么？",
+      "options": [
+        { "id": "a", "text": "Decode 阶段的并发 batch、显存带宽和模型版本变化" },
+        { "id": "b", "text": "是否应把系统提示词缩短一半以降低 Prefill" },
+        { "id": "c", "text": "是否需要提高 temperature 让模型输出更自然" },
+        { "id": "d", "text": "是否应该只看端到端总耗时，避免过度拆指标" }
+      ],
+      "correctOptionIds": ["a"],
+      "explanation": "A 直接对应 TPOT 上升和首字后卡顿。B 是强干扰项，缩短输入会改善 Prefill/TTFT，但题干显示首字稳定且 KV 命中没有下降。C 影响采样行为，不是性能第一排查。D 会掩盖 Prefill 与 Decode 的分工。",
+      "troubleshootingPath": ["分离 TTFT、TPOT、输出 token 数和端到端完成时间", "按模型版本、并发、batch 和 GPU 实例拆分 TPOT", "查看 Decode 阶段 KV 读写、显存带宽和队列等待", "对长输出任务做路由和最大长度分层", "灰度评估量化、投机解码或调度策略对质量和 TPOT 的影响"],
+      "relatedConceptIds": ["prefill", "decode", "ttft", "kv-cache", "batch-scheduling", "speculative-decoding", "quantization"]
+    },
+    "keyTakeaways": [
+      "TTFT 回答“多久开始说”，TPOT 回答“说得快不快”。",
+      "TPOT 主要反映 Decode 阶段体验。",
+      "长输出场景必须同时看 TPOT 和输出 token 数。",
+      "优化 TPOT 要联动模型、batch、KV Cache、硬件和解码策略。"
+    ],
+    "relatedConceptIds": ["prefill", "decode", "ttft", "kv-cache", "batch-scheduling", "speculative-decoding", "quantization"]
+  },
+  {
+    "id": "session-affinity",
+    "title": "Session 亲和",
+    "slug": "session-affinity",
+    "moduleId": "m2",
+    "order": 6,
+    "difficulty": "advanced",
+    "estimatedMinutes": 10,
+    "tags": ["Session 亲和", "KV Cache", "TTFT", "负载均衡", "MaaS"],
+    "contentStatus": "mvp",
+    "hasAnimation": true,
+    "definition": "Session 亲和是让同一会话的连续请求尽量路由到持有相关上下文和 KV Cache 的实例，以提升缓存命中和上下文连续性。",
+    "whyItMatters": "Session 亲和不是“粘住用户”这么简单，而是为了让多轮对话、Agent 任务和长上下文链路保持性能与状态连续。亲和失效时，用户看到的是首字忽快忽慢、上下文像丢了、限流策略不一致、同一任务重复计算。平台侧要看 KV Cache 命中率、会话迁移率、实例热点、P99 TTFT、故障切换成功率和亲和过期策略。",
+    "mentalModel": "会话像一份正在办理的案卷。每次都回到同一个柜台，柜台有之前读过的材料和处理记录；如果每轮都随机换柜台，就会反复翻案卷，甚至丢掉一些临时状态。但永远只找一个柜台也会造成排队和单点风险。",
+    "mechanism": [
+      "首轮请求经过 Prefill 后，会在实例上形成 KV Cache 和会话相关状态。",
+      "后续请求如果路由到同一实例或同一缓存域，可复用前缀缓存，降低重复 Prefill。",
+      "如果请求被打散到不同实例，缓存未命中会导致 TTFT 上升，并可能触发重复上下文处理。",
+      "亲和策略需要与负载均衡、扩缩容、限流、故障转移和租户隔离一起设计。",
+      "过度亲和会造成热点实例、负载不均和容灾困难，因此要设置 TTL、迁移条件和降级路径。"
+    ],
+    "animation": {
+      "type": "kv-cache",
+      "title": "Session 亲和命中与打散重算",
+      "steps": [
+        { "id": "s1", "title": "同一会话进入实例", "description": "多轮请求携带 session id，路由层尝试让它回到持有上下文的实例。", "highlightTargets": ["session", "instance"] },
+        { "id": "s2", "title": "首轮写入 KV Cache", "description": "首轮 Prefill 后，实例保存已读上下文的 K/V 笔记。", "highlightTargets": ["prefill", "kv-write"] },
+        { "id": "s3", "title": "亲和命中复用缓存", "description": "后续请求命中同一缓存域，Decode 可以复用已有 KV，TTFT 更低。", "highlightTargets": ["cache-hit", "decode"] },
+        { "id": "s4", "title": "路由打散导致未命中", "description": "扩容或负载均衡把请求打到空缓存实例，需要重新 Prefill。", "highlightTargets": ["route-miss", "cache-miss"] },
+        { "id": "s5", "title": "过度亲和带来热点", "description": "长会话和热门租户会挤占显存，亲和策略还要处理容量、淘汰和容灾。", "highlightTargets": ["memory", "eviction"] }
+      ]
+    },
+    "enterpriseCase": {
+      "title": "多轮客服会话高峰期首字抖动",
+      "scenario": "某 MaaS 平台承载 60 个业务应用，客服助手单日约 35 万轮对话，高峰期自动扩容。",
+      "problem": "用户反馈同一会话前几轮很快，后几轮首字突然从 900ms 升到 4.5s；监控显示会话迁移率从 8% 升到 37%，KV 命中率下降到 22%。",
+      "analysis": "扩容后负载均衡只按实例空闲度分配，没有保持会话亲和；部分限流状态也跟着实例变化，导致体验不稳定。",
+      "solution": "引入基于 session id 的一致性路由和缓存域，设置热点迁移阈值与亲和 TTL；扩容时预热热门会话并监控迁移率。",
+      "takeaway": "Session 亲和提升缓存命中，但必须和热点、容灾、限流一起治理。"
+    },
+    "pitfalls": [
+      "把 Session 亲和理解成用户粘性，而不是缓存和状态连续性。",
+      "只追求亲和命中率，忽略热点实例和负载不均。",
+      "扩缩容时不迁移或预热缓存，导致高峰期大量重算。",
+      "会话状态、限流和缓存策略分别设计，出了问题难以复盘。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-session-affinity-1",
+      "type": "single",
+      "scenario": "MaaS 平台扩容后，同一客服会话的 TTFT 波动明显。KV 命中率下降，会话迁移率上升，但 GPU 利用率并未持续打满。",
+      "question": "最应该优先排查哪项？",
+      "options": [
+        { "id": "a", "text": "是否需要把所有请求固定到最空闲的实例" },
+        { "id": "b", "text": "扩容后的 session 路由是否打散了持有 KV Cache 的会话" },
+        { "id": "c", "text": "是否应该提高输出 token 上限，让回答更完整" },
+        { "id": "d", "text": "是否需要把 temperature 降到 0" }
+      ],
+      "correctOptionIds": ["b"],
+      "explanation": "B 直接对应会话迁移率上升和 KV 命中下降。A 是强干扰项，按空闲实例分配看似均衡，但会破坏会话缓存。C 影响输出长度和 TPOT，不解决首字抖动。D 影响随机性，不解释缓存命中下降。",
+      "troubleshootingPath": ["按 session id 追踪连续请求落到哪些实例", "对比命中与未命中的 TTFT、Prefill 时长和缓存状态", "检查扩缩容、故障转移和负载均衡策略是否绕过亲和", "识别热点会话与实例负载不均", "设置亲和 TTL、迁移条件、缓存预热和故障降级"],
+      "relatedConceptIds": ["kv-cache", "prefill", "ttft", "model-gateway", "rate-limit-circuit-break", "sla"]
+    },
+    "keyTakeaways": [
+      "Session 亲和的核心价值是 KV Cache 命中和上下文连续。",
+      "请求打散会带来重复 Prefill、TTFT 抖动和状态不一致。",
+      "亲和策略必须平衡缓存收益、热点风险和容灾能力。",
+      "平台要把会话迁移率与缓存命中率作为一组指标看。"
+    ],
+    "relatedConceptIds": ["kv-cache", "prefill", "ttft", "model-gateway", "rate-limit-circuit-break", "sla"]
+  },
+  {
+    "id": "batch-scheduling",
+    "title": "Batch 调度",
+    "slug": "batch-scheduling",
+    "moduleId": "m2",
+    "order": 7,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": ["Batch", "调度", "吞吐", "P99", "SLA"],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Batch 调度是在推理服务中把多个请求组织成批处理，并在吞吐、延迟、公平性和稳定性之间做权衡的系统策略。",
+    "whyItMatters": "Batch 决定 GPU 是否吃饱，也决定用户请求是否在队列里等太久。平台负责人看到的是吞吐、P99、排队时长、TPOT、超时率、租户公平性和成本；用户看到的是“有时很快、有时突然卡住”。Batch 调度出问题时，扩容不一定解决，因为瓶颈可能在队列策略、优先级、连续批处理或长短请求混排。",
+    "mentalModel": "推理服务像一组电梯。一次只载一个人响应最快但浪费运力；等满一电梯再走吞吐高但有人会等很久。好的调度不是永远大 batch 或小 batch，而是按任务、SLA 和队列状态动态决定谁一起走、谁优先走、谁不能拖垮别人。",
+    "mechanism": [
+      "请求到达后先进入队列，调度器按时间窗、优先级和资源状态组成 batch。",
+      "大 batch 能提高吞吐和 GPU 利用率，但会增加单个请求的等待和尾延迟风险。",
+      "小 batch 响应更快，但吞吐低、成本高，GPU 可能空转。",
+      "连续批处理会在 Decode 过程中动态加入新请求，改善吞吐但需要复杂的 KV 和队列管理。",
+      "长输出、长输入和高优任务混排时，会互相影响 TTFT、TPOT、P99 和公平性。",
+      "企业平台需要按租户、任务类型和 SLA 做隔离、优先级和超时策略。"
+    ],
+    "enterpriseCase": {
+      "title": "知识库问答高峰期 P99 突然拉长",
+      "scenario": "某企业 MaaS 平台服务 40 个内部应用，工作日上午知识库问答峰值达到每分钟 1.8 万请求。",
+      "problem": "平均延迟只上升 18%，但 P99 从 6 秒升到 24 秒；投诉集中在客服和法务两个高优应用。",
+      "analysis": "平台为了提高吞吐把 batch 等待窗口调大，低优批量摘要和高优问答混在同一队列；长输出任务占用 Decode，导致短请求排队。",
+      "solution": "拆分在线问答和离线摘要队列，为高优应用设置最大等待时间和保底并发；启用动态 batch 上限，按 P99 和吞吐共同调参。",
+      "takeaway": "Batch 调度不是单纯提高吞吐，而是 SLA、成本和公平性的权衡。"
+    },
+    "pitfalls": [
+      "认为 batch 越大越好，只看吞吐不看 P99 和用户等待。",
+      "看到 P99 高就盲目扩容，不检查队列等待和任务混排。",
+      "所有租户共用一个队列，忽略高优应用和离线任务隔离。",
+      "只看平均延迟，掩盖尾部用户长时间等待。",
+      "调度策略上线后不按任务类型回放评测，导致局部收益、整体退化。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-batch-scheduling-1",
+      "type": "single",
+      "scenario": "平台把 batch 等待窗口调大后，总吞吐提升 28%，但客服应用 P99 从 5 秒升到 19 秒。日志显示客服问答与低优批量摘要共享队列。",
+      "question": "第一步最合理的处理是什么？",
+      "options": [
+        { "id": "a", "text": "继续增大 batch，让 GPU 利用率进一步提高" },
+        { "id": "b", "text": "立即把所有请求都切到小 batch，牺牲吞吐换体验" },
+        { "id": "c", "text": "按任务和 SLA 拆队列，限制高优请求最大等待，并观察 P99 与吞吐" },
+        { "id": "d", "text": "只增加前端 loading 提示，降低用户焦虑" }
+      ],
+      "correctOptionIds": ["c"],
+      "explanation": "C 同时处理任务混排、优先级和尾延迟。A 是强干扰项，吞吐更高可能继续恶化高优 P99。B 方向过猛，会让离线和低优任务成本失控，也不是第一步。D 只改善感知，不解决调度瓶颈。",
+      "troubleshootingPath": ["拆分排队时间、Prefill、Decode 和输出 token 数", "按租户、任务类型和优先级统计 batch 组成", "查看长输入/长输出任务是否阻塞短请求", "设置队列隔离、最大等待时间和动态 batch 上限", "用 P50/P95/P99、吞吐和成本共同评估调度策略"],
+      "relatedConceptIds": ["tpot", "ttft", "decode", "prefill", "session-affinity", "sla", "rate-limit-circuit-break"]
+    },
+    "keyTakeaways": [
+      "Batch 调度是在吞吐、延迟和公平性之间做工程权衡。",
+      "大 batch 不等于好体验，小 batch 不等于好成本。",
+      "P99、排队时间和任务混排是调度排查重点。",
+      "企业 MaaS 要按租户、任务类型和 SLA 做调度隔离。"
+    ],
+    "relatedConceptIds": ["tpot", "ttft", "decode", "prefill", "session-affinity", "sla", "rate-limit-circuit-break"]
+  },
+  {
+    "id": "pd-separation",
+    "title": "P-D 分离",
+    "slug": "pd-separation",
+    "moduleId": "m2",
+    "order": 8,
+    "difficulty": "advanced",
+    "estimatedMinutes": 12,
+    "tags": ["Prefill", "Decode", "P-D 分离", "推理架构", "KV Cache"],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "P-D 分离是把 Prefill 和 Decode 两类资源特征不同的推理负载拆开调度，以提升资源利用率、吞吐和稳定性。",
+    "whyItMatters": "Prefill 更像大矩阵并行计算，Decode 更受逐 token 生成、KV 读写和串行性影响。把两者混在一组资源里，长上下文请求可能拖慢首字，长输出请求又可能占住 Decode。企业平台关心的是 TTFT、TPOT、GPU 利用率、KV 传输开销、队列长度和故障边界；P-D 分离能优化这些指标，但也会引入链路编排复杂度。",
+    "mentalModel": "把推理工厂拆成“读材料车间”和“逐字产出车间”。读材料适合大批量并行，逐字产出需要稳定接力。两个车间分开后，各自更高效；但中间要搬运半成品，调度和故障定位也更难。",
+    "mechanism": [
+      "Prefill 处理完整输入上下文，计算密集且可并行，常影响 TTFT。",
+      "Decode 按 token 逐步生成，更受 KV Cache 读写、显存带宽和输出长度影响。",
+      "P-D 分离把 Prefill 请求和 Decode 请求放到不同资源池或调度队列中。",
+      "分离后可为长输入和长输出分别配置资源、batch 和优先级，提高整体稳定性。",
+      "代价是需要在阶段间传递 KV 或中间状态，并处理失败重试、路由一致和观测追踪。",
+      "如果链路编排不清，故障会从单点性能问题变成跨池排查问题。"
+    ],
+    "enterpriseCase": {
+      "title": "长文档问答拖慢短会话生成",
+      "scenario": "某 MaaS 平台同时服务知识库问答和代码补全，每日约 260 万次请求，其中 15% 请求携带超长文档。",
+      "problem": "长文档问答上线后，代码补全 TPOT 和 P99 明显波动；GPU 利用率看似很高，但短请求体验下降。",
+      "analysis": "长输入请求在同一资源池占用 Prefill，长输出请求继续占用 Decode，两个阶段互相挤压；平台只有端到端延迟，缺少 Prefill/Decode 分段队列指标。",
+      "solution": "把长输入 Prefill 迁入独立资源池，对 Decode 池设置短交互任务优先级；增加 KV 传输监控和跨池 trace。",
+      "takeaway": "P-D 分离能提升稳定性，但必须补齐阶段间观测和回退策略。"
+    },
+    "pitfalls": [
+      "认为 P-D 分离只是把服务拆成两个进程，忽略 KV 和路由编排。",
+      "只看 GPU 利用率，不看 Prefill 队列、Decode 队列和阶段间等待。",
+      "为所有应用统一启用 P-D 分离，不评估请求长度分布和收益。",
+      "忽略失败重试和跨池 trace，导致故障定位更困难。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-pd-separation-1",
+      "type": "single",
+      "scenario": "长文档问答上线后，短代码补全的 TPOT 和 P99 都变差。监控只有端到端延迟，无法区分 Prefill 排队和 Decode 排队。",
+      "question": "最合理的第一步是什么？",
+      "options": [
+        { "id": "a", "text": "直接全量启用 P-D 分离，把所有请求拆到两个池" },
+        { "id": "b", "text": "先补齐 Prefill/Decode 分段指标和请求长度分布，再评估分池与优先级策略" },
+        { "id": "c", "text": "把长文档问答的 temperature 降低，减少输出随机性" },
+        { "id": "d", "text": "只扩容当前统一推理池，避免架构复杂化" }
+      ],
+      "correctOptionIds": ["b"],
+      "explanation": "B 先建立分段观测，再决定是否 P-D 分离和如何分池。A 是强干扰项，方向可能对，但在没有分段指标和长度分布前全量拆分风险很高。C 不解决资源阶段挤压。D 可能缓解总容量，但无法处理长短请求互相干扰和阶段差异。",
+      "troubleshootingPath": ["为请求记录输入 token、输出 token、Prefill 队列、Decode 队列和阶段耗时", "按任务类型分析长输入与长输出对 TTFT/TPOT 的影响", "评估 Prefill 池和 Decode 池的资源配置与 KV 传输成本", "为短交互任务设置 Decode 优先级", "灰度验证 P99、吞吐、成本和故障恢复路径"],
+      "relatedConceptIds": ["prefill", "decode", "tpot", "ttft", "kv-cache", "batch-scheduling", "observability"]
+    },
+    "keyTakeaways": [
+      "Prefill 和 Decode 的资源特征不同，混跑会产生互相干扰。",
+      "P-D 分离能改善利用率和稳定性，但不是免费优化。",
+      "阶段间 KV 传输、路由和 trace 是落地难点。",
+      "上线前必须先有分段指标和灰度回归。"
+    ],
+    "relatedConceptIds": ["prefill", "decode", "tpot", "ttft", "kv-cache", "batch-scheduling", "observability"]
+  },
+  {
+    "id": "speculative-decoding",
+    "title": "投机解码",
+    "slug": "speculative-decoding",
+    "moduleId": "m2",
+    "order": 9,
+    "difficulty": "advanced",
+    "estimatedMinutes": 10,
+    "tags": ["Speculative Decoding", "Decode", "TPOT", "草稿模型", "吞吐"],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "投机解码是用较小或较快的草稿模型先生成多个候选 token，再由目标大模型并行验证，从而在命中率高时加速 Decode。",
+    "whyItMatters": "Decode 的逐 token 串行性会限制 TPOT。投机解码试图用“先草拟、再验证”的方式减少大模型逐步前进的次数。它主要影响 TPOT、吞吐和成本，但收益高度依赖草稿模型质量、接受率、验证成本、输出分布和系统实现。用户看到的是首字后输出更顺，或在命中低时反而更慢、更贵。",
+    "mentalModel": "投机解码像让助理先写几句草稿，专家一次性快速审阅：如果草稿大多对，专家就能更快往前；如果草稿经常错，专家不但要审，还要重写，反而浪费时间。",
+    "mechanism": [
+      "草稿模型先根据当前上下文预测一串候选 token。",
+      "目标大模型并行验证这些候选是否符合自己的分布。",
+      "被接受的 token 可以一次性推进多个生成步，降低平均 TPOT。",
+      "如果候选经常被拒绝，草稿计算和验证成本会抵消收益。",
+      "接受率受任务类型、模型差距、采样策略、输出格式和领域分布影响。",
+      "企业平台需要用线上回放评估质量、延迟、吞吐和成本，而不是只看理论加速比。"
+    ],
+    "enterpriseCase": {
+      "title": "客服摘要开启投机解码后收益不稳定",
+      "scenario": "某 MaaS 平台为客服对话摘要服务开启投机解码，日均 80 万次长输出请求。",
+      "problem": "通用摘要任务 TPOT 降低 32%，但金融投诉摘要几乎无收益，部分批次成本反而上升 9%。",
+      "analysis": "草稿模型在通用客服语料上接受率高，在金融投诉场景中术语、格式和合规措辞与目标模型差异大，候选 token 被频繁拒绝。",
+      "solution": "按任务类型统计接受率、验证开销和质量回归；只在高接受率任务启用投机解码，低接受率场景改用模型路由或输出结构优化。",
+      "takeaway": "投机解码不是让模型“猜答案”，而是系统级 Decode 加速策略，必须按任务分层启用。"
+    },
+    "pitfalls": [
+      "认为投机解码会改变答案质量，本质上目标模型仍负责验证和接受。",
+      "只看平均加速，不看接受率低的任务和 P99 退化。",
+      "草稿模型越小越好，忽略候选质量下降带来的拒绝成本。",
+      "全量启用，不按任务类型、输出格式和领域分布分层。",
+      "把投机解码当成 TTFT 优化，忽略它主要作用于 Decode/TPOT。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-speculative-decoding-1",
+      "type": "single",
+      "scenario": "平台给所有长输出任务开启投机解码。通用客服摘要变快，但金融投诉摘要 TPOT 基本不变，成本上升。日志显示候选 token 接受率很低。",
+      "question": "最应该优先调整什么？",
+      "options": [
+        { "id": "a", "text": "把 max output tokens 提高，让投机解码有更多发挥空间" },
+        { "id": "b", "text": "把温度提高，让草稿模型生成更多样候选" },
+        { "id": "c", "text": "增加 Prefill 缓存，优先降低首字时延" },
+        { "id": "d", "text": "按任务类型统计接受率和验证成本，只在高接受率场景启用或替换草稿模型" }
+      ],
+      "correctOptionIds": ["d"],
+      "explanation": "D 直接处理接受率低导致收益消失的问题。A 会增加输出长度和成本，不保证接受率提升。B 可能让候选更偏离目标模型。C 优化 Prefill/TTFT，而题干是 Decode 加速收益不稳定。",
+      "troubleshootingPath": ["按任务、模型版本和输出格式统计接受率", "拆分草稿生成成本、目标验证成本和实际 TPOT", "回放低接受率样本，判断是领域术语、格式还是采样策略导致", "为高接受率任务灰度启用，低接受率任务关闭或换草稿模型", "同步检查质量回归和成本变化"],
+      "relatedConceptIds": ["decode", "tpot", "batch-scheduling", "quantization", "multi-model-routing", "eval"]
+    },
+    "keyTakeaways": [
+      "投机解码用草稿模型提议 token，由目标模型验证。",
+      "收益来自高接受率，不来自“猜得大胆”。",
+      "它主要优化 Decode/TPOT，不是 Prefill 的替代方案。",
+      "企业平台应按任务接受率、质量和成本分层启用。"
+    ],
+    "relatedConceptIds": ["decode", "tpot", "batch-scheduling", "quantization", "multi-model-routing", "eval"]
+  },
+  {
+    "id": "quantization",
+    "title": "量化",
+    "slug": "quantization",
+    "moduleId": "m2",
+    "order": 10,
+    "difficulty": "intermediate",
+    "estimatedMinutes": 10,
+    "tags": ["Quantization", "显存", "吞吐", "成本", "质量回归"],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "量化是用更低精度表示模型权重或激活，以降低显存和计算成本，并在质量可接受时提升部署密度和吞吐。",
+    "whyItMatters": "企业平台常常不是“有没有模型”，而是“同样预算能承载多少请求、延迟是否稳定、质量是否回归”。量化会影响显存占用、吞吐、TPOT、硬件兼容和模型质量。用户看到的可能是响应更快、并发更稳，也可能是边界任务准确率下降、格式稳定性变差或多语言表现退化。",
+    "mentalModel": "量化像把高清工程图压缩成更轻的版本。文件更小、传输和存储更省，但细节可能丢失。能不能用，不看压缩率本身，而看关键任务的质量细节有没有被压坏。",
+    "mechanism": [
+      "模型原本可能用 FP16/BF16 等较高精度表示权重和计算。",
+      "量化把部分权重或激活转换成 INT8、INT4 等低精度表示，降低显存占用。",
+      "显存占用下降后，同一硬件可部署更大模型或更多并发实例。",
+      "不同量化策略对速度、显存、精度和硬件支持影响不同，不能只看位宽。",
+      "质量风险常出现在数学、代码、长上下文、多语言和严格格式任务。",
+      "上线必须做任务级质量回归、吞吐/TPOT 对比和异常样本抽检。"
+    ],
+    "enterpriseCase": {
+      "title": "客服模型量化后成本下降但代码任务退化",
+      "scenario": "某平台把 14B 模型从 FP16 切到 8-bit 量化，目标是在同样 GPU 集群上承载更多租户。",
+      "problem": "客服问答吞吐提升 42%，显存占用下降约 35%；但代码解释任务的单元测试通过率从 86% 降到 78%，格式错误率上升。",
+      "analysis": "量化对通用客服语义影响较小，但对代码细节、符号和格式边界更敏感；平台最初只看平均满意度和成本，没有按任务回归。",
+      "solution": "按任务建立质量回归集，对客服默认启用量化模型，对代码、财务计算和高风险合规任务保留高精度或更严格灰度。",
+      "takeaway": "量化是部署和成本策略，不是无损加速开关。"
+    },
+    "pitfalls": [
+      "认为位宽越低越好，只看显存节省，不看质量回归。",
+      "一次量化全平台上线，不按任务风险分层。",
+      "只测平均问答质量，不测代码、数学、格式和长上下文边界。",
+      "忽略硬件和推理框架支持，导致理论压缩没有转化为实际吞吐。",
+      "把量化收益和 batch、缓存、路由收益混在一起，无法判断真实来源。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-quantization-1",
+      "type": "single",
+      "scenario": "平台把多个应用切到 4-bit 量化模型后，平均成本下降，但代码生成任务的测试通过率下降，客服 FAQ 基本不受影响。",
+      "question": "最合理的下一步是什么？",
+      "options": [
+        { "id": "a", "text": "继续全量推进量化，因为平均成本已经下降" },
+        { "id": "b", "text": "只提高代码任务的 max output tokens，让模型补充更多解释" },
+        { "id": "c", "text": "按任务风险做质量回归和路由分层，让敏感任务保留更高精度或灰度策略" },
+        { "id": "d", "text": "把所有任务都改用更大 batch，提高吞吐抵消质量下降" }
+      ],
+      "correctOptionIds": ["c"],
+      "explanation": "C 同时处理量化收益和任务质量差异。A 是强干扰项，平均成本不能覆盖代码任务退化。B 增加输出不会恢复量化丢失的边界精度，还可能增加成本。D 优化吞吐，不解决质量回归。",
+      "troubleshootingPath": ["按任务类型比较量化前后的质量、格式错误、TPOT 和成本", "找出对精度敏感的代码、数学、合规和长上下文样本", "检查硬件和推理框架是否真正支持该量化策略", "为低风险任务启用量化，为高风险任务保留高精度或加灰度", "持续监控质量回归和成本收益"],
+      "relatedConceptIds": ["tpot", "decode", "speculative-decoding", "multi-model-routing", "cost-routing", "eval"]
+    },
+    "keyTakeaways": [
+      "量化用低精度换取显存、吞吐和部署密度。",
+      "量化可能影响质量，尤其是边界和精细任务。",
+      "企业平台要按任务做质量回归，而不是只看成本。",
+      "量化收益必须结合硬件、框架和路由策略验证。"
+    ],
+    "relatedConceptIds": ["tpot", "decode", "speculative-decoding", "multi-model-routing", "cost-routing", "eval"]
   }
 ];
