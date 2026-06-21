@@ -1,0 +1,222 @@
+.lanes {
+  display: grid;
+  gap: 8px;
+  min-height: 236px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.lane {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.08);
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.laneActive {
+  border-color: rgba(142, 162, 255, 0.45);
+  background: rgba(31, 64, 216, 0.08);
+}
+
+.laneTag {
+  flex: 0 0 36px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #8c887e;
+}
+
+.laneBody {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+/* 通用节点/芯片基态 + 命中态 */
+.appChip,
+.gatewayBox,
+.check,
+.routerNode,
+.poolChip,
+.meterCell,
+.warnNode,
+.label,
+.flowChip {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 249, 246, 0.16);
+  background: rgba(250, 249, 246, 0.04);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #b4b0a6;
+  transition: all 180ms ease;
+}
+
+.gatewayBox {
+  font-size: 12px;
+  color: #f7f3ea;
+}
+
+.apps {
+  display: flex;
+  gap: 4px;
+}
+
+.arrow,
+.warnArrow,
+.backArrow {
+  color: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.lit {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.28);
+  color: #f7f3ea;
+}
+
+/* 拦截标记 */
+.blocked {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #6f6b62;
+  opacity: 0;
+  transition: opacity 180ms ease, color 180ms ease;
+}
+
+.blocked.show {
+  opacity: 1;
+  color: #f0c089;
+}
+
+/* 计量带 */
+.meterBand {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.meterCell {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+}
+
+/* 异常 / 升级（暖橙） */
+.warnArrow {
+  color: #e8943a;
+}
+
+.warnNode.lit {
+  border-color: #e8943a;
+  background: rgba(232, 148, 58, 0.24);
+  color: #ffe1bd;
+}
+
+/* 模型画像卡 */
+.cards {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+.dormant {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.card {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.14);
+  background: rgba(250, 249, 246, 0.03);
+  transition: all 180ms ease;
+}
+
+.cardName {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #d8d3c8;
+}
+
+.card.chosen {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.22);
+}
+
+.card.upgraded {
+  border-color: #e8943a;
+  background: rgba(232, 148, 58, 0.18);
+}
+
+.card.filtered {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.barTag {
+  flex: 0 0 28px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #8c887e;
+}
+
+.barTrack {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(250, 249, 246, 0.08);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.cap {
+  background: #8ea2ff;
+}
+
+.cost {
+  background: #f0c089;
+}
+
+.lat {
+  background: #b6c2ff;
+}
+
+.backArrow {
+  color: #8fd3b0;
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 600px) {
+  .lane {
+    align-items: flex-start;
+  }
+}
