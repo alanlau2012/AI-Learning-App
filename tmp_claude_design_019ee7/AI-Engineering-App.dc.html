@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: "IBM Plex Sans", -apple-system, "PingFang SC", sans-serif; color: #34322C; background: #FAF9F6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #1F40D8; color: #fff; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #DAD6CB; border-radius: 6px; border: 2px solid #FAF9F6; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(31,64,216,0.0); } 50% { box-shadow: 0 0 0 4px rgba(31,64,216,0.18); } }
+  @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.25; } }
+</style>
+</helmet>
+
+<div style="display:flex; min-height:100vh; background:#FAF9F6;">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside style="width:256px; flex:none; border-right:1px solid #E7E3D9; background:#FBFAF7; height:100vh; position:sticky; top:0; display:flex; flex-direction:column;">
+    <div style="padding:24px 22px 18px; border-bottom:1px solid #E7E3D9; cursor:pointer;" onClick="{{ goHome }}">
+      <div style="font-family:'IBM Plex Serif',serif; font-size:19px; font-weight:600; color:#1A1916; letter-spacing:-0.01em;">AI 应用工程</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; color:#1F40D8; border:1px solid #C9D2FB; background:#EBEEFE; padding:1px 7px; border-radius:3px;">50 讲</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#B4B0A6; letter-spacing:0.04em;">MVP · v1</span>
+      </div>
+    </div>
+
+    <nav style="padding:14px 12px; display:flex; flex-direction:column; gap:2px;">
+      <div onClick="{{ goHome }}" style="{{ navHomeStyle }}">
+        <span style="width:18px; font-family:'IBM Plex Mono',monospace; font-size:13px;">⌂</span><span>首页</span>
+      </div>
+      <div onClick="{{ goProfile }}" style="{{ navProfileStyle }}">
+        <span style="width:18px; font-family:'IBM Plex Mono',monospace; font-size:13px;">▤</span><span>我的学习</span>
+      </div>
+      <div onClick="{{ openSearch }}" style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:5px; font-size:13.5px; color:#8C887E; cursor:pointer;">
+        <span style="width:18px; font-family:'IBM Plex Mono',monospace; font-size:13px;">⌕</span><span>搜索</span>
+        <span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#C3BFB4; border:1px solid #E7E3D9; border-radius:3px; padding:1px 5px;">/</span>
+      </div>
+    </nav>
+
+    <div style="padding:6px 22px 8px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#B4B0A6; text-transform:uppercase;">六大模块</div>
+    </div>
+    <div style="padding:0 12px; overflow-y:auto; flex:1;">
+      <sc-for list="{{ navModules }}" as="m" hint-placeholder-count="6">
+        <div onClick="{{ m.onOpen }}" style="{{ m.navStyle }}">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B4B0A6; width:20px;">{{ m.idx }}</span>
+          <span style="flex:1; font-size:12.5px; line-height:1.35;">{{ m.title }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#9C988E;">{{ m.frac }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="padding:16px 22px; border-top:1px solid #E7E3D9;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#B4B0A6; text-transform:uppercase;">总进度</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#1A1916; font-weight:600;">{{ overallPct }}%</span>
+      </div>
+      <div style="height:5px; background:#ECE8DE; border-radius:3px; overflow:hidden;">
+        <div style="height:100%; background:#2E7D58; border-radius:3px; width:{{ overallPct }}%;"></div>
+      </div>
+      <div style="margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#9C988E;">{{ completedCount }} / {{ totalConcepts }} 知识点</div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main style="flex:1; min-width:0; height:100vh; overflow-y:auto;">
+
+    <!-- top bar -->
+    <header style="position:sticky; top:0; z-index:20; background:rgba(250,249,246,0.86); backdrop-filter:blur(8px); border-bottom:1px solid #E7E3D9; padding:0 40px; height:56px; display:flex; align-items:center; gap:16px;">
+      <div style="font-size:12.5px; color:#9C988E; font-family:'IBM Plex Mono',monospace; letter-spacing:0.02em;">{{ crumb }}</div>
+      <div onClick="{{ openSearch }}" style="margin-left:auto; display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border:1px solid #E7E3D9; border-radius:6px; background:#fff; color:#9C988E; font-size:12.5px; cursor:pointer; min-width:220px;">
+        <span style="font-family:'IBM Plex Mono',monospace;">⌕</span><span>搜索知识点、术语、案例…</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; padding:0 12px; height:32px; border:1px solid #E7E3D9; border-radius:6px; background:#fff;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#E8943A;"></span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#1A1916; font-weight:600;">{{ streak }}</span>
+        <span style="font-size:11.5px; color:#9C988E;">天连续</span>
+      </div>
+    </header>
+
+    <!-- ============ HOME ============ -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1120px; margin:0 auto; padding:40px 40px 72px; animation:fadeUp 0.4s ease;">
+
+      <!-- hero / progress -->
+      <section style="display:grid; grid-template-columns:1.55fr 1fr; gap:24px; align-items:stretch;">
+        <div style="background:#fff; border:1px solid #E7E3D9; border-radius:8px; padding:34px 36px; display:flex; flex-direction:column;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#1F40D8; text-transform:uppercase;">交互式知识系统</div>
+          <h1 style="font-family:'IBM Plex Serif',serif; font-size:38px; line-height:1.12; font-weight:600; color:#1A1916; margin:14px 0 0; letter-spacing:-0.02em;">从模型原理<br>到 Agent 工厂</h1>
+          <p style="font-size:15px; line-height:1.6; color:#56534B; margin:16px 0 0; max-width:46ch;">把 AI 应用工程的关键知识点，从"听过概念"提升到能解释机制、能判断方案、能诊断问题、能指导落地。</p>
+          <div style="margin-top:auto; padding-top:28px; display:flex; align-items:center; gap:14px;">
+            <button onClick="{{ onContinue }}" style="display:inline-flex; align-items:center; gap:8px; white-space:nowrap; background:#1F40D8; color:#fff; border:none; border-radius:6px; padding:11px 20px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;">继续学习 · {{ continueTitle }} <span style="font-family:'IBM Plex Mono',monospace;">→</span></button>
+            <button onClick="{{ goProfile }}" style="background:none; border:none; color:#1F40D8; font-size:13.5px; font-weight:500; font-family:inherit; cursor:pointer;">查看我的学习</button>
+          </div>
+        </div>
+
+        <div style="background:#fff; border:1px solid #E7E3D9; border-radius:8px; padding:30px 32px; display:flex; flex-direction:column; justify-content:center;">
+          <div style="display:flex; align-items:baseline; gap:10px;">
+            <span style="font-family:'IBM Plex Serif',serif; font-size:56px; font-weight:600; color:#1A1916; line-height:1;">{{ completedCount }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; color:#9C988E;">/ {{ totalConcepts }}</span>
+          </div>
+          <div style="font-size:13px; color:#8C887E; margin-top:6px;">已掌握知识点</div>
+          <div style="height:6px; background:#ECE8DE; border-radius:3px; overflow:hidden; margin:18px 0 0;">
+            <div style="height:100%; background:#2E7D58; border-radius:3px; width:{{ overallPct }}%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:18px; padding-top:18px; border-top:1px solid #F0ECE3;">
+            <div><div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#1A1916;">{{ overallPct }}%</div><div style="font-size:11.5px; color:#9C988E; margin-top:2px;">完成度</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#1A1916;">{{ favCount }}</div><div style="font-size:11.5px; color:#9C988E; margin-top:2px;">收藏</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#1A1916;">{{ streak }}</div><div style="font-size:11.5px; color:#9C988E; margin-top:2px;">连续天数</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- recommended paths -->
+      <div style="display:flex; align-items:center; gap:10px; margin:40px 0 16px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">推荐学习路径</span>
+        <div style="flex:1; height:1px; background:#E7E3D9;"></div>
+      </div>
+      <section style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+        <sc-for list="{{ paths }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.onOpen }}" style="background:#fff; border:1px solid #E7E3D9; border-radius:7px; padding:18px 18px 20px; cursor:pointer;" style-hover="background:#fff; border:1px solid #C9D2FB; border-radius:7px; padding:18px 18px 20px; cursor:pointer; box-shadow:0 2px 8px rgba(31,64,216,0.06);">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#1F40D8;">{{ p.tag }}</div>
+            <div style="font-family:'IBM Plex Serif',serif; font-size:16px; font-weight:600; color:#1A1916; margin-top:10px;">{{ p.label }}</div>
+            <div style="font-size:12.5px; color:#8C887E; margin-top:6px; line-height:1.5;">{{ p.desc }}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- modules -->
+      <div style="display:flex; align-items:center; gap:10px; margin:40px 0 16px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">六大模块</span>
+        <div style="flex:1; height:1px; background:#E7E3D9;"></div>
+      </div>
+      <section style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+        <sc-for list="{{ moduleCards }}" as="m" hint-placeholder-count="6">
+          <div onClick="{{ m.onOpen }}" style="background:#fff; border:1px solid #E7E3D9; border-radius:8px; padding:22px 22px 20px; cursor:pointer; display:flex; flex-direction:column;" style-hover="background:#fff; border:1px solid #C9D2FB; border-radius:8px; padding:22px 22px 20px; cursor:pointer; display:flex; flex-direction:column; box-shadow:0 3px 12px rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#1F40D8; font-weight:600;">{{ m.idx }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B4B0A6; margin-left:auto;">{{ m.frac }} 已学</span>
+            </div>
+            <h3 style="font-family:'IBM Plex Serif',serif; font-size:18px; font-weight:600; color:#1A1916; margin:12px 0 0; line-height:1.25;">{{ m.title }}</h3>
+            <p style="font-size:13px; color:#76736B; margin:8px 0 0; line-height:1.55; flex:1;">{{ m.desc }}</p>
+            <div style="height:4px; background:#ECE8DE; border-radius:3px; overflow:hidden; margin-top:18px;">
+              <div style="height:100%; background:#2E7D58; border-radius:3px; width:{{ m.pct }}%;"></div>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- today -->
+      <div style="display:flex; align-items:center; gap:10px; margin:40px 0 16px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">今日推荐</span>
+        <div style="flex:1; height:1px; background:#E7E3D9;"></div>
+      </div>
+      <section style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+        <sc-for list="{{ todayItems }}" as="t" hint-placeholder-count="3">
+          <div onClick="{{ t.onOpen }}" style="background:#fff; border:1px solid #E7E3D9; border-radius:7px; padding:20px; cursor:pointer; border-left:3px solid #1F40D8;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.08em; color:#1F40D8; text-transform:uppercase;">{{ t.kind }}</div>
+            <div style="font-family:'IBM Plex Serif',serif; font-size:16px; font-weight:600; color:#1A1916; margin-top:10px;">{{ t.title }}</div>
+            <div style="font-size:12.5px; color:#8C887E; margin-top:7px; line-height:1.5;">{{ t.sub }}</div>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ============ MODULE ============ -->
+    <sc-if value="{{ isModule }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1000px; margin:0 auto; padding:36px 40px 72px; animation:fadeUp 0.35s ease;">
+      <div onClick="{{ goHome }}" style="font-size:12.5px; color:#9C988E; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><span style="font-family:'IBM Plex Mono',monospace;">←</span> 全部模块</div>
+      <div style="display:flex; align-items:baseline; gap:14px; margin-top:16px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:30px; font-weight:600; color:#1F40D8;">{{ mod.idx }}</span>
+        <h1 style="font-family:'IBM Plex Serif',serif; font-size:30px; font-weight:600; color:#1A1916; margin:0; letter-spacing:-0.01em;">{{ mod.title }}</h1>
+      </div>
+      <p style="font-size:15px; color:#56534B; line-height:1.6; margin:14px 0 0; max-width:64ch;">{{ mod.desc }}</p>
+      <div style="margin-top:16px; background:#F2EFE7; border-radius:6px; padding:12px 16px; font-size:13px; color:#6B6860; display:inline-flex; align-items:center; gap:8px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8;">▶</span>{{ mod.path }}</div>
+
+      <!-- filters -->
+      <div style="display:flex; align-items:center; gap:10px; margin:30px 0 14px; flex-wrap:wrap;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B4B0A6; text-transform:uppercase; letter-spacing:0.1em;">{{ mod.countLabel }}</span>
+        <div style="flex:1;"></div>
+        <span style="font-size:11.5px; color:#9C988E; margin-right:2px;">难度</span>
+        <sc-for list="{{ diffFilters }}" as="f" hint-placeholder-count="4">
+          <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+        </sc-for>
+        <span style="width:1px; height:18px; background:#E7E3D9; margin:0 4px;"></span>
+        <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="3">
+          <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+        </sc-for>
+      </div>
+
+      <!-- concept list -->
+      <section style="display:flex; flex-direction:column; gap:10px;">
+        <sc-for list="{{ moduleConcepts }}" as="c" hint-placeholder-count="8">
+          <div style="background:#fff; border:1px solid #E7E3D9; border-radius:7px; padding:18px 20px; display:flex; align-items:flex-start; gap:18px;" style-hover="background:#fff; border:1px solid #C9D2FB; border-radius:7px; padding:18px 20px; display:flex; align-items:flex-start; gap:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#B4B0A6; padding-top:3px; width:24px;">{{ c.num }}</span>
+            <div style="flex:1; min-width:0; cursor:pointer;" onClick="{{ c.onOpen }}">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-family:'IBM Plex Serif',serif; font-size:16.5px; font-weight:600; color:#1A1916;">{{ c.title }}</span>
+                <sc-if value="{{ c.completed }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#2E7D58; border:1px solid #BEDDCB; background:#E8F2EC; border-radius:3px; padding:1px 6px;">✓ 已完成</span></sc-if>
+                <sc-if value="{{ c.ani }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#1F40D8; border:1px solid #C9D2FB; background:#EBEEFE; border-radius:3px; padding:1px 6px;">动画</span></sc-if>
+              </div>
+              <div style="font-size:13px; color:#76736B; margin-top:6px; line-height:1.5;">{{ c.def }}</div>
+              <div style="display:flex; gap:16px; margin-top:9px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9C988E;">
+                <span>{{ c.diffLabel }}</span><span>· {{ c.min }} 分钟</span>
+              </div>
+            </div>
+            <button onClick="{{ c.onFav }}" style="{{ c.favStyle }}">{{ c.favIcon }}</button>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ============ CONCEPT ============ -->
+    <sc-if value="{{ isConcept }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:820px; margin:0 auto; padding:36px 40px 96px; animation:fadeUp 0.35s ease;">
+      <div onClick="{{ co.onBack }}" style="font-size:12.5px; color:#9C988E; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><span style="font-family:'IBM Plex Mono',monospace;">←</span> {{ co.moduleTitle }}</div>
+
+      <div style="display:flex; gap:12px; margin-top:16px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#9C988E;">
+        <span style="color:#1F40D8;">{{ co.diffLabel }}</span><span>· {{ co.min }} 分钟</span><sc-if value="{{ co.ani }}" hint-placeholder-val="{{ false }}"><span>· 含动画演示</span></sc-if>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',serif; font-size:34px; font-weight:600; color:#1A1916; margin:10px 0 0; letter-spacing:-0.02em;">{{ co.title }}</h1>
+
+      <!-- definition -->
+      <div style="border-left:3px solid #1F40D8; padding:4px 0 4px 20px; margin:24px 0 0;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; color:#1F40D8; text-transform:uppercase; margin-bottom:8px;">一句话定义</div>
+        <p style="font-family:'IBM Plex Serif',serif; font-size:21px; line-height:1.5; color:#1A1916; margin:0; font-weight:500;">{{ co.def }}</p>
+      </div>
+
+      <!-- why -->
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 12px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">01</span>为什么重要</h2>
+      <p style="font-size:16px; line-height:1.75; color:#3A382F; margin:0; font-family:'IBM Plex Serif',serif;">{{ co.why }}</p>
+
+      <!-- mental model -->
+      <div style="background:#F2EFE7; border-radius:7px; padding:22px 24px; margin:28px 0 0;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; color:#8C887E; text-transform:uppercase; margin-bottom:10px;">心智模型</div>
+        <p style="font-family:'IBM Plex Serif',serif; font-size:17px; line-height:1.65; color:#2A2823; margin:0; font-style:italic;">{{ co.mental }}</p>
+      </div>
+
+      <!-- mechanism -->
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 16px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">02</span>机制讲解</h2>
+      <ol style="margin:0; padding:0; list-style:none; counter-reset:mech;">
+        <sc-for list="{{ co.mech }}" as="step" hint-placeholder-count="5">
+          <li style="display:flex; gap:16px; padding:13px 0; border-bottom:1px solid #F0ECE3;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#1F40D8; font-weight:600; padding-top:2px;">{{ step.n }}</span>
+            <span style="font-size:15.5px; line-height:1.6; color:#3A382F;">{{ step.text }}</span>
+          </li>
+        </sc-for>
+      </ol>
+
+      <!-- animation -->
+      <sc-if value="{{ co.hasDemo }}" hint-placeholder-val="{{ false }}">
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 16px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">03</span>动画演示</h2>
+      <div style="background:#fff; border:1px solid #E7E3D9; border-radius:8px; overflow:hidden;">
+        <div style="background:#1A1916; padding:26px 28px; min-height:236px; display:flex; align-items:center; justify-content:center;">
+
+          <!-- KV CACHE diagram -->
+          <sc-if value="{{ aniIsKv }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%; max-width:640px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8C8A82;">{{ kvLaneLabel }}</span>
+              <div style="display:flex; align-items:center; gap:8px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8C8A82;">TTFT</span><span style="font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; padding:2px 10px; border-radius:4px; {{ kvTtftStyle }}">{{ kvTtft }}</span></div>
+            </div>
+            <!-- input tokens -->
+            <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
+              <sc-for list="{{ kvInput }}" as="t" hint-placeholder-count="6"><span style="{{ t.style }}">{{ t.text }}</span></sc-for>
+            </div>
+            <!-- layers + cache -->
+            <div style="display:flex; gap:14px; align-items:stretch;">
+              <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                <sc-for list="{{ kvLayers }}" as="l" hint-placeholder-count="3"><div style="{{ l.style }}">{{ l.text }}</div></sc-for>
+              </div>
+              <div style="display:flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:16px; {{ kvArrowStyle }}">→</div>
+              <div style="flex:1; border:1px dashed {{ kvCacheBorder }}; border-radius:6px; padding:10px;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8C8A82; margin-bottom:8px;">KV CACHE · 显存</div>
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px;">
+                  <sc-for list="{{ kvCells }}" as="c" hint-placeholder-count="8"><div style="{{ c.style }}"></div></sc-for>
+                </div>
+              </div>
+            </div>
+            <!-- output -->
+            <div style="display:flex; gap:6px; margin-top:14px; align-items:center; min-height:30px;">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8C8A82; margin-right:4px;">输出</span>
+              <sc-for list="{{ kvOutput }}" as="t" hint-placeholder-count="4"><span style="{{ t.style }}">{{ t.text }}</span></sc-for>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- TOKEN FLOW diagram -->
+          <sc-if value="{{ aniIsToken }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%; max-width:600px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8C8A82; margin-bottom:12px;">输入文本</div>
+            <div style="font-family:'IBM Plex Serif',serif; font-size:18px; color:#F3F0E8; margin-bottom:20px; {{ tkSourceStyle }}">"帮我总结这段日志"</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;">
+              <sc-for list="{{ tkTokens }}" as="t" hint-placeholder-count="5"><div style="text-align:center;"><div style="{{ t.style }}">{{ t.text }}</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; margin-top:4px; {{ t.idStyle }}">{{ t.id }}</div></div></sc-for>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8C8A82; margin-bottom:10px;">逐 Token 生成输出</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <sc-for list="{{ tkOut }}" as="t" hint-placeholder-count="4"><span style="{{ t.style }}">{{ t.text }}</span></sc-for>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- AGENT LOOP diagram -->
+          <sc-if value="{{ aniIsAgent }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%; max-width:600px;">
+            <div style="text-align:center; margin-bottom:18px;"><span style="{{ alGoalStyle }}">目标：修复线上问题单</span></div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <sc-for list="{{ alNodes }}" as="n" hint-placeholder-count="4"><div style="{{ n.style }}"><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:0.75;">{{ n.en }}</div><div style="font-size:13px; font-weight:600; margin-top:2px;">{{ n.zh }}</div></div><span style="{{ n.arrowStyle }}">→</span></sc-for>
+            </div>
+            <div style="text-align:center; margin-top:18px;"><span style="{{ alDecisionStyle }}">{{ alDecisionText }}</span></div>
+          </div>
+          </sc-if>
+
+        </div>
+
+        <!-- player controls -->
+        <div style="padding:16px 20px; border-top:1px solid #E7E3D9;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button onClick="{{ aniPrev }}" style="width:34px; height:34px; border:1px solid #E7E3D9; background:#fff; border-radius:6px; cursor:pointer; font-family:'IBM Plex Mono',monospace; color:#56534B;">⟵</button>
+            <button onClick="{{ aniPlay }}" style="display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 18px; background:#1F40D8; color:#fff; border:none; border-radius:6px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600;">{{ aniPlayLabel }}</button>
+            <button onClick="{{ aniNext }}" style="width:34px; height:34px; border:1px solid #E7E3D9; background:#fff; border-radius:6px; cursor:pointer; font-family:'IBM Plex Mono',monospace; color:#56534B;">⟶</button>
+            <button onClick="{{ aniReset }}" style="height:34px; padding:0 14px; border:1px solid #E7E3D9; background:#fff; border-radius:6px; cursor:pointer; font-family:inherit; font-size:13px; color:#56534B;">重置</button>
+            <span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#9C988E;">{{ aniStepLabel }}</span>
+          </div>
+          <div style="margin-top:14px; display:flex; gap:14px; align-items:flex-start;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:#1F40D8; padding-top:1px;">{{ aniCur.n }}</span>
+            <div><div style="font-size:14px; font-weight:600; color:#1A1916;">{{ aniCur.title }}</div><div style="font-size:13px; color:#76736B; margin-top:4px; line-height:1.55;">{{ aniCur.desc }}</div></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- enterprise case -->
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 16px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">04</span>企业案例</h2>
+      <div style="border:1px solid #E7E3D9; border-radius:8px; overflow:hidden;">
+        <div style="padding:16px 22px; background:#FBFAF7; border-bottom:1px solid #E7E3D9; font-family:'IBM Plex Serif',serif; font-size:16px; font-weight:600; color:#1A1916;">{{ co.kase.title }}</div>
+        <div style="padding:6px 22px 18px;">
+          <sc-for list="{{ caseRows }}" as="r" hint-placeholder-count="4">
+            <div style="display:grid; grid-template-columns:72px 1fr; gap:16px; padding:12px 0; border-bottom:1px solid #F0ECE3;">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9C988E; text-transform:uppercase; letter-spacing:0.04em; padding-top:2px;">{{ r.label }}</span>
+              <span style="font-size:14.5px; line-height:1.6; color:#3A382F;">{{ r.text }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- pitfalls -->
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 14px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">05</span>常见误区</h2>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <sc-for list="{{ co.pitfalls }}" as="p" hint-placeholder-count="4">
+          <div style="display:flex; gap:12px; align-items:flex-start; background:#fff; border:1px solid #EFE7E2; border-radius:6px; padding:13px 16px;">
+            <span style="color:#C0392B; font-family:'IBM Plex Mono',monospace; font-size:14px; line-height:1.4;">✕</span>
+            <span style="font-size:14.5px; line-height:1.55; color:#52504A;">{{ p.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- diagnostic -->
+      <sc-if value="{{ co.hasQuiz }}" hint-placeholder-val="{{ false }}">
+      <h2 style="font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600; color:#1A1916; margin:40px 0 16px; display:flex; align-items:center; gap:10px;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8; font-size:12px;">06</span>诊断题<span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9C988E; font-weight:400; border:1px solid #E7E3D9; border-radius:3px; padding:1px 6px;">{{ quizTypeLabel }}</span></h2>
+      <div style="border:1px solid #E7E3D9; border-radius:8px; padding:24px;">
+        <div style="background:#FBFAF7; border-left:3px solid #9C988E; border-radius:0 6px 6px 0; padding:14px 18px; margin-bottom:18px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#9C988E; text-transform:uppercase; margin-bottom:7px;">场景</div>
+          <p style="font-size:14.5px; line-height:1.6; color:#3A382F; margin:0;">{{ quiz.scenario }}</p>
+        </div>
+        <p style="font-size:16px; font-weight:600; color:#1A1916; margin:0 0 16px; font-family:'IBM Plex Serif',serif;">{{ quiz.question }}</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <sc-for list="{{ quizOptions }}" as="o" hint-placeholder-count="4">
+            <div onClick="{{ o.onClick }}" style="{{ o.style }}">
+              <span style="{{ o.markStyle }}">{{ o.mark }}</span>
+              <span style="flex:1; font-size:14.5px; line-height:1.5;">{{ o.text }}</span>
+              <sc-if value="{{ o.showTag }}" hint-placeholder-val="{{ false }}"><span style="{{ o.tagStyle }}">{{ o.tag }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:18px; display:flex; align-items:center; gap:14px;">
+          <button onClick="{{ quizSubmit }}" style="{{ quizSubmitStyle }}">{{ quizSubmitLabel }}</button>
+          <span style="font-size:12.5px; color:#9C988E;">{{ quizHint }}</span>
+        </div>
+        <sc-if value="{{ quizSubmitted }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px; padding:18px 20px; border-radius:7px; {{ quizResultStyle }}">
+          <div style="font-weight:600; font-size:14px; margin-bottom:8px; {{ quizResultTitleStyle }}">{{ quizResultTitle }}</div>
+          <p style="font-size:14px; line-height:1.65; color:#3A382F; margin:0;">{{ quiz.explanation }}</p>
+          <sc-if value="{{ hasTrouble }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#8C887E; text-transform:uppercase; margin-bottom:8px;">推荐排查路径</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <sc-for list="{{ troubleSteps }}" as="s" hint-placeholder-count="3"><span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#3A382F; background:#fff; border:1px solid #E7E3D9; border-radius:4px; padding:4px 9px;">{{ s.text }}</span><span style="color:#C3BFB4; font-family:'IBM Plex Mono',monospace;">{{ s.sep }}</span></sc-for>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- takeaways -->
+      <div style="background:#EBEEFE; border:1px solid #C9D2FB; border-radius:8px; padding:24px 26px; margin:40px 0 0;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; color:#1F40D8; text-transform:uppercase; margin-bottom:14px;">核心结论</div>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <sc-for list="{{ co.takeaways }}" as="t" hint-placeholder-count="3">
+            <div style="display:flex; gap:12px; align-items:flex-start;"><span style="color:#1F40D8; font-family:'IBM Plex Mono',monospace; padding-top:1px;">▪</span><span style="font-size:15px; line-height:1.55; color:#23252E; font-weight:500;">{{ t.text }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- related -->
+      <div style="margin-top:32px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#B4B0A6; text-transform:uppercase; margin-bottom:12px;">关联知识点</div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+          <sc-for list="{{ relatedList }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.onOpen }}" style="display:inline-flex; align-items:center; gap:7px; background:#fff; border:1px solid #E7E3D9; border-radius:20px; padding:7px 15px; font-size:13px; color:#3A382F; cursor:pointer; font-family:inherit;" style-hover="display:inline-flex; align-items:center; gap:7px; background:#EBEEFE; border:1px solid #C9D2FB; border-radius:20px; padding:7px 15px; font-size:13px; color:#16309E; cursor:pointer; font-family:inherit;"><span style="font-family:'IBM Plex Mono',monospace; color:#1F40D8;">↗</span>{{ r.title }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- footer actions -->
+      <div style="display:flex; align-items:center; gap:14px; margin-top:44px; padding-top:24px; border-top:1px solid #E7E3D9;">
+        <button onClick="{{ co.onComplete }}" style="{{ completeStyle }}">{{ completeLabel }}</button>
+        <button onClick="{{ co.onFav }}" style="{{ favBtnStyle }}">{{ favBtnLabel }}</button>
+        <button onClick="{{ co.onNext }}" style="margin-left:auto; background:none; border:none; color:#1F40D8; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:7px;">下一个知识点 <span style="font-family:'IBM Plex Mono',monospace;">→</span></button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ PROFILE ============ -->
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1000px; margin:0 auto; padding:36px 40px 72px; animation:fadeUp 0.35s ease;">
+      <h1 style="font-family:'IBM Plex Serif',serif; font-size:30px; font-weight:600; color:#1A1916; margin:0; letter-spacing:-0.01em;">我的学习</h1>
+      <section style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:24px;">
+        <sc-for list="{{ profileStats }}" as="s" hint-placeholder-count="4">
+          <div style="background:#fff; border:1px solid #E7E3D9; border-radius:8px; padding:22px;">
+            <div style="font-family:'IBM Plex Serif',serif; font-size:34px; font-weight:600; color:#1A1916; line-height:1;">{{ s.value }}</div>
+            <div style="font-size:12.5px; color:#8C887E; margin-top:8px;">{{ s.label }}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <div style="display:flex; align-items:center; gap:10px; margin:36px 0 16px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">各模块进度</span><div style="flex:1; height:1px; background:#E7E3D9;"></div></div>
+      <section style="display:flex; flex-direction:column; gap:12px;">
+        <sc-for list="{{ moduleCards }}" as="m" hint-placeholder-count="6">
+          <div onClick="{{ m.onOpen }}" style="background:#fff; border:1px solid #E7E3D9; border-radius:7px; padding:16px 20px; display:flex; align-items:center; gap:18px; cursor:pointer;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#1F40D8; font-weight:600;">{{ m.idx }}</span>
+            <span style="font-family:'IBM Plex Serif',serif; font-size:15.5px; font-weight:600; color:#1A1916; width:230px;">{{ m.title }}</span>
+            <div style="flex:1; height:6px; background:#ECE8DE; border-radius:3px; overflow:hidden;"><div style="height:100%; background:#2E7D58; border-radius:3px; width:{{ m.pct }}%;"></div></div>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9C988E; width:56px; text-align:right;">{{ m.frac }}</span>
+          </div>
+        </sc-for>
+      </section>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:36px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">收藏</span><div style="flex:1; height:1px; background:#E7E3D9;"></div></div>
+          <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ favList }}" as="c" hint-placeholder-count="2">
+              <div onClick="{{ c.onOpen }}" style="background:#fff; border:1px solid #E7E3D9; border-radius:6px; padding:14px 16px; cursor:pointer;"><div style="font-family:'IBM Plex Serif',serif; font-size:15px; font-weight:600; color:#1A1916;">{{ c.title }}</div><div style="font-size:12.5px; color:#8C887E; margin-top:4px; line-height:1.5;">{{ c.def }}</div></div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ noFavs }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:#9C988E; padding:14px 0;">还没有收藏的知识点。</div></sc-if>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B4B0A6; text-transform:uppercase;">错题本</span><div style="flex:1; height:1px; background:#E7E3D9;"></div></div>
+          <sc-if value="{{ hasWrong }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ wrongList }}" as="c" hint-placeholder-count="2">
+              <div onClick="{{ c.onOpen }}" style="background:#fff; border:1px solid #EFE7E2; border-left:3px solid #C0392B; border-radius:0 6px 6px 0; padding:14px 16px; cursor:pointer;"><div style="font-family:'IBM Plex Serif',serif; font-size:15px; font-weight:600; color:#1A1916;">{{ c.title }}</div><div style="font-size:12.5px; color:#8C887E; margin-top:4px;">诊断题需复习</div></div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ noWrong }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px; color:#9C988E; padding:14px 0;">还没有错题记录，去做几道诊断题吧。</div></sc-if>
+        </div>
+      </div>
+
+      <div style="margin-top:40px; padding-top:24px; border-top:1px solid #E7E3D9;">
+        <button onClick="{{ onReset }}" style="background:none; border:1px solid #EFE7E2; color:#C0392B; border-radius:6px; padding:9px 16px; font-size:13px; cursor:pointer; font-family:inherit;">清空学习记录</button>
+        <span style="font-size:12px; color:#B4B0A6; margin-left:12px; font-family:'IBM Plex Mono',monospace;">数据保存在本地 · {{ storageKey }}</span>
+      </div>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <!-- ============ SEARCH OVERLAY ============ -->
+  <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSearch }}" style="position:fixed; inset:0; background:rgba(26,25,22,0.35); backdrop-filter:blur(2px); z-index:50; display:flex; justify-content:center; align-items:flex-start; padding-top:90px;">
+    <div onClick="{{ stop }}" style="width:600px; max-width:92vw; background:#fff; border:1px solid #E7E3D9; border-radius:10px; box-shadow:0 18px 50px rgba(0,0,0,0.18); overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid #F0ECE3;">
+        <span style="font-family:'IBM Plex Mono',monospace; color:#9C988E; font-size:15px;">⌕</span>
+        <input value="{{ query }}" onInput="{{ onQuery }}" autofocus placeholder="搜索知识点、术语、案例…" style="flex:1; border:none; outline:none; font-size:16px; font-family:inherit; color:#1A1916; background:transparent;">
+        <span onClick="{{ closeSearch }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B4B0A6; border:1px solid #E7E3D9; border-radius:4px; padding:2px 7px; cursor:pointer;">esc</span>
+      </div>
+      <div style="max-height:54vh; overflow-y:auto;">
+        <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+        <sc-for list="{{ searchResults }}" as="r" hint-placeholder-count="4">
+          <div onClick="{{ r.onOpen }}" style="padding:13px 20px; border-bottom:1px solid #F4F1EA; cursor:pointer; display:flex; align-items:center; gap:14px;" style-hover="padding:13px 20px; border-bottom:1px solid #F4F1EA; cursor:pointer; display:flex; align-items:center; gap:14px; background:#FBFAF7;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#1F40D8; border:1px solid #C9D2FB; background:#EBEEFE; border-radius:3px; padding:1px 6px;">{{ r.modIdx }}</span>
+            <div style="flex:1; min-width:0;"><div style="font-family:'IBM Plex Serif',serif; font-size:15px; font-weight:600; color:#1A1916;">{{ r.title }}</div><div style="font-size:12.5px; color:#8C887E; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.def }}</div></div>
+            <span style="font-family:'IBM Plex Mono',monospace; color:#C3BFB4;">→</span>
+          </div>
+        </sc-for>
+        </sc-if>
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}"><div style="padding:32px 20px; text-align:center; color:#9C988E; font-size:13.5px;">没有找到匹配的内容</div></sc-if>
+        <sc-if value="{{ emptyQuery }}" hint-placeholder-val="{{ true }}"><div style="padding:28px 20px; color:#B4B0A6; font-size:13px; font-family:'IBM Plex Mono',monospace;">输入关键词，搜索 {{ totalConcepts }} 个知识点…</div></sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  STORAGE_KEY = 'ai-learning-app-progress-v1';
+
+  modules = [
+    {id:'m1', idx:'01', title:'模型怎么工作', subtitle:'大模型的基本机制', desc:'从 Token 到注意力、上下文与生成，理解模型内部到底发生了什么。', path:'入门路径：先建立对模型机制的基本直觉。'},
+    {id:'m2', idx:'02', title:'模型怎么跑得又快又稳', subtitle:'推理性能与系统瓶颈', desc:'解释推理性能、算力效率和系统瓶颈：Prefill、Decode、KV Cache 与调度。', path:'工程路径：理解时延、吞吐与显存的权衡。'},
+    {id:'m3', idx:'03', title:'模型怎么变成企业平台', subtitle:'MaaS、网关与治理', desc:'模型网关、路由、成本、稳定性与计量审计如何构成企业级平台。', path:'平台路径：把模型变成可运营的能力。'},
+    {id:'m4', idx:'04', title:'模型怎么变成 Agent', subtitle:'工具、上下文与任务闭环', desc:'Prompt 与 Context、上下文工程、Agent Loop、工具调用与 Skill。', path:'应用路径：从对话升级到能完成任务。'},
+    {id:'m5', idx:'05', title:'Agent 怎么改变软件工程', subtitle:'AI 原生研发闭环', desc:'需求、问题单、代码、测试、评审与运维中的 Agent 实践。', path:'研发路径：让 Agent 进入工程闭环。'},
+    {id:'m6', idx:'06', title:'企业怎么治理 AI', subtitle:'评测、安全、成本与组织', desc:'Eval、Trace、可观测性、Token ROI、权限与组织阵型。', path:'负责人路径：把能力沉淀为治理与组织。'},
+  ];
+
+  concepts = [
+    // ---------- module 1 ----------
+    {id:'token', m:'m1', title:'Token', diff:'basic', min:8, ani:'token-flow',
+      def:'Token 是模型处理文本的最小输入输出单位，不一定等于一个字或一个词。',
+      why:'Token 决定上下文长度、计费、推理成本和生成速度。企业 AI 应用中的成本、时延和上下文治理，最终都会落到 Token 规模上。',
+      mental:'把 Token 理解为模型看到的"文字积木"。用户看到的是自然语言，模型看到的是一串 Token 编号。',
+      mech:['文本先经过分词器转换为 Token','每个 Token 对应一个整数编号','模型把 Token 编号转换为向量','模型基于上下文预测下一个 Token','输出 Token 再被解码为人类可读文本'],
+      kase:{title:'上下文膨胀拖慢 Agent 响应', scenario:'一个 Agent 应用每轮都把完整历史、工具结果和大段文档塞进上下文。', problem:'输入 Token 激增，用户感知是响应变慢。', analysis:'平台侧表现为成本上升、TTFT 变长、缓存命中下降。', solution:'对历史做摘要与裁剪，只注入与当前任务相关的上下文，控制工具结果体积。', takeaway:'上下文治理首先是 Token 治理。'},
+      pitfalls:['以为一个汉字就是一个 Token','只关注输出 Token，不关注输入 Token','认为上下文越长越好','忽略工具结果带来的 Token 膨胀'],
+      takeaways:['Token 是 AI 应用成本和性能的基础计量单位','上下文治理首先是 Token 治理','企业平台必须观测输入 Token、输出 Token 和缓存命中率'],
+      related:['kvcache','context-window','ttft'],
+      quiz:{type:'single', scenario:'某 Agent 应用上线后单次会话成本远超预算，日志显示平均输入 Token 是输出 Token 的 20 倍。', question:'最应优先优化什么？',
+        options:[{id:'a',text:'换一个更小的模型'},{id:'b',text:'降低温度参数'},{id:'c',text:'压缩与裁剪注入上下文，控制历史与工具结果体积'},{id:'d',text:'提高输出长度上限'}],
+        correct:['c'], explanation:'输入 Token 远大于输出，成本主要来自上下文注入。优先做上下文治理（摘要、裁剪、相关性过滤）最直接有效。换模型或调温度都不能从根本上解决 Token 规模问题。', trouble:[]}},
+    {id:'transformer', m:'m1', title:'Transformer', diff:'intermediate', min:12, ani:null, def:'Transformer 用自注意力替代循环结构，让模型并行处理整段序列并捕捉长距离依赖。'},
+    {id:'attention', m:'m1', title:'注意力机制', diff:'intermediate', min:10, ani:'attention', def:'注意力机制让每个位置按相关性加权融合序列中其他位置的信息。'},
+    {id:'context-window', m:'m1', title:'上下文窗口', diff:'basic', min:7, ani:'context-window', def:'上下文窗口是模型一次能看到的 Token 上限，决定它能记住多少信息。'},
+    {id:'autoregressive', m:'m1', title:'自回归生成', diff:'basic', min:6, ani:null, def:'自回归生成是模型逐个 Token 预测，并把已生成内容作为下一步输入的过程。'},
+    {id:'sampling', m:'m1', title:'采样策略', diff:'intermediate', min:8, ani:null, def:'采样策略（温度、top-p、top-k）控制生成结果的随机性与多样性。'},
+    {id:'sft', m:'m1', title:'指令微调', diff:'intermediate', min:9, ani:null, def:'指令微调用高质量的指令-回答数据，让基座模型学会听从指令。'},
+    {id:'preference', m:'m1', title:'偏好优化', diff:'advanced', min:12, ani:null, def:'偏好优化（RLHF / DPO）用人类偏好信号让模型输出更符合期望。'},
+    {id:'hallucination', m:'m1', title:'幻觉', diff:'intermediate', min:8, ani:null, def:'幻觉是模型生成看似合理、但与事实或上下文不符的内容。'},
+    {id:'reasoning-limit', m:'m1', title:'推理能力边界', diff:'advanced', min:10, ani:null, def:'推理能力边界指模型在多步推理、长链逻辑和精确计算上的固有局限。'},
+    // ---------- module 2 ----------
+    {id:'prefill', m:'m2', title:'Prefill', diff:'intermediate', min:8, ani:'prefill-decode', def:'Prefill 是一次性并行处理全部输入、为生成做准备的阶段。'},
+    {id:'decode', m:'m2', title:'Decode', diff:'intermediate', min:8, ani:'prefill-decode', def:'Decode 是逐个 Token 串行生成输出的阶段，决定 TPOT。'},
+    {id:'ttft', m:'m2', title:'TTFT', diff:'intermediate', min:6, ani:null, def:'TTFT 是从请求发出到返回第一个 Token 的时间，主要受排队、Prefill、调度和缓存影响。'},
+    {id:'tpot', m:'m2', title:'TPOT', diff:'intermediate', min:6, ani:null, def:'TPOT 是生成相邻两个 Token 的平均间隔，决定流式输出的速度感。'},
+    {id:'kvcache', m:'m2', title:'KV Cache', diff:'advanced', min:12, ani:'kv-cache',
+      def:'KV Cache 是在大模型推理中缓存历史上下文的 Key 和 Value，避免每次生成新 Token 时重复计算全部历史。',
+      why:'KV Cache 直接影响首字时延、吞吐、显存占用和多轮对话体验。企业 MaaS 平台如果 KV Cache 命中率低，高并发下会快速劣化。',
+      mental:'把 KV Cache 理解为"模型已经读过的上下文笔记"。如果下一轮还在同一个会话里，模型可以直接翻笔记，而不是重新读全文。',
+      mech:['Prefill 阶段处理完整输入上下文','模型为每层注意力生成 Key 和 Value','这些 Key 和 Value 被缓存到显存中','Decode 阶段生成新 Token 时复用已有 KV','如果请求被路由到没有缓存的实例，就需要重新 Prefill'],
+      kase:{title:'高峰期 TTFT 飙升', scenario:'某 MaaS 平台高峰期 TTFT 明显上升。', problem:'用户反馈首字等待明显变长。', analysis:'排查发现负载均衡策略没有保持 Session 亲和，多轮请求被分配到不同实例，导致 KV Cache 命中率下降。', solution:'启用 Session 亲和路由，让同一会话稳定命中持有缓存的实例；监控缓存命中率而非只看平均时延。', takeaway:'Session 亲和是企业 MaaS 必须具备的能力。'},
+      pitfalls:['只关注模型大小，不关注缓存命中','认为增加卡数一定能降低 TTFT','忽视会话亲和','忽视长上下文对显存的挤占'],
+      takeaways:['KV Cache 是多轮对话性能的关键','Session 亲和是企业 MaaS 必须具备的能力','高并发问题不能只看平均时延，要同时看缓存命中率'],
+      related:['prefill','decode','ttft','batch','sla'],
+      quiz:{type:'single', scenario:'某 MaaS 平台在高峰期 TTFT 从 800ms 上升到 4s，KV Cache 命中率从 60% 下降到 15%，用户反馈首字等待明显变长。', question:'最优先排查什么？',
+        options:[{id:'a',text:'模型参数量是否过大'},{id:'b',text:'Session 亲和是否失效'},{id:'c',text:'温度参数是否过高'},{id:'d',text:'是否需要增加提示词长度'}],
+        correct:['b'], explanation:'TTFT 上升且 KV Cache 命中率下降，优先怀疑请求没有路由到持有上下文缓存的实例，或会话亲和策略失效。模型大小和温度可能影响整体质量或速度，但不是这个现象的首要解释。',
+        trouble:['确认会话亲和/路由策略','检查实例缓存状态','核对请求是否被错误打散','复核高峰期扩缩容']}},
+    {id:'pd-split', m:'m2', title:'P-D 分离', diff:'advanced', min:12, ani:null, def:'P-D 分离把 Prefill 与 Decode 拆到不同实例，分别针对吞吐与时延优化。'},
+    {id:'batch', m:'m2', title:'Batch 调度', diff:'advanced', min:11, ani:null, def:'Batch 调度通过连续批处理把多请求合并计算，提升 GPU 利用率。'},
+    {id:'speculative', m:'m2', title:'投机解码', diff:'advanced', min:12, ani:null, def:'投机解码用小模型起草、大模型校验，在不损质量的前提下加速生成。'},
+    {id:'quant', m:'m2', title:'量化', diff:'advanced', min:11, ani:null, def:'量化用更低精度表示权重和激活，降低显存与算力开销。'},
+    {id:'roofline', m:'m2', title:'Roofline', diff:'advanced', min:13, ani:null, def:'Roofline 用算力与带宽的上限，刻画推理是计算受限还是带宽受限。'},
+    // ---------- module 3 ----------
+    {id:'gateway', m:'m3', title:'模型网关', diff:'intermediate', min:9, ani:null, def:'模型网关是所有模型调用的统一入口，承载鉴权、路由、限流和审计。'},
+    {id:'multi-route', m:'m3', title:'多模型路由', diff:'intermediate', min:10, ani:'model-routing', def:'多模型路由按规则把请求分发到最合适的模型。'},
+    {id:'cost-route', m:'m3', title:'成本路由', diff:'intermediate', min:8, ani:null, def:'成本路由在满足质量前提下，优先选择更便宜的模型或档位。'},
+    {id:'cap-route', m:'m3', title:'能力路由', diff:'intermediate', min:8, ani:null, def:'能力路由按任务类型，把请求匹配到擅长该能力的模型。'},
+    {id:'ratelimit', m:'m3', title:'限流熔断', diff:'intermediate', min:9, ani:null, def:'限流熔断在过载或故障时保护后端，避免雪崩。'},
+    {id:'metering', m:'m3', title:'计量审计', diff:'intermediate', min:8, ani:null, def:'计量审计记录每次调用的用量、成本和责任主体，支撑结算与合规。'},
+    {id:'cache-sys', m:'m3', title:'缓存体系', diff:'advanced', min:10, ani:null, def:'缓存体系（语义缓存、KV、结果缓存）在多层减少重复计算。'},
+    {id:'sla', m:'m3', title:'SLA 保障', diff:'advanced', min:10, ani:null, def:'SLA 保障通过冗余、降级和监控，守住可用性与时延承诺。'},
+    // ---------- module 4 ----------
+    {id:'prompt-context', m:'m4', title:'Prompt 与 Context', diff:'basic', min:7, ani:null, def:'Prompt 是指令，Context 是模型完成任务所需的全部背景信息。'},
+    {id:'system-prompt', m:'m4', title:'系统提示词', diff:'basic', min:6, ani:null, def:'系统提示词设定 Agent 的角色、约束和行为基线。'},
+    {id:'context-compress', m:'m4', title:'上下文压缩', diff:'intermediate', min:9, ani:null, def:'上下文压缩用摘要、检索和裁剪，把历史塞进有限窗口。'},
+    {id:'context-pollution', m:'m4', title:'上下文污染', diff:'intermediate', min:8, ani:null, def:'上下文污染指无关或错误信息进入上下文，干扰模型判断。'},
+    {id:'layered-session', m:'m4', title:'分层会话', diff:'advanced', min:10, ani:null, def:'分层会话把长期记忆、任务状态和当前对话分层管理。'},
+    {id:'sdd', m:'m4', title:'规格驱动开发', diff:'advanced', min:11, ani:null, def:'规格驱动开发先写清规格，再让 Agent 按规格实现与验证。'},
+    {id:'agents-md', m:'m4', title:'AGENTS.md', diff:'intermediate', min:7, ani:null, def:'AGENTS.md 是写给 Agent 的仓库说明书，约定结构、规范和边界。'},
+    {id:'repo-context', m:'m4', title:'仓库上下文', diff:'intermediate', min:9, ani:null, def:'仓库上下文是 Agent 理解代码库所需的结构、依赖和约定。'},
+    {id:'agentloop', m:'m4', title:'Agent Loop', diff:'advanced', min:12, ani:'agent-loop',
+      def:'Agent Loop 是 Agent 围绕目标不断观察、思考、行动、校验并决定是否继续的执行循环。',
+      why:'Chatbot 只回答问题，Agent 要完成任务。二者的分水岭就是是否有稳定的循环执行、工具调用、状态管理和退出机制。',
+      mental:'把 Agent Loop 理解为一个带工具的工程师：它不是一次回答完，而是一边看情况、一边做动作、一边检查结果，直到任务完成或触发退出条件。',
+      mech:['用户给出目标','Agent 读取上下文','Agent 生成计划','Agent 调用工具','Agent 观察工具结果','Agent 判断是否继续','成功则输出结果','失败则重试、回滚或转人工'],
+      kase:{title:'Issue Fix Agent 的正确姿势', scenario:'Issue Fix Agent 接到一张线上问题单。', problem:'它不应该拿到问题单就直接改代码。', analysis:'缺少复现、定位和修改计划，盲目改动的风险极高。', solution:'先理解问题单、补全复现路径、定位相关文件、制定修改计划、执行修改、运行测试、生成 PR，并在人审前给出风险说明。', takeaway:'企业 Agent 必须可追踪、可回滚、可审批。'},
+      pitfalls:['把 Agent 当成更长的 Prompt','只设计执行，不设计退出','只关注自动化，不关注回滚','缺少人工审批点','缺少过程 Trace'],
+      takeaways:['Agent 的关键不是会说，而是会循环执行','Agent Loop 必须有状态、工具、校验和退出条件','企业 Agent 必须可追踪、可回滚、可审批'],
+      related:['tool-call','issue-fix-agent','trace','system-prompt'],
+      quiz:{type:'multiple', scenario:'一个内部运维 Agent 偶发性地反复调用同一个工具、迟迟不结束，最终触发超时。', question:'从设计上看，最可能缺失什么？（多选）',
+        options:[{id:'a',text:'明确的退出 / 终止条件'},{id:'b',text:'更长的系统提示词'},{id:'c',text:'每一步的状态与 Trace 记录'},{id:'d',text:'更大的上下文窗口'}],
+        correct:['a','c'], explanation:'循环无法终止通常源于缺少退出条件，以及缺少可观测的中间状态与校验。加长提示词或扩大上下文窗口都不能解决控制流缺陷。',
+        trouble:['补齐退出/终止条件','为每步加 Trace','加入校验与重试上限','设置人工审批点']}},
+    {id:'tool-call', m:'m4', title:'工具调用', diff:'intermediate', min:9, ani:null, def:'工具调用让模型通过结构化接口调用外部能力，并消费其结果。'},
+    {id:'skill', m:'m4', title:'Skill', diff:'intermediate', min:8, ani:null, def:'Skill 是封装好的、可复用的 Agent 能力单元。'},
+    {id:'subagent', m:'m4', title:'Subagent', diff:'advanced', min:10, ani:null, def:'Subagent 把复杂任务拆给专职子 Agent，并汇总结果。'},
+    // ---------- module 5 ----------
+    {id:'code-review-agent', m:'m5', title:'Code Review Agent', diff:'intermediate', min:9, ani:null, def:'Code Review Agent 自动审查变更，给出风险、规范和改进建议。'},
+    {id:'issue-fix-agent', m:'m5', title:'Issue Fix Agent', diff:'advanced', min:12, ani:null, def:'Issue Fix Agent 从问题单出发，复现、定位、修改、测试并产出 PR。'},
+    {id:'req-split-agent', m:'m5', title:'需求拆解 Agent', diff:'intermediate', min:9, ani:null, def:'需求拆解 Agent 把模糊需求拆成可执行的任务与验收标准。'},
+    {id:'test-gen-agent', m:'m5', title:'测试生成 Agent', diff:'intermediate', min:9, ani:null, def:'测试生成 Agent 基于代码与规格自动生成测试用例。'},
+    {id:'ops-diag-agent', m:'m5', title:'运维诊断 Agent', diff:'advanced', min:11, ani:null, def:'运维诊断 Agent 关联日志、指标和变更，定位线上问题根因。'},
+    {id:'value-review-agent', m:'m5', title:'价值复盘 Agent', diff:'intermediate', min:8, ani:null, def:'价值复盘 Agent 量化交付效果，回看投入产出与改进点。'},
+    // ---------- module 6 ----------
+    {id:'eval', m:'m6', title:'Eval', diff:'intermediate', min:10, ani:null, def:'Eval 用可重复的数据集和指标，衡量模型与系统的真实表现。'},
+    {id:'trace', m:'m6', title:'Trace', diff:'intermediate', min:9, ani:null, def:'Trace 记录一次请求在各环节的完整调用链，支撑排障与审计。'},
+    {id:'observability', m:'m6', title:'Observability', diff:'advanced', min:10, ani:null, def:'Observability 通过指标、日志、Trace，让 AI 系统的内部状态可被观测。'},
+    {id:'token-roi', m:'m6', title:'Token ROI', diff:'intermediate', min:8, ani:null, def:'Token ROI 衡量每一份 Token 投入带来的业务产出。'},
+    {id:'perm-gov', m:'m6', title:'权限治理', diff:'intermediate', min:8, ani:null, def:'权限治理管控谁能调用什么模型、数据和工具。'},
+    {id:'human-loop', m:'m6', title:'人机协同', diff:'intermediate', min:9, ani:null, def:'人机协同设计人在环的审批、纠偏与兜底机制。'},
+    {id:'quality-gate', m:'m6', title:'质量门禁', diff:'intermediate', min:8, ani:null, def:'质量门禁在发布前用自动检查，拦住不达标的产出。'},
+    {id:'agent-safety', m:'m6', title:'Agent 安全', diff:'advanced', min:11, ani:null, def:'Agent 安全防范越权、注入、数据外泄和失控行为。'},
+    {id:'org-formation', m:'m6', title:'组织阵型', diff:'intermediate', min:9, ani:null, def:'组织阵型指企业落地 AI 所需的角色、协作和责任结构。'},
+    {id:'ai-capability', m:'m6', title:'AI 能力模型', diff:'intermediate', min:9, ani:null, def:'AI 能力模型描述团队从会用工具到能设计系统的能力阶梯。'},
+  ];
+
+  diffLabels = { basic:'基础', intermediate:'进阶', advanced:'高级' };
+
+  state = {
+    view:'home', moduleId:null, conceptId:null,
+    searchOpen:false, query:'',
+    filterDiff:'all', filterStatus:'all',
+    aniStep:0, playing:false,
+    quizSel:[], quizSubmitted:false,
+    progress:{ completedConceptIds:[], favoriteConceptIds:[], wrongQuestionIds:[], lastVisitedConceptId:null, lastStudyDate:null, studyStreakDays:1 },
+  };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (raw) { const d = JSON.parse(raw); if (d && d.progress) this.setState({ progress: { ...this.state.progress, ...d.progress } }); }
+    } catch(e){}
+    this._key = (e) => {
+      if (e.key === '/' && !this.state.searchOpen && !/input/i.test((e.target&&e.target.tagName)||'')) { e.preventDefault(); this.setState({searchOpen:true, query:''}); }
+      if (e.key === 'Escape') this.setState({searchOpen:false});
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount(){ this.stopTimer(); window.removeEventListener('keydown', this._key); }
+
+  persist(progress){ try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify({version:1, progress})); } catch(e){} }
+
+  // ---- helpers ----
+  conceptsOf(mid){ return this.concepts.filter(c=>c.m===mid); }
+  byId(id){ return this.concepts.find(c=>c.id===id); }
+  isDone(id){ return this.state.progress.completedConceptIds.includes(id); }
+  isFav(id){ return this.state.progress.favoriteConceptIds.includes(id); }
+  modPct(mid){ const cs=this.conceptsOf(mid); const done=cs.filter(c=>this.isDone(c.id)).length; return { done, total:cs.length, pct: cs.length?Math.round(done/cs.length*100):0 }; }
+
+  // ---- nav ----
+  goHome = () => { this.stopTimer(); this.setState({view:'home', searchOpen:false}); window.scrollTo(0,0); };
+  goProfile = () => { this.stopTimer(); this.setState({view:'profile', searchOpen:false}); window.scrollTo(0,0); };
+  openModule = (mid) => { this.stopTimer(); this.setState({view:'module', moduleId:mid, filterDiff:'all', filterStatus:'all', searchOpen:false}); const m=document.querySelector('main'); if(m) m.scrollTo(0,0); };
+  openConcept = (id) => {
+    this.stopTimer();
+    const p = { ...this.state.progress, lastVisitedConceptId:id };
+    this.setState({view:'concept', conceptId:id, searchOpen:false, aniStep:0, playing:false, quizSel:[], quizSubmitted:false, progress:p});
+    this.persist(p);
+    const m=document.querySelector('main'); if(m) m.scrollTo(0,0); window.scrollTo(0,0);
+  };
+  openSearch = () => this.setState({searchOpen:true, query:''});
+  closeSearch = () => this.setState({searchOpen:false});
+  stop = (e) => { if(e&&e.stopPropagation) e.stopPropagation(); };
+  onQuery = (e) => this.setState({query:e.target.value});
+
+  // ---- progress mutations ----
+  toggleComplete = (id) => {
+    const cur = this.state.progress.completedConceptIds;
+    const done = cur.includes(id);
+    const completedConceptIds = done ? cur.filter(x=>x!==id) : [...cur, id];
+    const today = new Date().toISOString().slice(0,10);
+    const p = { ...this.state.progress, completedConceptIds, lastStudyDate:today };
+    this.setState({progress:p}); this.persist(p);
+  };
+  toggleFav = (id) => {
+    const cur = this.state.progress.favoriteConceptIds;
+    const fav = cur.includes(id);
+    const favoriteConceptIds = fav ? cur.filter(x=>x!==id) : [...cur, id];
+    const p = { ...this.state.progress, favoriteConceptIds };
+    this.setState({progress:p}); this.persist(p);
+  };
+  resetAll = () => {
+    const p = { completedConceptIds:[], favoriteConceptIds:[], wrongQuestionIds:[], lastVisitedConceptId:null, lastStudyDate:null, studyStreakDays:1 };
+    this.setState({progress:p}); this.persist(p);
+  };
+  setDiff = (v) => this.setState({filterDiff:v});
+  setStatus = (v) => this.setState({filterStatus:v});
+
+  // ---- animation ----
+  curAniType(){ const c=this.byId(this.state.conceptId); return c?c.ani:null; }
+  stepsFor(type){
+    if(type==='kv-cache') return [
+      {title:'多轮请求进入同一会话', desc:'用户在同一个会话里连续提问，模型需要复用之前的上下文。'},
+      {title:'Prefill：处理完整输入', desc:'模型一次性并行处理全部输入上下文，并为每一层注意力计算 Key 和 Value。'},
+      {title:'写入 KV Cache', desc:'计算出的 Key / Value 被缓存到显存中，作为"已读上下文的笔记"。'},
+      {title:'Decode：命中缓存', desc:'生成新 Token 时直接复用已缓存的 KV，无需重算历史 —— TTFT 很低。'},
+      {title:'路由失效：缓存未命中', desc:'请求被打散到没有缓存的实例，必须重新 Prefill —— TTFT 飙升。'},
+    ];
+    if(type==='token-flow') return [
+      {title:'输入文本', desc:'用户输入一段自然语言，模型还看不懂文字本身。'},
+      {title:'分词为 Token', desc:'分词器把文本切成若干 Token，一个 Token 不一定等于一个字。'},
+      {title:'映射为编号', desc:'每个 Token 对应一个整数编号，再被转换为向量。'},
+      {title:'逐 Token 生成', desc:'模型基于上下文逐个预测下一个 Token。'},
+      {title:'解码为文本', desc:'输出的 Token 再被解码为人类可读文本。'},
+    ];
+    if(type==='agent-loop') return [
+      {title:'用户给出目标', desc:'Agent 接到一个需要完成的任务，而不仅是一个问题。'},
+      {title:'Observe 观察', desc:'读取上下文，了解当前状态与可用信息。'},
+      {title:'Think 思考', desc:'基于目标和观察生成计划与下一步动作。'},
+      {title:'Act 行动', desc:'调用工具执行动作，并消费工具返回的结果。'},
+      {title:'Check 校验', desc:'检查结果是否达成目标、是否出错。'},
+      {title:'判断是否继续', desc:'未完成则回到观察继续循环；完成或触发退出条件则结束或转人工。'},
+    ];
+    return [];
+  }
+  startTimer(){ this.stopTimer(); this._timer = setInterval(()=>{
+    this.setState(s=>{ const steps=this.stepsFor(this.curAniType()); if(s.aniStep>=steps.length-1){ this.stopTimer(); return {playing:false}; } return {aniStep:s.aniStep+1}; });
+  }, 1700); }
+  stopTimer(){ if(this._timer){ clearInterval(this._timer); this._timer=null; } }
+  aniPlay = () => {
+    if(this.state.playing){ this.stopTimer(); this.setState({playing:false}); return; }
+    const steps=this.stepsFor(this.curAniType());
+    const start = this.state.aniStep>=steps.length-1 ? 0 : this.state.aniStep;
+    this.setState({playing:true, aniStep:start}); this.startTimer();
+  };
+  aniNext = () => { this.stopTimer(); this.setState(s=>{ const steps=this.stepsFor(this.curAniType()); return {playing:false, aniStep:Math.min(s.aniStep+1, steps.length-1)}; }); };
+  aniPrev = () => { this.stopTimer(); this.setState(s=>({playing:false, aniStep:Math.max(s.aniStep-1,0)})); };
+  aniReset = () => { this.stopTimer(); this.setState({playing:false, aniStep:0}); };
+
+  // ---- quiz ----
+  quizSelect = (oid) => {
+    if(this.state.quizSubmitted) return;
+    const c=this.byId(this.state.conceptId); const multi = c.quiz.type==='multiple';
+    let sel=this.state.quizSel.slice();
+    if(multi){ sel = sel.includes(oid)? sel.filter(x=>x!==oid):[...sel,oid]; }
+    else { sel=[oid]; }
+    this.setState({quizSel:sel});
+  };
+  quizSubmit = () => {
+    if(this.state.quizSubmitted){ this.setState({quizSubmitted:false, quizSel:[]}); return; }
+    if(this.state.quizSel.length===0) return;
+    const c=this.byId(this.state.conceptId);
+    const correct = c.quiz.correct.slice().sort().join(',') === this.state.quizSel.slice().sort().join(',');
+    if(!correct){
+      const cur=this.state.progress.wrongQuestionIds;
+      if(!cur.includes(c.id)){ const p={...this.state.progress, wrongQuestionIds:[...cur,c.id]}; this.setState({progress:p}); this.persist(p); }
+    } else {
+      const cur=this.state.progress.wrongQuestionIds;
+      if(cur.includes(c.id)){ const p={...this.state.progress, wrongQuestionIds:cur.filter(x=>x!==c.id)}; this.setState({progress:p}); this.persist(p); }
+    }
+    this.setState({quizSubmitted:true});
+  };
+
+  // ====== RENDER ======
+  renderVals(){
+    const S=this.state, P=S.progress;
+    const total=this.concepts.length, done=P.completedConceptIds.length;
+    const overallPct = total?Math.round(done/total*100):0;
+    const navItemBase='display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:5px; font-size:13.5px; cursor:pointer; font-weight:500;';
+    const navOn=navItemBase+'background:#EBEEFE; color:#16309E;';
+    const navOff=navItemBase+'color:#56534B;';
+
+    const navModules = this.modules.map(m=>{ const pr=this.modPct(m.id); return {
+      idx:m.idx, title:m.title, frac:pr.done+'/'+pr.total, onOpen:()=>this.openModule(m.id),
+      navStyle:'display:flex; align-items:center; gap:10px; padding:7px 12px; border-radius:5px; cursor:pointer; '+((S.view==='module'&&S.moduleId===m.id)?'background:#F2EFE7;':''),
+    };});
+
+    const moduleCards = this.modules.map(m=>{ const pr=this.modPct(m.id); return {
+      idx:m.idx, title:m.title, desc:m.desc, subtitle:m.subtitle, pct:pr.pct, frac:pr.done+'/'+pr.total, onOpen:()=>this.openModule(m.id),
+    };});
+
+    const base = {
+      view:S.view, isHome:S.view==='home', isModule:S.view==='module', isConcept:S.view==='concept', isProfile:S.view==='profile',
+      goHome:this.goHome, goProfile:this.goProfile, openSearch:this.openSearch,
+      navHomeStyle: S.view==='home'?navOn:navOff, navProfileStyle: S.view==='profile'?navOn:navOff,
+      navModules, moduleCards,
+      overallPct, completedCount:done, totalConcepts:total, favCount:P.favoriteConceptIds.length, streak:P.studyStreakDays,
+      storageKey:this.STORAGE_KEY,
+      // search
+      searchOpen:S.searchOpen, query:S.query, onQuery:this.onQuery, closeSearch:this.closeSearch, stop:this.stop,
+      crumb: S.view==='home'?'首页': S.view==='profile'?'我的学习': S.view==='module'?('模块 · '+((this.modules.find(x=>x.id===S.moduleId)||{}).title||'')): (this.byId(S.conceptId)||{}).title||'',
+    };
+
+    // search results
+    const q=(S.query||'').trim().toLowerCase();
+    let results=[];
+    if(q){ results=this.concepts.filter(c=> c.title.toLowerCase().includes(q) || (c.def||'').toLowerCase().includes(q)).slice(0,12); }
+    base.searchResults = results.map(c=>{ const md=this.modules.find(m=>m.id===c.m); return {title:c.title, def:c.def, modIdx:md.idx, onOpen:()=>this.openConcept(c.id)};});
+    base.hasResults = q!=='' && results.length>0;
+    base.noResults = q!=='' && results.length===0;
+    base.emptyQuery = q==='';
+
+    // ---- HOME ----
+    if(S.view==='home'){
+      const firstUndone = this.concepts.find(c=>!this.isDone(c.id)) || this.concepts[0];
+      const cont = P.lastVisitedConceptId ? this.byId(P.lastVisitedConceptId) : firstUndone;
+      base.continueTitle = cont.title; base.onContinue = ()=>this.openConcept(cont.id);
+      const pmap=[['入门路径','模型怎么工作','m1'],['工程路径','推理系统与 MaaS','m2'],['应用路径','Agent、上下文与 Skill','m4'],['负责人路径','成本、评测、治理与组织','m6']];
+      base.paths = pmap.map(p=>({tag:p[0], label:this.modules.find(m=>m.id===p[2]).title, desc:p[1], onOpen:()=>this.openModule(p[2])}));
+      const review = P.lastVisitedConceptId? this.byId(P.lastVisitedConceptId) : this.byId('token');
+      base.todayItems = [
+        {kind:'新知识点', title:firstUndone.title, sub:firstUndone.def, onOpen:()=>this.openConcept(firstUndone.id)},
+        {kind:'复习', title:review.title, sub:review.def, onOpen:()=>this.openConcept(review.id)},
+        {kind:'诊断题', title:'KV Cache · 首字时延', sub:'高峰期 TTFT 飙升、命中率骤降，优先排查什么？', onOpen:()=>this.openConcept('kvcache')},
+      ];
+    }
+
+    // ---- MODULE ----
+    if(S.view==='module'){
+      const mod=this.modules.find(m=>m.id===S.moduleId)||this.modules[0];
+      base.mod = mod;
+      let cs=this.conceptsOf(mod.id);
+      const total2=cs.length;
+      if(S.filterDiff!=='all') cs=cs.filter(c=>c.diff===S.filterDiff);
+      if(S.filterStatus==='done') cs=cs.filter(c=>this.isDone(c.id));
+      if(S.filterStatus==='todo') cs=cs.filter(c=>!this.isDone(c.id));
+      if(S.filterStatus==='ani') cs=cs.filter(c=>!!c.ani);
+      base.mod = {...mod, countLabel:total2+' 个知识点', countLabel: cs.length+' / '+total2+' 个知识点'};
+      base.moduleConcepts = cs.map((c,i)=>({
+        num:String(i+1).padStart(2,'0'), title:c.title, def:c.def, diffLabel:this.diffLabels[c.diff], min:c.min, ani:!!c.ani,
+        completed:this.isDone(c.id), onOpen:()=>this.openConcept(c.id), onFav:()=>this.toggleFav(c.id),
+        favIcon:this.isFav(c.id)?'★':'☆',
+        favStyle:'flex:none; width:34px; height:34px; border-radius:6px; border:1px solid '+(this.isFav(c.id)?'#C9D2FB':'#E7E3D9')+'; background:'+(this.isFav(c.id)?'#EBEEFE':'#fff')+'; color:'+(this.isFav(c.id)?'#1F40D8':'#C3BFB4')+'; cursor:pointer; font-size:15px;',
+      }));
+      const dfBtn=(v,l)=>({label:l, onClick:()=>this.setDiff(v), style:'border:1px solid '+(S.filterDiff===v?'#1F40D8':'#E7E3D9')+'; background:'+(S.filterDiff===v?'#EBEEFE':'#fff')+'; color:'+(S.filterDiff===v?'#16309E':'#76736B')+'; border-radius:5px; padding:5px 11px; font-size:12px; cursor:pointer; font-family:inherit;'});
+      base.diffFilters=[dfBtn('all','全部'),dfBtn('basic','基础'),dfBtn('intermediate','进阶'),dfBtn('advanced','高级')];
+      const stBtn=(v,l)=>({label:l, onClick:()=>this.setStatus(v), style:'border:1px solid '+(S.filterStatus===v?'#1F40D8':'#E7E3D9')+'; background:'+(S.filterStatus===v?'#EBEEFE':'#fff')+'; color:'+(S.filterStatus===v?'#16309E':'#76736B')+'; border-radius:5px; padding:5px 11px; font-size:12px; cursor:pointer; font-family:inherit;'});
+      base.statusFilters=[stBtn('all','全部'),stBtn('todo','未学'),stBtn('done','已学'),stBtn('ani','含动画')];
+    }
+
+    // ---- CONCEPT ----
+    if(S.view==='concept'){
+      const c=this.byId(S.conceptId)||this.concepts[0];
+      const md=this.modules.find(m=>m.id===c.m);
+      const detailed = !!c.why;
+      const cc = detailed? c : {...c, why:c.def, mental:c.def, mech:['内容编写中，结构与「Token」「KV Cache」一致。'], pitfalls:[], takeaways:[c.def], kase:{title:c.title+' · 企业案例', scenario:'本知识点的完整案例正在编写中。', problem:'—', analysis:'—', solution:'—', takeaway:'—'}, related:[]};
+      // next concept (within module then global)
+      const allIdx=this.concepts.findIndex(x=>x.id===c.id);
+      const nextC=this.concepts[(allIdx+1)%this.concepts.length];
+      base.co = {
+        title:c.title, def:c.def, why:cc.why, mental:cc.mental, diffLabel:this.diffLabels[c.diff], min:c.min, ani:!!c.ani,
+        moduleTitle:md.title, onBack:()=>this.openModule(c.m),
+        mech: cc.mech.map((t,i)=>({n:String(i+1).padStart(2,'0'), text:t})),
+        kase: cc.kase, pitfalls: cc.pitfalls.map(t=>({text:t})), takeaways: cc.takeaways.map(t=>({text:t})),
+        hasDemo: ['kv-cache','token-flow','agent-loop'].includes(c.ani),
+        hasQuiz: !!c.quiz,
+        onComplete:()=>this.toggleComplete(c.id), onFav:()=>this.toggleFav(c.id), onNext:()=>this.openConcept(nextC.id),
+      };
+      base.caseRows=[{label:'场景',text:cc.kase.scenario},{label:'问题',text:cc.kase.problem},{label:'分析',text:cc.kase.analysis},{label:'方案',text:cc.kase.solution},{label:'结论',text:cc.kase.takeaway}];
+      base.relatedList = (cc.related||[]).map(id=>{ const r=this.byId(id); return r?{title:r.title, onOpen:()=>this.openConcept(id)}:null; }).filter(Boolean);
+      const isDone=this.isDone(c.id), isFav=this.isFav(c.id);
+      base.completeLabel = isDone?'✓ 已完成学习':'标记为已完成';
+      base.completeStyle = 'border:1px solid '+(isDone?'#BEDDCB':'#1F40D8')+'; background:'+(isDone?'#E8F2EC':'#1F40D8')+'; color:'+(isDone?'#2E7D58':'#fff')+'; border-radius:6px; padding:11px 20px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;';
+      base.favBtnLabel = isFav?'★ 已收藏':'☆ 收藏';
+      base.favBtnStyle = 'border:1px solid '+(isFav?'#C9D2FB':'#E7E3D9')+'; background:'+(isFav?'#EBEEFE':'#fff')+'; color:'+(isFav?'#16309E':'#76736B')+'; border-radius:6px; padding:11px 18px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit;';
+
+      // ---- animation render ----
+      const steps=this.stepsFor(c.ani); const step=S.aniStep;
+      base.aniIsKv=c.ani==='kv-cache'; base.aniIsToken=c.ani==='token-flow'; base.aniIsAgent=c.ani==='agent-loop';
+      base.aniStepLabel = (step+1)+' / '+(steps.length||1);
+      base.aniCur = {n:String(step+1).padStart(2,'0'), title:(steps[step]||{}).title||'', desc:(steps[step]||{}).desc||''};
+      base.aniPlayLabel = S.playing?'❚❚ 暂停':'▶ 播放';
+      base.aniPlay=this.aniPlay; base.aniNext=this.aniNext; base.aniPrev=this.aniPrev; base.aniReset=this.aniReset;
+
+      if(c.ani==='kv-cache'){
+        const miss = step===4;
+        base.kvLaneLabel = miss? '实例 B · 无缓存' : '实例 A · 同一会话';
+        const ttftLow='background:#15402B; color:#5FD699;', ttftHigh='background:#4A1714; color:#F09690;';
+        base.kvTtft = miss?'≈ 4.0s':'≈ 0.8s'; base.kvTtftStyle = miss?ttftHigh:ttftLow;
+        const inWords=['用户','上一轮','上下文','本轮','问题'];
+        const inOn = step===1;
+        base.kvInput = inWords.map(w=>({text:w, style:'font-family:\'IBM Plex Mono\',monospace; font-size:12px; padding:4px 9px; border-radius:4px; border:1px solid '+(inOn?'#3B5BDF':'#33322E')+'; background:'+(inOn?'#22305F':'#222018')+'; color:'+(inOn?'#AFC0FF':'#76736B')+';'}));
+        const layOn = step===1;
+        base.kvLayers = ['Attn · L1','Attn · L2','Attn · L3'].map(t=>({text:t, style:'font-family:\'IBM Plex Mono\',monospace; font-size:11px; text-align:center; padding:9px 0; border-radius:5px; border:1px solid '+(layOn?'#3B5BDF':'#33322E')+'; background:'+(layOn?'#22305F':'#222018')+'; color:'+(layOn?'#AFC0FF':'#8C8A82')+';'}));
+        base.kvArrowStyle = 'color:'+((step===2)?'#5FD699':'#4A4840')+';';
+        base.kvCacheBorder = step>=2 ? (miss?'#6E4A28':'#2E7D58') : '#3A3830';
+        const written = step>=2 && !miss;
+        const reading = step===3;
+        base.kvCells = Array.from({length:8}).map((_,i)=>{
+          let bg='#1E1C16', bd='#33322E';
+          if(written){ bg='#15402B'; bd='#2E7D58'; }
+          if(reading){ bg='#1B5236'; bd='#5FD699'; }
+          if(miss){ bg='#2A140F'; bd='#6E4A28'; }
+          return {style:'height:18px; border-radius:3px; background:'+bg+'; border:1px solid '+bd+';'};
+        });
+        const outOn = step===3;
+        base.kvOutput = ['首','个','Token','✓'].map((w,i)=>({text:w, style:'font-family:\'IBM Plex Mono\',monospace; font-size:12px; padding:4px 9px; border-radius:4px; border:1px solid '+(outOn?'#2E7D58':'#2A2A24')+'; background:'+(outOn?'#15402B':'transparent')+'; color:'+(outOn?'#5FD699':'#4A4840')+'; opacity:'+(outOn?1:0.4)+';'}));
+      }
+      if(c.ani==='token-flow'){
+        base.tkSourceStyle = 'opacity:'+(step>=0?1:0.3)+';';
+        const toks=[{t:'帮我',id:'#3057'},{t:'总结',id:'#891'},{t:'这段',id:'#2240'},{t:'日志',id:'#705'}];
+        base.tkTokens = toks.map((o,i)=>{
+          const split = step>=1; const showId = step>=2;
+          return {text:o.t, id:o.id,
+            style:'font-family:\'IBM Plex Mono\',monospace; font-size:14px; padding:8px 12px; border-radius:5px; border:1px solid '+(split?'#3B5BDF':'#33322E')+'; background:'+(split?'#22305F':'#1E1C16')+'; color:'+(split?'#AFC0FF':'#76736B')+';',
+            idStyle:'color:'+(showId?'#7E8CCB':'transparent')+';'};
+        });
+        const outOn=step>=3;
+        base.tkOut = ['排查','缓存','命中','率'].map(w=>({text:w, style:'font-family:\'IBM Plex Mono\',monospace; font-size:13px; padding:6px 10px; border-radius:5px; border:1px solid '+(outOn?'#2E7D58':'#2A2A24')+'; background:'+(outOn?'#15402B':'transparent')+'; color:'+(outOn?'#5FD699':'#3A3830')+';'}));
+      }
+      if(c.ani==='agent-loop'){
+        base.alGoalStyle = 'font-family:\'IBM Plex Mono\',monospace; font-size:12px; padding:6px 14px; border-radius:5px; border:1px solid '+(step===0?'#3B5BDF':'#33322E')+'; background:'+(step===0?'#22305F':'#1E1C16')+'; color:'+(step===0?'#AFC0FF':'#8C8A82')+';';
+        const nodes=[['Observe','观察'],['Think','思考'],['Act','行动'],['Check','校验']];
+        const active=step-1;
+        base.alNodes = nodes.map((n,i)=>{ const on=i===active; return {en:n[0], zh:n[1],
+          style:'min-width:74px; text-align:center; padding:12px 8px; border-radius:7px; border:1px solid '+(on?'#3B5BDF':'#33322E')+'; background:'+(on?'#22305F':'#1E1C16')+'; color:'+(on?'#DCE4FF':'#8C8A82')+'; '+(on?'box-shadow:0 0 0 3px rgba(59,91,223,0.25);':''),
+          arrowStyle:'font-family:\'IBM Plex Mono\',monospace; color:'+( (i<nodes.length-1)?'#4A4840':'transparent')+'; '+((i===nodes.length-1)?'display:none;':'')};});
+        base.alDecisionText = step===5? '✓ 完成 → 输出结果 / 转人工审批' : '↻ 未完成 → 回到观察继续循环';
+        base.alDecisionStyle = 'font-family:\'IBM Plex Mono\',monospace; font-size:12px; padding:7px 16px; border-radius:5px; border:1px solid '+(step===5?'#2E7D58':'#33322E')+'; background:'+(step===5?'#15402B':'#1E1C16')+'; color:'+(step===5?'#5FD699':'#76736B')+';';
+      }
+
+      // ---- quiz ----
+      if(c.quiz){
+        const Q=c.quiz, sub=S.quizSubmitted;
+        base.quiz = {scenario:Q.scenario, question:Q.question, explanation:Q.explanation};
+        base.quizSubmit = this.quizSubmit;
+        base.quizTypeLabel = Q.type==='multiple'?'多选':'单选';
+        base.quizHint = sub? '' : (Q.type==='multiple'?'可多选 · 选择后提交':'选择一项后提交');
+        const isCorrect = Q.correct.slice().sort().join(',')===S.quizSel.slice().sort().join(',');
+        base.quizSubmitted = sub;
+        base.quizOptions = Q.options.map(o=>{
+          const sel=S.quizSel.includes(o.id); const isAns=Q.correct.includes(o.id);
+          let bg='#fff', bd= sel?'#1F40D8':'#E7E3D9', col='#3A382F';
+          let mark = String.fromCharCode(65+Q.options.indexOf(o));
+          let markBg = sel?'#1F40D8':'#fff', markCol=sel?'#fff':'#9C988E', markBd=sel?'#1F40D8':'#D9D5CB';
+          let tag='', showTag=false, tagStyle='';
+          if(sub){
+            if(isAns){ bg='#E8F2EC'; bd='#BEDDCB'; markBg='#2E7D58'; markCol='#fff'; markBd='#2E7D58'; tag='正确答案'; showTag=true; tagStyle='font-family:\'IBM Plex Mono\',monospace; font-size:10px; color:#2E7D58; border:1px solid #BEDDCB; border-radius:3px; padding:1px 6px;'; }
+            else if(sel){ bg='#FBEDEB'; bd='#EAC3BD'; markBg='#C0392B'; markCol='#fff'; markBd='#C0392B'; tag='你的选择'; showTag=true; tagStyle='font-family:\'IBM Plex Mono\',monospace; font-size:10px; color:#C0392B; border:1px solid #EAC3BD; border-radius:3px; padding:1px 6px;'; }
+          }
+          return {text:o.text, mark, onClick:()=>this.quizSelect(o.id), showTag, tag, tagStyle,
+            style:'display:flex; align-items:center; gap:12px; padding:13px 16px; border:1px solid '+bd+'; background:'+bg+'; border-radius:7px; cursor:'+(sub?'default':'pointer')+'; color:'+col+';',
+            markStyle:'flex:none; width:24px; height:24px; border-radius:'+(Q.type==='multiple'?'5px':'50%')+'; border:1px solid '+markBd+'; background:'+markBg+'; color:'+markCol+'; display:flex; align-items:center; justify-content:center; font-family:\'IBM Plex Mono\',monospace; font-size:12px; font-weight:600;'};
+        });
+        base.quizSubmitLabel = sub? '重做' : '提交答案';
+        base.quizSubmitStyle = sub? 'border:1px solid #E7E3D9; background:#fff; color:#56534B; border-radius:6px; padding:9px 20px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit;' : 'border:none; background:'+(S.quizSel.length?'#1F40D8':'#C9CBD2')+'; color:#fff; border-radius:6px; padding:9px 20px; font-size:13.5px; font-weight:600; cursor:'+(S.quizSel.length?'pointer':'not-allowed')+'; font-family:inherit;';
+        base.quizResultStyle = isCorrect? 'background:#E8F2EC; border:1px solid #BEDDCB;' : 'background:#FBEDEB; border:1px solid #EAC3BD;';
+        base.quizResultTitle = isCorrect? '✓ 回答正确' : '✕ 回答错误 · 已记入错题本';
+        base.quizResultTitleStyle = isCorrect? 'color:#2E7D58;' : 'color:#C0392B;';
+        const tr=Q.trouble||[]; base.hasTrouble = sub && tr.length>0;
+        base.troubleSteps = tr.map((t,i)=>({text:t, sep: i<tr.length-1?'→':''}));
+      }
+    }
+
+    // ---- PROFILE ----
+    if(S.view==='profile'){
+      base.profileStats=[
+        {value:done, label:'已掌握知识点'},
+        {value:overallPct+'%', label:'总完成度'},
+        {value:P.favoriteConceptIds.length, label:'收藏'},
+        {value:P.studyStreakDays, label:'连续学习天数'},
+      ];
+      const favs=P.favoriteConceptIds.map(id=>this.byId(id)).filter(Boolean);
+      base.favList = favs.map(c=>({title:c.title, def:c.def, onOpen:()=>this.openConcept(c.id)}));
+      base.hasFavs = favs.length>0; base.noFavs = favs.length===0;
+      const wrong=P.wrongQuestionIds.map(id=>this.byId(id)).filter(Boolean);
+      base.wrongList = wrong.map(c=>({title:c.title, onOpen:()=>this.openConcept(c.id)}));
+      base.hasWrong = wrong.length>0; base.noWrong = wrong.length===0;
+      base.onReset=this.resetAll;
+    }
+
+    return base;
+  }
+}
+</script>
+</body>
+</html>
