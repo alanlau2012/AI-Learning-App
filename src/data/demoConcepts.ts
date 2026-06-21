@@ -1539,7 +1539,7 @@ export const demoConcepts: KnowledgePoint[] = [
       "AI 原生软件工程"
     ],
     "contentStatus": "mvp",
-    "hasAnimation": false,
+    "hasAnimation": true,
     "definition": "Skill 是可复用的任务能力单元，通常包含指令、资源、脚本、触发条件和操作步骤。它不是普通提示词模板，也不等同于所有平台通用插件，而是把重复任务沉淀成可治理、可演进的 Agent 能力资产。",
     "whyItMatters": "企业 Agent 想从个人试用走向团队规模化，不能依赖每个用户临时写 Prompt。Skill 能把最佳实践、工具约束、质量门禁和业务知识固化下来，形成可复用、可审核、可版本化的能力库。",
     "mentalModel": "Skill 更接近企业里的标准作业程序配上工具包，而不是一段更长的提示词：新人照着 SOP 做事，既有步骤也有模板和检查项；Agent 调用 Skill 时，同样是加载一组任务指令和资源来稳定完成某类工作。",
@@ -1551,6 +1551,68 @@ export const demoConcepts: KnowledgePoint[] = [
       "使用结果通过评测、人工反馈和线上 trace 回流，推动 Skill 版本迭代。",
       "企业需要管理 Skill 的所有权、适用范围、权限边界、版本变更、弃用策略和质量指标。"
     ],
+    "animation": {
+      "type": "skill-lifecycle",
+      "title": "从一次经验到可复用的 Skill",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "识别高频任务并匹配",
+          "description": "团队识别边界清晰、可验证的高频任务；Agent 在匹配到这类任务时才加载对应 Skill，而不是每次临时拼提示词。",
+          "highlightTargets": [
+            "task",
+            "discover"
+          ]
+        },
+        {
+          "id": "s2",
+          "title": "加载 Skill 的指令与资源",
+          "description": "Skill 把触发条件、指令、资源、脚本和约束作为结构化整体加载进来，这正是它区别于一段更长提示词的地方。",
+          "highlightTargets": [
+            "skill-def",
+            "resources"
+          ]
+        },
+        {
+          "id": "s3",
+          "title": "执行与自检",
+          "description": "Skill 引导 Agent 调用工具、收集证据、产出结果并完成自检，让一类任务的做法稳定可重复。",
+          "highlightTargets": [
+            "execute",
+            "tools",
+            "self-check"
+          ]
+        },
+        {
+          "id": "s4",
+          "title": "结果反馈回流",
+          "description": "执行结果经评测、人工反馈和线上 trace 回流，暴露 Skill 的不足与改进点。",
+          "highlightTargets": [
+            "result",
+            "feedback",
+            "trace"
+          ]
+        },
+        {
+          "id": "s5",
+          "title": "沉淀为版本化资产",
+          "description": "可复用经验沉淀进 Skill 库并记录版本，使能力可追踪、可回滚、可演进。",
+          "highlightTargets": [
+            "deposit",
+            "version"
+          ]
+        },
+        {
+          "id": "s6",
+          "title": "所有权与权限治理",
+          "description": "企业为 Skill 设定 Owner、适用范围、权限边界和弃用策略，避免能力库膨胀失控。",
+          "highlightTargets": [
+            "governance",
+            "permission"
+          ]
+        }
+      ]
+    },
     "enterpriseCase": {
       "title": "团队把 CI 修复经验沉淀为 Skill",
       "scenario": "某研发平台每周约 80 次 CI 失败需要 Agent 协助定位。试点初期，Agent 会话平均需要 3 轮人工提醒才能找到正确日志入口，重复漏掉“禁止跳过测试”的评审要求。",

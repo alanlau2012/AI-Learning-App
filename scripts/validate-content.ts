@@ -38,6 +38,7 @@ const REGISTERED_ANIMATION_TYPES = new Set([
   'kv-cache',
   'model-router',
   'agent-loop',
+  'skill-lifecycle',
   'issue-fix-flow',
 ]);
 

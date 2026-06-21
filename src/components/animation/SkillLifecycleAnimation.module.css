@@ -1,0 +1,212 @@
+.canvas {
+  display: grid;
+  gap: 10px;
+  min-height: 236px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.discover {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip,
+.node,
+.sink {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 249, 246, 0.16);
+  background: rgba(250, 249, 246, 0.04);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #b4b0a6;
+  transition: all 180ms ease;
+}
+
+.skillChip {
+  color: #f7f3ea;
+}
+
+.chip.lit,
+.node.lit,
+.sink.lit {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.26);
+  color: #f7f3ea;
+}
+
+.arrow {
+  color: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.vsPrompt {
+  flex: 1 1 100%;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #6f6b62;
+  border-left: 2px dashed rgba(250, 249, 246, 0.2);
+  padding-left: 8px;
+}
+
+/* Skill 卡 */
+.skillCard {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.18);
+  background: rgba(250, 249, 246, 0.03);
+  transition: all 180ms ease;
+}
+
+.skillCard.lit {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.1);
+}
+
+.cardTag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #8ea2ff;
+}
+
+.rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.row {
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(250, 249, 246, 0.14);
+  font-size: 11px;
+  color: #b4b0a6;
+  transition: all 180ms ease;
+}
+
+.row.lit {
+  border-color: rgba(142, 162, 255, 0.5);
+  background: rgba(31, 64, 216, 0.16);
+  color: #e7e3d9;
+}
+
+/* 执行行 */
+.execRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.selfCheck.lit {
+  border-color: rgba(46, 125, 88, 0.7);
+  background: rgba(46, 125, 88, 0.18);
+  color: #dff1e7;
+}
+
+.result.lit {
+  border-color: #2e7d58;
+  background: rgba(46, 125, 88, 0.24);
+  color: #dff1e7;
+}
+
+/* 反馈回流 */
+.feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  opacity: 0.4;
+  transition: opacity 180ms ease;
+}
+
+.feedback.show {
+  opacity: 1;
+}
+
+.loopArrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #8fd3b0;
+}
+
+.feedbackTag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+}
+
+/* 底部：沉淀 + 治理 */
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(250, 249, 246, 0.1);
+}
+
+.shelf,
+.govern {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.12);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+  transition: all 180ms ease;
+}
+
+.shelf.lit {
+  border-color: rgba(46, 125, 88, 0.7);
+  background: rgba(46, 125, 88, 0.12);
+  color: #cfe6da;
+}
+
+.version {
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(250, 249, 246, 0.2);
+  color: #8c887e;
+}
+
+.version.bump {
+  border-color: #8fd3b0;
+  color: #8fd3b0;
+}
+
+.govern span {
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(250, 249, 246, 0.12);
+}
+
+.govern.lit {
+  border-color: rgba(232, 148, 58, 0.6);
+  background: rgba(232, 148, 58, 0.08);
+  color: #ffe1bd;
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 600px) {
+  .bottom {
+    grid-template-columns: 1fr;
+  }
+}

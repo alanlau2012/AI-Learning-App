@@ -1,0 +1,154 @@
+.canvas {
+  display: grid;
+  gap: 14px;
+  min-height: 236px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.flow {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.node {
+  flex: 1 1 92px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.16);
+  background: rgba(250, 249, 246, 0.04);
+  transition: all 180ms ease;
+}
+
+.node.active {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.24);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f7f3ea;
+}
+
+.fields {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.field {
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(250, 249, 246, 0.16);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #b4b0a6;
+}
+
+/* 补丁：scope 边框约束 */
+.scoped {
+  border-style: dashed;
+}
+
+.scopeMark {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #8fd3b0;
+}
+
+.arrow {
+  align-self: center;
+  color: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* 验证失败回流 */
+.loopBack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px dashed rgba(232, 148, 58, 0.4);
+  background: rgba(232, 148, 58, 0.06);
+  font-size: 11px;
+  color: #ffe1bd;
+  opacity: 0.35;
+  transition: opacity 180ms ease;
+}
+
+.loopBack.show {
+  opacity: 1;
+}
+
+.loopArrow {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: #e8943a;
+}
+
+/* 质量回流 */
+.reflow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(250, 249, 246, 0.1);
+  opacity: 0.4;
+  transition: opacity 180ms ease;
+}
+
+.reflow.show {
+  opacity: 1;
+}
+
+.reflowArrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #8fd3b0;
+}
+
+.reflowTag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+}
+
+.sink {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 249, 246, 0.16);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+  transition: all 180ms ease;
+}
+
+.sink.lit {
+  border-color: rgba(46, 125, 88, 0.7);
+  background: rgba(46, 125, 88, 0.16);
+  color: #dff1e7;
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}
