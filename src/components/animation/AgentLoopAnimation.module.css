@@ -1,0 +1,252 @@
+.canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 236px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.taskBar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.taskChip {
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 249, 246, 0.18);
+  background: rgba(250, 249, 246, 0.04);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #b4b0a6;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.taskChip.active {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.28);
+  color: #f7f3ea;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+}
+
+/* 环形轨道 */
+.ringTrack {
+  fill: none;
+  stroke: rgba(250, 249, 246, 0.14);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+}
+
+/* 节点 */
+.node circle,
+.node rect {
+  fill: rgba(250, 249, 246, 0.05);
+  stroke: rgba(250, 249, 246, 0.2);
+  stroke-width: 1.5;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
+
+.node text {
+  fill: #d8d3c8;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  text-anchor: middle;
+  transition: fill 180ms ease;
+}
+
+.node.active circle,
+.node.active rect {
+  fill: rgba(31, 64, 216, 0.3);
+  stroke: #8ea2ff;
+  stroke-width: 2;
+}
+
+.node.active text {
+  fill: #f7f3ea;
+}
+
+.decision rect {
+  stroke-dasharray: 3 3;
+}
+
+/* 出口 chip */
+.exitChip rect {
+  fill: rgba(250, 249, 246, 0.04);
+  stroke: rgba(250, 249, 246, 0.2);
+  stroke-width: 1.2;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
+
+.exitChip text {
+  fill: #b4b0a6;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-anchor: middle;
+  transition: fill 180ms ease;
+}
+
+.stopChip.active rect {
+  fill: rgba(46, 125, 88, 0.32);
+  stroke: #2e7d58;
+}
+
+.stopChip.active text {
+  fill: #dff1e7;
+}
+
+.humanChip.active rect {
+  fill: rgba(232, 148, 58, 0.3);
+  stroke: #e8943a;
+  stroke-width: 2;
+}
+
+.humanChip.active text {
+  fill: #ffe1bd;
+}
+
+/* 连线 */
+.flow {
+  stroke: rgba(250, 249, 246, 0.28);
+  stroke-width: 2;
+  transition: stroke 180ms ease;
+}
+
+.flow.active {
+  stroke: #8ea2ff;
+}
+
+.flow.result.active {
+  stroke: #2e7d58;
+}
+
+.flowLabel {
+  fill: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-anchor: middle;
+  transition: fill 180ms ease;
+}
+
+.flowLabel.activeText {
+  fill: #c7d0ff;
+}
+
+/* 继续回流弧线 */
+.continueArc {
+  stroke: rgba(250, 249, 246, 0.28);
+  stroke-width: 2;
+  transition: stroke 180ms ease, opacity 180ms ease;
+}
+
+.continueArc.active {
+  stroke: #8ea2ff;
+}
+
+/* 连续失败：继续被弱化，强制人审 */
+.continueArc.weak {
+  stroke: rgba(250, 249, 246, 0.16);
+  stroke-dasharray: 4 6;
+  opacity: 0.5;
+}
+
+/* 卡片 */
+.card rect {
+  fill: rgba(250, 249, 246, 0.04);
+  stroke: rgba(250, 249, 246, 0.16);
+  stroke-width: 1.2;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
+
+.card text {
+  fill: #b4b0a6;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-anchor: middle;
+  transition: fill 180ms ease;
+}
+
+.cardSub {
+  font-size: 10px;
+  fill: #8c887e;
+}
+
+.card.active rect {
+  fill: rgba(31, 64, 216, 0.22);
+  stroke: #8ea2ff;
+}
+
+.card.active text {
+  fill: #e6eaff;
+}
+
+/* 工具区 */
+.toolBox rect {
+  fill: rgba(250, 249, 246, 0.04);
+  stroke: rgba(250, 249, 246, 0.2);
+  stroke-width: 1.5;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
+
+.toolBox .boxTitle {
+  fill: #d8d3c8;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  text-anchor: middle;
+}
+
+.toolBox .lock {
+  fill: #8c887e;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+.toolBox.active rect {
+  fill: rgba(31, 64, 216, 0.22);
+  stroke: #8ea2ff;
+}
+
+/* trace 轨道 */
+.trace {
+  display: flex;
+  gap: 6px;
+}
+
+.traceCell {
+  flex: 1;
+  text-align: center;
+  padding: 5px 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 249, 246, 0.14);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #6f6b62;
+  transition: all 180ms ease;
+}
+
+.traceCell.filled {
+  border-color: rgba(46, 125, 88, 0.6);
+  color: #cfe6da;
+  background: rgba(46, 125, 88, 0.12);
+}
+
+.traceCell.current {
+  border-color: #8ea2ff;
+  color: #f7f3ea;
+  background: rgba(31, 64, 216, 0.24);
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}

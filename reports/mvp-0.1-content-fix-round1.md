@@ -20,6 +20,7 @@
 - 补充诊断题质量门禁、去模板化写作约束和内容审核偏差检查。
 - 抽样升级 4 个企业案例：`model-gateway`、`multi-model-routing`、`skill`、`agent-loop`。
 - 为 `prefill-decode` 和 `agent-loop` 提供动画画面意图初稿，只描述语义和画面状态，不写前端实现。
+- 补做 P0-03 去模板化抽样回修（见 reviewed 文件 §9），把写作约束从“规则”落成“可合入修订”。
 
 ## 3. 达成标准证据
 
@@ -43,12 +44,24 @@
 - 心智模型不固定“可以把 X 理解为……”：已写入去模板化约束并给出替代句式。
 - 不引入 schema 外字段：通过。案例升级样例只使用 `enterpriseCase` 现有字段；诊断题修订只使用现有 `diagnosticQuestion` 字段。
 
+P0-03 去模板化抽样回修证据（见 reviewed 文件 §9）：
+
+- 心智模型句式去重：覆盖 11 讲（token、attention、prefill、ttft、kv-cache、model-gateway、multi-model-routing、context-window、agent-loop、skill、issue-fix-agent），11 个开头互不相同，均不再以「可以把 X 理解为」起句；`decode` 本就用不同句式，无需改写。
+- 条数去模板化：覆盖 5 讲，打散“机制 6 / 误区 5 / 结论 5”统一结构。
+  - token：mechanism 6 → 5（合并）。
+  - ttft：keyTakeaways 5 → 4（合并）。
+  - model-gateway：pitfalls 5 → 4（合并）。
+  - kv-cache：keyTakeaways 5 → 4（合并）。
+  - multi-model-routing：mechanism 6 → 7（拆分过粗项）。
+- 入库校验底线：5 讲修订字段全部满足 mechanism ≥3、pitfalls ≥2、keyTakeaways ≥2，且落在机制 4-7 / 误区 3-6 / 结论 3-5 区间内。
+- 仍只使用现有 schema 字段，可无损映射到 `src/data/demoConcepts.ts`。
+
 ## 4. 遗留项
 
 - 本轮没有把修订内容写入 `src/data/demoConcepts.ts`，这是硬边界。需要主开发在审核通过后合入。
 - 诊断题质量门禁和去模板化约束还未回写到 `docs/project-board.md` 或流程看板，需总控统一处理。
 - `prefill-decode` 和 `agent-loop` 仍只是画面意图草稿，需要动画意图/动画工程 Agent 继续转成实现方案。
-- 12 讲正文仍保留当前条数和部分心智模型句式，本轮只提供生产约束和样例，不直接改正式内容。
+- 12 讲正文的去模板化已完成可合入抽样回修：11 讲心智模型句式已改写、5 讲条数已打散（见 reviewed 文件 §9）。这些修订仍未写入 `src/data/demoConcepts.ts`（硬边界），需主开发审核后合入；其余未抽样到的字段保持原样属正常，本轮目标是“证明规则可执行”，非全量重写。
 
 ## 5. 停止点
 
