@@ -1,0 +1,49 @@
+/*
+ * 视觉变量唯一来源（权威，来自 design.md §2 / §3）。
+ * 颜色 / 字体 / 间距 / 圆角等设计 token 只在此文件定义；组件通过 CSS 变量消费。
+ * 数量类文案（讲数 / 模块计数等）不在此处，一律以 docs/content-schema.md 登记表为准。
+ */
+:root {
+  /* 背景 / 表面 */
+  --color-bg: #faf9f6;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f2efe7;
+  --color-border: #e7e3d9;
+  --color-border-strong: #dad6cb;
+
+  /* 文本 */
+  --color-title: #1a1916;
+  --color-text: #34322c;
+  --color-muted: #8c887e;
+  --color-faint: #b4b0a6;
+
+  /* 主色：操作 / 选中 / 章节编号 / 关键强调 */
+  --color-primary: #1f40d8;
+  --color-primary-soft: #ebeefe;
+  --color-primary-border: #c9d2fb;
+
+  /* 进度 / 完成 */
+  --color-progress: #2e7d58;
+  --color-progress-soft: #e8f2ec;
+
+  /* 告警（克制使用） */
+  --color-warning: #e8943a;
+
+  /* 字体：标题 serif / 正文 sans / 序号与指标 mono */
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-serif: "IBM Plex Serif", Georgia, "Times New Roman", "Noto Serif SC",
+    serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* 布局尺寸（design.md §3） */
+  --sidebar-width: 256px;
+  --topbar-height: 56px;
+  --content-max-home: 1120px;
+  --content-max-concept: 860px;
+  --content-padding-x: 40px;
+
+  /* 圆角（design.md：6–8px） */
+  --radius: 6px;
+  --radius-lg: 8px;
+}
