@@ -19,4 +19,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Node 脚本（validate-content 等）使用 Node 全局（process / console 等）
+    files: ['scripts/**/*.{ts,tsx,js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])
