@@ -1,0 +1,109 @@
+{
+  "id": "agent-loop",
+  "title": "Agent Loop",
+  "slug": "agent-loop",
+  "moduleId": "m4",
+  "order": 10,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 12,
+  "tags": ["Agent Loop", "工具调用", "状态管理", "Human-in-the-loop", "Trace"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "Agent Loop 是 Agent 围绕目标反复执行观察、计划、行动、校验并决定继续或停止的任务循环。Agent 不是一次模型回答，而是带状态、工具和退出条件的执行系统。",
+  "whyItMatters": "企业 Agent 往往要修改代码、处理工单、查询系统或编排流程，失败点不只在模型回答质量。Loop 的可追踪、可回滚、可审批和可终止能力，决定 Agent 是否能进入生产工作流。",
+  "mentalModel": "可以把 Agent Loop 理解为一名工程师处理任务的工作节奏：先看现场，再形成下一步计划，执行一个动作，检查结果，然后决定继续、返工或请人确认。区别是企业需要把这个过程记录成可审计的机器流程。",
+  "mechanism": [
+    "Agent 接收目标、约束和可用工具，建立初始任务状态。",
+    "Observe 阶段读取上下文、文件、日志、工单或工具返回，了解当前状态。",
+    "Plan 阶段基于目标和观察选择下一步动作，必要时形成短计划或假设；有些系统会把这一步称为 Think，但工程上更关注它是否可执行、可验证。",
+    "Act 阶段调用工具或执行操作，例如搜索代码、运行测试、修改草稿或创建评论。",
+    "Check 阶段验证动作结果是否满足目标，记录错误、证据和剩余风险。",
+    "Loop 根据退出条件决定继续、停止、回滚或转人工审批，避免无界循环和不可控修改。"
+  ],
+  "animation": {
+    "type": "agent-loop",
+    "title": "Observe → Plan → Act → Check → Continue/Stop",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "用户给出目标",
+        "description": "Agent 收到一个需要完成的任务，并加载本轮执行必须遵守的约束、权限和可用工具。",
+        "highlightTargets": ["goal", "constraints", "tools"]
+      },
+      {
+        "id": "s2",
+        "title": "Observe 观察",
+        "description": "Agent 读取上下文、日志或代码，形成当前状态视图。",
+        "highlightTargets": ["observe", "context"]
+      },
+      {
+        "id": "s3",
+        "title": "Plan 选择下一步",
+        "description": "Agent 基于观察选择一个可验证动作，而不是一次性假设所有答案。",
+        "highlightTargets": ["plan"]
+      },
+      {
+        "id": "s4",
+        "title": "Act 调用工具",
+        "description": "Agent 调用工具执行动作，工具返回结构化结果或错误。",
+        "highlightTargets": ["act", "tool-result"]
+      },
+      {
+        "id": "s5",
+        "title": "Check 校验结果",
+        "description": "Agent 检查目标是否达成、是否引入风险，并记录证据。",
+        "highlightTargets": ["check", "evidence"]
+      },
+      {
+        "id": "s6",
+        "title": "继续、停止或转人工",
+        "description": "未完成则继续循环；达成目标则停止；高风险动作进入人工审批。",
+        "highlightTargets": ["continue", "stop", "human-review"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "自动运维 Agent 陷入重复重启",
+    "scenario": "某企业试点运维 Agent，发现服务异常后连续重启同一服务三次，仍未解决问题。",
+    "problem": "Agent 只有工具调用能力，没有明确校验标准、重试上限和升级人工的条件。",
+    "analysis": "Loop 缺少 Check 和 Stop 设计，导致它把“执行过动作”误当成“问题在推进”。生产 Agent 必须能识别无效动作和风险边界。",
+    "solution": "为每类动作定义成功判据、最大重试次数、回滚策略和人工审批点；所有观察、动作和结果写入 trace。",
+    "takeaway": "Agent 的关键不是能调用工具，而是能在循环中被约束、验证和停止。"
+  },
+  "pitfalls": [
+    "把 Agent 等同于一次 Prompt 回答，没有任务状态和循环控制。",
+    "只关注工具数量，不定义每个工具调用后的校验标准。",
+    "缺少退出条件，导致 Agent 重复尝试、扩大修改或消耗大量 Token。",
+    "高风险动作没有人工审批和回滚方案，难以进入企业生产流程。",
+    "没有 trace，事后无法解释 Agent 为什么做出某个动作。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-agent-loop-1",
+    "type": "single",
+    "scenario": "一个代码 Agent 在修复测试失败时连续修改 6 个无关文件，测试仍未通过。日志只记录了最终 diff，没有记录每次工具调用、失败原因和继续条件。",
+    "question": "最优先补齐哪类能力？",
+    "options": [
+      { "id": "a", "text": "增加代码搜索和编辑工具权限，让 Agent 能覆盖更多可能根因" },
+      { "id": "b", "text": "补齐 Loop 的校验、退出条件、trace 和人工审批机制" },
+      { "id": "c", "text": "要求 Agent 每轮先输出更详细计划，但不限制修改范围和重试次数" },
+      { "id": "d", "text": "把测试失败日志完整塞入上下文，减少 Agent 漏看信息的概率" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "问题在于 Agent Loop 不可控、不可追踪，缺少动作后的校验和停止条件。更多工具、更详细计划或更多日志都可能改善局部能力，但如果没有边界、证据和停止机制，仍会扩大风险。",
+    "troubleshootingPath": [
+      "还原每轮观察、动作、结果和判断依据",
+      "定义测试失败修复的成功判据",
+      "设置最大修改范围和重试次数",
+      "对跨模块修改加入人工审批"
+    ],
+    "relatedConceptIds": ["tool-calling", "trace", "human-in-the-loop", "issue-fix-agent"]
+  },
+  "keyTakeaways": [
+    "Agent 是循环执行系统，不是一次回答。",
+    "Loop 包括观察、计划、行动、校验和停止判断。",
+    "工具调用必须有状态和验证。",
+    "企业 Agent 必须可追踪、可回滚、可审批。",
+    "退出条件和人工介入同样重要。"
+  ],
+  "relatedConceptIds": ["context-window", "tool-calling", "skill", "subagent", "human-in-the-loop", "trace"]
+}

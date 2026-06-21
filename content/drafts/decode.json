@@ -1,0 +1,103 @@
+{
+  "id": "decode",
+  "title": "Decode",
+  "slug": "decode",
+  "moduleId": "m2",
+  "order": 2,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": ["Decode", "TPOT", "推理性能", "投机解码", "量化"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "Decode 是模型在 Prefill 之后逐 Token 生成输出的阶段。它决定答案流出的持续速度，输出越长，总生成时间和费用通常越高。",
+  "whyItMatters": "很多企业应用不只要求“首字快”，还要求长报告、代码修改、总结和客服回复持续输出稳定。Decode 速度会影响用户等待、GPU 利用率、并发吞吐和输出 Token 成本，是推理服务体验治理的核心指标之一。",
+  "mentalModel": "如果 Prefill 是读卷，Decode 就是逐字写答案。读完材料后，模型每写一个新 Token 都要参考已经写出的内容；答案越长，写作时间越长，系统越需要控制节奏和预算。",
+  "mechanism": [
+    "Prefill 完成后，模型基于输入上下文和已有 KV Cache 生成第一个输出 Token。",
+    "每生成一个新 Token，该 Token 会被追加到上下文，并更新对应的 KV Cache。",
+    "模型继续基于历史输入和已生成输出预测下一个 Token，形成逐步自回归过程。",
+    "TPOT 常用于衡量输出阶段每个 Token 的平均生成时间，直接影响流式输出体感。",
+    "输出越长，Decode 循环次数越多，总耗时和输出计费越高。",
+    "投机解码、量化、批处理调度和模型大小都会影响 Decode 阶段的吞吐与稳定性。"
+  ],
+  "animation": {
+    "type": "prefill-decode",
+    "title": "Decode 的逐 Token 生成过程",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "Prefill 完成",
+        "description": "输入上下文已经处理完毕，KV Cache 就绪，推理链路从首字前阶段进入生成阶段。",
+        "highlightTargets": ["prefill-done", "cache"]
+      },
+      {
+        "id": "s2",
+        "title": "生成第一个输出 Token",
+        "description": "第一个输出 Token 出现，说明用户已经看到响应，但完整答案还没有完成。",
+        "highlightTargets": ["first-output-token"]
+      },
+      {
+        "id": "s3",
+        "title": "追加并继续预测",
+        "description": "新 Token 被追加进上下文，模型基于已有内容继续预测下一个 Token。",
+        "highlightTargets": ["append-token", "decode-loop"]
+      },
+      {
+        "id": "s4",
+        "title": "TPOT 体现流出速度",
+        "description": "时间轴上相邻 Token 的间隔变成 TPOT 指标，间隔越大，用户越觉得输出卡顿。",
+        "highlightTargets": ["tpot", "token-interval"]
+      },
+      {
+        "id": "s5",
+        "title": "长输出累积总耗时",
+        "description": "即使 TPOT 保持稳定，输出 Token 过多也会累积成较长的总等待时间。",
+        "highlightTargets": ["long-output", "total-latency"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "代码生成 Agent 输出后半段变慢",
+    "scenario": "某研发团队使用代码生成 Agent 自动生成迁移脚本，首字很快，但长代码块输出到后半段明显变慢。",
+    "problem": "用户认为模型“不稳定”，平台只看 TTFT，没有持续跟踪 TPOT、输出长度和批调度状态。",
+    "analysis": "任务输出 Token 很长，Decode 循环次数多；高峰期批处理调度和显存压力使后续 Token 间隔变大。",
+    "solution": "建立 TPOT、输出 Token、队列等待和批大小监控；对长代码任务拆分生成步骤，设置输出预算，并评估投机解码或量化方案。",
+    "takeaway": "长输出体验不能只靠首字时延判断，Decode 阶段需要独立观测和治理。"
+  },
+  "pitfalls": [
+    "只优化 TTFT，忽略长答案流式输出中后段的卡顿。",
+    "把最大输出 Token 设得很大，却没有配套成本和超时控制。",
+    "用平均响应时间评估所有任务，混淆短问答和长代码生成的 Decode 特征。",
+    "盲目开启更激进的解码优化，没有用质量评测验证答案稳定性。",
+    "把前端流式展示问题和后端 Decode 性能问题混在一起排查。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-decode-1",
+    "type": "single",
+    "scenario": "某代码生成应用首字稳定在 700ms 左右，但生成 300 行迁移脚本时经常超过 90 秒。监控显示输入 Token 不大，输出 Token 很长，TPOT 在高峰期升高。",
+    "question": "最合理的优先治理方向是什么？",
+    "options": [
+      { "id": "a", "text": "优先压缩输入上下文，因为首字稳定仍可能隐藏 Prefill 问题" },
+      { "id": "b", "text": "拆分长输出任务，监控并优化 TPOT、批调度和输出预算" },
+      { "id": "c", "text": "增加推理副本数，但不区分短问答和长代码任务的调度队列" },
+      { "id": "d", "text": "开启更激进的解码优化，并在质量评测通过前全量发布" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "首字稳定、输入不大但长输出耗时高，说明主要压力在 Decode。输入压缩、扩容和解码优化都可能有价值，但优先策略应围绕输出长度、TPOT、批调度和质量验证设计。",
+    "troubleshootingPath": [
+      "按任务类型统计输出 Token 分布",
+      "拆分 TTFT 与 TPOT 指标",
+      "观察高峰期批大小、队列等待和 GPU 利用率",
+      "评估长输出拆段、停止条件和解码优化对质量的影响"
+    ],
+    "relatedConceptIds": ["prefill", "ttft", "tpot", "speculative-decoding", "quantization"]
+  },
+  "keyTakeaways": [
+    "Decode 是逐 Token 生成输出的阶段。",
+    "输出越长，总耗时和费用越高。",
+    "TPOT 更能反映输出阶段体感。",
+    "长输出任务需要预算、拆分和停止条件。",
+    "解码优化必须结合质量评测。"
+  ],
+  "relatedConceptIds": ["prefill", "ttft", "tpot", "kv-cache", "speculative-decoding", "quantization"]
+}

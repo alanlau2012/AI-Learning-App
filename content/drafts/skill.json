@@ -1,0 +1,67 @@
+{
+  "id": "skill",
+  "title": "Skill",
+  "slug": "skill",
+  "moduleId": "m4",
+  "order": 12,
+  "difficulty": "advanced",
+  "estimatedMinutes": 12,
+  "tags": ["Skill", "Agent", "能力复用", "生命周期治理", "AI 原生软件工程"],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "Skill 是可复用的任务能力单元，通常包含指令、资源、脚本、触发条件和操作步骤。它不是普通提示词模板，也不等同于所有平台通用插件，而是把重复任务沉淀成可治理、可演进的 Agent 能力资产。",
+  "whyItMatters": "企业 Agent 想从个人试用走向团队规模化，不能依赖每个用户临时写 Prompt。Skill 能把最佳实践、工具约束、质量门禁和业务知识固化下来，形成可复用、可审核、可版本化的能力库。",
+  "mentalModel": "可以把 Skill 理解为企业里的标准作业程序加工具包。新人照着 SOP 做事，既有步骤也有模板和检查项；Agent 使用 Skill 时，也是读取一组任务指令和资源来稳定完成某类工作。",
+  "mechanism": [
+    "团队识别高频、边界清晰且可验证的任务，例如 PR 复盘、CI 失败定位或安全检查。",
+    "Skill 定义触发场景、输入要求、执行步骤、可用资源、工具约束和输出格式；具体可包含哪些资源或脚本，需要服从所在平台的权限模型。",
+    "Agent 在匹配任务时加载对应 Skill，把其中的指令和资源纳入上下文或执行流程。",
+    "执行过程中，Skill 引导 Agent 调用工具、收集证据、生成产物并完成自检。",
+    "使用结果通过评测、人工反馈和线上 trace 回流，推动 Skill 版本迭代。",
+    "企业需要管理 Skill 的所有权、适用范围、权限边界、版本变更、弃用策略和质量指标。"
+  ],
+  "enterpriseCase": {
+    "title": "团队把 CI 修复经验沉淀为 Skill",
+    "scenario": "某研发平台发现 Agent 每次处理 CI 失败都要重新摸索日志入口、常见失败模式和修复验证方式。",
+    "problem": "不同 Agent 会话产出不稳定，修复路径不可复用，人工评审重复指出相同问题。",
+    "analysis": "团队把经验停留在个体提示词和聊天记录中，没有沉淀为结构化、可版本化的任务能力。",
+    "solution": "创建 CI Fix Skill，明确触发条件、Owner、日志定位步骤、常见失败分类、禁止跳过测试规则、修复后验证命令和 PR 汇报模板。",
+    "takeaway": "Skill 能把一次成功经验变成组织可复用的 Agent 能力。"
+  },
+  "pitfalls": [
+    "把 Skill 写成一段泛泛 Prompt，没有资源、步骤、约束和验收标准。",
+    "任何任务都做成 Skill，导致能力库膨胀且难以维护。",
+    "没有版本管理，Skill 更新后无法追踪质量变化或回滚。",
+    "Skill 中包含高权限操作但没有审批和审计边界。",
+    "只看使用次数，不看任务成功率、返工率和人工审核意见。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-skill-1",
+    "type": "single",
+    "scenario": "某团队为代码审查 Agent 写了一个“请认真审查代码”的 Skill。上线后审查结果仍然飘忽，常漏掉测试缺失和权限风险。",
+    "question": "最应如何改进这个 Skill？",
+    "options": [
+      { "id": "a", "text": "只把审查提示词改得更严格，要求 Agent 必须指出更多问题" },
+      { "id": "b", "text": "补充明确触发场景、审查步骤、风险清单、证据要求和输出格式" },
+      { "id": "c", "text": "把所有代码规范文档都注入上下文，尽量减少遗漏" },
+      { "id": "d", "text": "为 Skill 增加更多可调用工具，但暂不定义每个工具的使用边界" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "Skill 不是普通提示词口号。更严格的提示、更多规范和更多工具可能有帮助，但稳定能力需要任务边界、步骤、检查清单、证据要求、工具边界和验收格式共同约束。",
+    "troubleshootingPath": [
+      "梳理代码审查的高频风险类型",
+      "定义 Skill 的输入、步骤、禁止项和输出格式",
+      "建立评测样例和人工反馈标签",
+      "按版本跟踪漏报率和误报率"
+    ],
+    "relatedConceptIds": ["agent-loop", "tool-calling", "eval", "human-in-the-loop"]
+  },
+  "keyTakeaways": [
+    "Skill 是可复用任务能力，不是普通提示词。",
+    "Skill 可以包含指令、资源、脚本、触发条件和步骤。",
+    "企业需要治理 Skill 的版本、权限和效果。",
+    "高频且可验证的任务最适合沉淀 Skill。",
+    "Skill 质量要靠评测和反馈闭环改进。"
+  ],
+  "relatedConceptIds": ["agent-loop", "tool-calling", "subagent", "human-in-the-loop", "eval", "ai-native-org"]
+}

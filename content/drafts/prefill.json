@@ -1,0 +1,103 @@
+{
+  "id": "prefill",
+  "title": "Prefill",
+  "slug": "prefill",
+  "moduleId": "m2",
+  "order": 1,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": ["Prefill", "TTFT", "KV Cache", "上下文窗口", "推理性能"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "Prefill 是模型在生成第一个输出 Token 之前，处理完整输入上下文的推理阶段。它通常决定首字前等待的主要计算量，并会为后续 Decode 生成 KV Cache。",
+  "whyItMatters": "企业 AI 应用里，用户经常把“系统没反应”归因于模型慢，但根因可能是 Prefill 被长 Prompt、RAG 片段、历史会话或工具结果放大。理解 Prefill 才能正确优化 TTFT、上下文预算和缓存策略。",
+  "mentalModel": "可以把 Prefill 理解为模型正式回答前的“读卷阶段”。题目、材料、附录和历史记录越长，读卷越久；读完后形成的笔记就是后续生成时可复用的缓存。",
+  "mechanism": [
+    "请求到达推理服务后，系统把系统提示词、用户问题、历史会话、RAG 片段和工具结果拼成输入上下文。",
+    "分词器将上下文转换为输入 Token 序列，输入长度决定 Prefill 需要处理的规模。",
+    "模型通常会并行处理这些输入 Token，计算各层注意力所需的 Key、Value 等中间结果。",
+    "Prefill 结束时，推理服务写入 KV Cache，并准备开始生成第一个输出 Token。",
+    "如果上下文过长、队列拥塞或缓存未命中，Prefill 阶段会显著拉高 TTFT。",
+    "优化 Prefill 往往不是简单换大模型，而是减少无效上下文、改进调度、复用缓存和拆分任务链路。"
+  ],
+  "animation": {
+    "type": "prefill-decode",
+    "title": "Prefill 如何影响首字时延",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "组装完整上下文",
+        "description": "系统提示词、用户问题、历史消息和外部资料在请求前被拼成一个输入序列。",
+        "highlightTargets": ["prompt", "rag-chunks", "history"]
+      },
+      {
+        "id": "s2",
+        "title": "进入 Prefill",
+        "description": "整段输入 Token 进入 Prefill 阶段，序列越长，首字前需要处理的计算规模越大。",
+        "highlightTargets": ["input-tokens", "prefill"]
+      },
+      {
+        "id": "s3",
+        "title": "写入 KV Cache",
+        "description": "模型为上下文生成 Key 和 Value，并把它们写入缓存，为后续 Decode 复用。",
+        "highlightTargets": ["kv-write", "cache"]
+      },
+      {
+        "id": "s4",
+        "title": "首个 Token 准备输出",
+        "description": "Prefill 完成后，模型才具备生成首个输出 Token 的条件，TTFT 接近结束。",
+        "highlightTargets": ["first-token", "ttft"]
+      },
+      {
+        "id": "s5",
+        "title": "长上下文拖慢首字",
+        "description": "输入膨胀会优先拉长首字前的 Prefill 阶段，而不是只影响完整回答的总时长。",
+        "highlightTargets": ["long-context", "ttft-growth"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "审批 Agent 首字慢但输出速度正常",
+    "scenario": "某企业审批 Agent 接入流程系统后，首字等待从 1 秒增加到 5 秒，但开始输出后速度基本稳定。",
+    "problem": "团队只观察总耗时，没有拆分 Prefill 和 Decode，误以为需要优化流式输出。",
+    "analysis": "输出速度稳定说明 Decode 不是主要瓶颈；工具返回的审批历史、表单字段和权限矩阵被原样拼入上下文，导致输入 Token 增长，Prefill 成为 TTFT 的主要来源。",
+    "solution": "对工具返回字段做白名单和摘要，压缩历史审批记录，并单独监控 Prefill 耗时、输入 Token、工具返回体积与 TTFT。",
+    "takeaway": "首字慢通常要先看 Prefill 链路，而不是只看模型生成速度。"
+  },
+  "pitfalls": [
+    "把 TTFT 变慢直接归因于 Decode 慢，没有拆分首字前和首字后的耗时。",
+    "认为 RAG 片段越多越安全，忽略 Prefill 计算和注意力干扰。",
+    "只监控请求耗时平均值，不记录输入 Token、Prefill 时间和缓存命中状态。",
+    "把工具返回的大段 JSON 原样塞入上下文，导致首字等待不可控。",
+    "扩容后仍随机路由多轮会话，使缓存无法复用，Prefill 被反复触发。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-prefill-1",
+    "type": "single",
+    "scenario": "一个审批 Agent 接入新版流程查询工具后，TTFT 从 900ms 上升到 4.5s；开始输出后 TPOT 基本不变。日志显示每次请求注入的工具返回字段和历史记录长度增加了 3 倍。",
+    "question": "你最应该优先优化什么？",
+    "options": [
+      { "id": "a", "text": "筛选和摘要工具返回内容，减少无效输入上下文" },
+      { "id": "b", "text": "扩容 Decode 服务实例，优先降低输出阶段排队" },
+      { "id": "c", "text": "把流式缓冲间隔调小，让客户端更频繁刷新" },
+      { "id": "d", "text": "提高最大输出 Token，减少模型提前停止的概率" }
+    ],
+    "correctOptionIds": ["a"],
+    "explanation": "TTFT 上升而 TPOT 不变，且工具返回体积明显增加，说明瓶颈更可能在 Prefill。应先控制输入上下文；扩容 Decode、调整前端刷新或增加输出预算都没有对准首字前瓶颈。",
+    "troubleshootingPath": [
+      "拆分 TTFT、Prefill 耗时和 Decode 耗时",
+      "统计请求输入 Token 与工具返回体积",
+      "对比片段压缩前后的答案质量和首字时延",
+      "检查 KV Cache 是否在多轮会话中复用"
+    ],
+    "relatedConceptIds": ["ttft", "decode", "kv-cache", "context-window"]
+  },
+  "keyTakeaways": [
+    "Prefill 是首字前处理完整输入的阶段。",
+    "输入越长，Prefill 压力通常越高。",
+    "Prefill 会生成后续 Decode 使用的 KV Cache。",
+    "TTFT 诊断必须拆出 Prefill 视角。",
+    "减少无效上下文往往比盲目扩容更有效。"
+  ],
+  "relatedConceptIds": ["token", "decode", "ttft", "kv-cache", "context-window", "session-affinity"]
+}

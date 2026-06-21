@@ -1,0 +1,103 @@
+{
+  "id": "kv-cache",
+  "title": "KV Cache",
+  "slug": "kv-cache",
+  "moduleId": "m2",
+  "order": 5,
+  "difficulty": "advanced",
+  "estimatedMinutes": 12,
+  "tags": ["KV Cache", "TTFT", "Session 亲和", "显存", "MaaS"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "KV Cache 是大模型推理中缓存历史上下文 Key 和 Value 的机制，用于避免生成新 Token 时重复计算全部历史。它是多轮会话性能、显存占用和路由策略之间的关键连接点。",
+  "whyItMatters": "企业 MaaS 和 Agent 平台经常处理长会话、多轮任务和高并发请求。在支持会话或前缀缓存复用的推理服务中，KV Cache 命中率会影响 TTFT、吞吐和 GPU 显存压力；如果路由、扩缩容或会话管理不当，用户会看到首字变慢和成本上升。",
+  "mentalModel": "可以把 KV Cache 理解为模型读过上下文后留下的“分层笔记”。在服务端保留并能命中这份笔记时，后续生成可以少重复读；如果请求被送到没有笔记的实例，就要重新读全文。",
+  "mechanism": [
+    "Prefill 阶段处理完整输入上下文，并在每层注意力中计算 Key 和 Value。",
+    "推理服务通常把这些 Key 和 Value 缓存在显存中，作为后续生成可复用的中间状态；是否能跨请求复用取决于具体服务的会话、前缀缓存和路由实现。",
+    "Decode 每生成一个新 Token，也会为该 Token 追加新的 KV，缓存随上下文增长而增长。",
+    "同一会话后续请求如果被服务端保留并路由到持有缓存的实例，可以减少重复 Prefill，降低 TTFT。",
+    "如果会话亲和失效、实例扩缩容或缓存被挤出，请求需要重新 Prefill，首字时延会上升。",
+    "长上下文和大量并发会话会占用显存，需要在命中率、容量、隔离和成本之间做权衡。"
+  ],
+  "animation": {
+    "type": "kv-cache",
+    "title": "KV Cache 命中与未命中",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "多轮请求进入同一会话",
+        "description": "多轮请求只有在服务端保留会话状态并能路由到合适实例时，才可能复用已有缓存。",
+        "highlightTargets": ["session", "instance"]
+      },
+      {
+        "id": "s2",
+        "title": "Prefill 写入缓存",
+        "description": "完整上下文被处理后，Key 和 Value 进入显存缓存区。",
+        "highlightTargets": ["prefill", "kv-write"]
+      },
+      {
+        "id": "s3",
+        "title": "Decode 复用缓存",
+        "description": "生成新 Token 时直接复用历史 KV，不再重复计算全部上下文。",
+        "highlightTargets": ["decode", "cache-hit"]
+      },
+      {
+        "id": "s4",
+        "title": "路由打散导致未命中",
+        "description": "下一轮请求被送到另一台实例，缓存区为空，系统必须重新 Prefill。",
+        "highlightTargets": ["route-miss", "cache-miss"]
+      },
+      {
+        "id": "s5",
+        "title": "显存容量约束",
+        "description": "多个长会话同时占用缓存会挤压显存容量，需要淘汰、压缩、隔离或调度策略。",
+        "highlightTargets": ["memory", "eviction"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "高峰期多轮对话首字飙升",
+    "scenario": "某 MaaS 平台承载多个内部 Copilot，高峰期多轮对话首字从 800ms 上升到 4s。",
+    "problem": "监控显示 KV Cache 命中率从 60% 降到 15%，但总请求量增长并不极端。",
+    "analysis": "自动扩容后负载均衡未保持 Session 亲和，多轮请求被打散到不同实例；部分长会话还挤占显存，导致缓存淘汰更频繁。",
+    "solution": "为会话类请求启用 Session 亲和和缓存感知路由，按上下文长度做容量隔离，并把缓存命中率纳入核心 SLO。",
+    "takeaway": "KV Cache 不是底层实现细节，而是企业推理平台需要显式治理的性能资产。"
+  },
+  "pitfalls": [
+    "认为增加 GPU 数量一定能降低 TTFT，却没有保证请求命中持有缓存的实例。",
+    "只监控显存利用率，不监控 KV Cache 命中率、淘汰率和会话长度分布。",
+    "把所有会话放在同一资源池，长上下文任务挤占短问答任务缓存。",
+    "忽略扩缩容对缓存热度的影响，高峰期频繁冷启动导致首字变慢。",
+    "把缓存视为无限资源，没有设计过期、淘汰和隔离策略。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-kv-cache-1",
+    "type": "single",
+    "scenario": "某 MaaS 平台高峰期 TTFT 从 800ms 上升到 4s，KV Cache 命中率从 60% 下降到 15%，用户反馈多轮对话首字明显变慢。",
+    "question": "你最优先排查什么？",
+    "options": [
+      { "id": "a", "text": "是否应立即增加 GPU 副本数，降低单实例排队" },
+      { "id": "b", "text": "Session 亲和或缓存感知路由是否失效" },
+      { "id": "c", "text": "是否应优先压缩输出长度，减少 Decode 总耗时" },
+      { "id": "d", "text": "是否应扩大上下文窗口，减少多轮会话的信息缺失" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "TTFT 上升且 KV Cache 命中率下降，优先怀疑会话请求没有路由到持有上下文缓存的实例，或扩缩容导致缓存热度丢失。扩容、压缩输出或扩大窗口可能影响其他指标，但不是该组合信号的首要解释。",
+    "troubleshootingPath": [
+      "按会话检查连续请求是否落到同一实例",
+      "查看扩缩容和负载均衡策略变更",
+      "分析缓存淘汰率和长会话显存占用",
+      "对比启用会话亲和前后的 TTFT 和命中率"
+    ],
+    "relatedConceptIds": ["prefill", "decode", "ttft", "session-affinity"]
+  },
+  "keyTakeaways": [
+    "KV Cache 缓存历史上下文的 Key 和 Value。",
+    "多轮对话性能高度依赖缓存命中。",
+    "Session 亲和影响缓存复用。",
+    "长上下文会显著占用显存。",
+    "缓存指标应进入 MaaS 平台观测面。"
+  ],
+  "relatedConceptIds": ["prefill", "decode", "ttft", "session-affinity", "context-window", "sla"]
+}

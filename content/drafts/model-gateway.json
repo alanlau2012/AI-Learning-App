@@ -1,0 +1,103 @@
+{
+  "id": "model-gateway",
+  "title": "模型网关",
+  "slug": "model-gateway",
+  "moduleId": "m3",
+  "order": 2,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": ["模型网关", "MaaS", "鉴权", "限流", "审计", "Observability"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "模型网关是企业业务访问模型能力的统一入口，负责把分散的模型调用变成可治理、可观测、可计量的服务。它不是简单 API 转发层，而是企业 AI 平台的控制面之一。",
+  "whyItMatters": "没有模型网关，企业很难统一鉴权、路由、限流、成本计量、审计和故障隔离。业务接入越多，模型网关越决定平台能否稳定扩展、合规运行并形成治理闭环。",
+  "mentalModel": "可以把模型网关理解为企业 AI 的“机场塔台”。飞机不是直接各飞各的，塔台要确认身份、分配航线、控制流量、记录轨迹并在异常时改道；模型请求也需要这样的统一协调。",
+  "mechanism": [
+    "业务应用把模型请求发送到统一网关，而不是直接调用某个模型供应方或推理实例。",
+    "网关执行应用身份识别、权限校验、配额检查和敏感策略判断，决定请求是否允许进入。",
+    "网关根据模型能力、成本、时延、地域、SLA 和故障状态选择目标模型或服务池。",
+    "请求执行过程中，网关记录输入/输出 Token、耗时、错误、调用方、模型版本和 trace id。",
+    "当下游模型拥塞或异常时，网关可以限流、熔断、降级、重试或切换备用模型。",
+    "这些数据回流到成本治理、质量评测、审计和容量规划，形成企业 AI 平台闭环。"
+  ],
+  "animation": {
+    "type": "model-router",
+    "title": "模型网关从入口到治理闭环",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "业务请求进入统一入口",
+        "description": "多个业务应用请求汇聚到模型网关，平台可以在统一入口执行治理策略。",
+        "highlightTargets": ["apps", "gateway"]
+      },
+      {
+        "id": "s2",
+        "title": "鉴权与配额检查",
+        "description": "网关检查应用身份、权限、额度和安全策略，不合规请求被拦截。",
+        "highlightTargets": ["auth", "quota", "policy"]
+      },
+      {
+        "id": "s3",
+        "title": "选择模型与服务池",
+        "description": "根据任务类型、成本、时延和可用性，把请求路由到合适模型。",
+        "highlightTargets": ["router", "models"]
+      },
+      {
+        "id": "s4",
+        "title": "记录计量与 Trace",
+        "description": "网关记录 Token、耗时、模型版本和 trace id，为审计与观测提供证据。",
+        "highlightTargets": ["metering", "trace"]
+      },
+      {
+        "id": "s5",
+        "title": "异常时降级或熔断",
+        "description": "下游模型异常时，网关触发限流、熔断或备用模型路由，保护整体稳定性。",
+        "highlightTargets": ["fallback", "circuit-break"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "多个业务绕过平台直连模型",
+    "scenario": "某集团内部多个团队各自接入外部模型 API，费用、权限和审计口径不一致。",
+    "problem": "安全团队无法追踪哪些系统发送了敏感数据，平台团队也无法统一限流和成本预算。",
+    "analysis": "缺少模型网关导致调用路径分散，治理动作只能靠事后报表和人工约束，无法在请求进入模型前执行策略。",
+    "solution": "建立统一模型网关，要求生产应用通过网关接入；网关提供应用凭证、模型路由、配额、审计日志和异常降级能力。",
+    "takeaway": "模型网关是企业 AI 从试点走向规模化的治理入口。"
+  },
+  "pitfalls": [
+    "把模型网关做成薄转发层，只代理 URL，不承担治理和观测责任。",
+    "允许业务长期保留直连模型的旁路，导致成本和审计数据不完整。",
+    "只做鉴权，不做 Token 计量、错误分类和模型版本记录。",
+    "把路由策略写死在业务代码里，使模型切换和故障降级成本很高。",
+    "网关缺少压测和限流设计，高峰期反而成为单点瓶颈。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-model-gateway-1",
+    "type": "single",
+    "scenario": "一家企业有 20 个应用接入模型能力，其中 8 个直连外部 API。最近安全审计要求追踪敏感数据调用链，但平台只能拿到部分请求日志。",
+    "question": "最优先的工程改造是什么？",
+    "options": [
+      { "id": "a", "text": "要求所有生产调用统一经过模型网关，并记录鉴权、计量和 trace 信息" },
+      { "id": "b", "text": "先要求各业务 SDK 统一埋点，但暂时保留直连调用路径" },
+      { "id": "c", "text": "把所有模型切到同一供应商，减少审计字段差异" },
+      { "id": "d", "text": "只在业务侧增加敏感词过滤，不调整模型调用入口" }
+    ],
+    "correctOptionIds": ["a"],
+    "explanation": "审计与治理需要请求链路统一入口和可观测数据。SDK 埋点、供应商统一或业务侧过滤可以作为补充，但只要生产调用仍能绕过网关，策略执行和日志完整性就无法保证。",
+    "troubleshootingPath": [
+      "盘点所有模型调用入口和凭证",
+      "阻断或迁移生产旁路调用",
+      "在网关记录应用、模型、Token、错误和 trace id",
+      "建立配额、审计和异常告警策略"
+    ],
+    "relatedConceptIds": ["maas", "multi-model-routing", "rate-limit-circuit-break", "observability"]
+  },
+  "keyTakeaways": [
+    "模型网关是业务访问模型的统一入口。",
+    "它承担鉴权、路由、限流、计量、审计和观测。",
+    "它不是简单 API 转发。",
+    "企业治理应在请求进入模型前生效。",
+    "直连旁路会破坏成本和安全闭环。"
+  ],
+  "relatedConceptIds": ["maas", "multi-model-routing", "cost-routing", "capability-routing", "rate-limit-circuit-break", "observability"]
+}

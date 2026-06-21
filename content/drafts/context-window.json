@@ -1,0 +1,103 @@
+{
+  "id": "context-window",
+  "title": "上下文窗口",
+  "slug": "context-window",
+  "moduleId": "m4",
+  "order": 3,
+  "difficulty": "basic",
+  "estimatedMinutes": 9,
+  "tags": ["上下文窗口", "Context", "长上下文", "Agent", "RAG"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "上下文窗口是模型在一次推理中能够看到的 Token 范围。它不是长期记忆，窗口之外的信息不会被当前请求直接使用。",
+  "whyItMatters": "企业 Agent 往往要处理文档、历史会话、工具结果和仓库上下文。窗口管理决定模型能否看到关键证据，也决定成本、TTFT、注意力干扰和任务稳定性。",
+  "mentalModel": "可以把上下文窗口理解为模型当前桌面上的资料夹。桌面再大也有边界，放进来的资料会影响判断；真正的工程能力不是把所有材料堆上桌，而是选择、压缩和排序最有用的材料。",
+  "mechanism": [
+    "应用在请求前组装系统提示词、用户目标、历史消息、检索片段、工具结果和中间状态。",
+    "这些内容被转换为 Token，并共同占用模型的上下文窗口预算。",
+    "如果总 Token 超过窗口限制，系统必须截断、压缩、摘要或重新选择上下文，否则请求会失败或丢失信息。",
+    "长上下文会增加 Prefill 成本和 KV Cache 占用，也可能让注意力被无关内容稀释。",
+    "Agent 需要持续决定哪些信息保留在窗口内，哪些转为记忆、摘要或外部状态。",
+    "上下文策略应通过任务成功率、引用准确性、TTFT 和 Token 成本共同评估。"
+  ],
+  "animation": {
+    "type": "context-window",
+    "title": "窗口内外的信息选择",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "资料进入候选池",
+        "description": "用户目标、历史会话、RAG 片段和工具结果进入候选区，但尚未全部放进窗口。",
+        "highlightTargets": ["candidate-context"]
+      },
+      {
+        "id": "s2",
+        "title": "窗口容量有限",
+        "description": "模型只能直接使用窗口内的 Token；窗口外的信息即使存在于外部系统，也不会自动参与当前推理。",
+        "highlightTargets": ["window-limit"]
+      },
+      {
+        "id": "s3",
+        "title": "选择与排序",
+        "description": "高相关、最新、权威的信息被放入窗口前部，低相关材料被移出或降权。",
+        "highlightTargets": ["selection", "ranking"]
+      },
+      {
+        "id": "s4",
+        "title": "压缩历史信息",
+        "description": "长历史会话被压缩成摘要，释放窗口空间给当前任务证据。",
+        "highlightTargets": ["compression", "summary"]
+      },
+      {
+        "id": "s5",
+        "title": "窗口影响成本和质量",
+        "description": "窗口变长时成本和 TTFT 上升；窗口更干净时答案依据更集中。",
+        "highlightTargets": ["cost", "ttft", "quality"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "代码 Agent 忘记关键约束",
+    "scenario": "某代码 Agent 修复缺陷时，用户在会话早期强调不能改公共接口，但后续多轮工具输出很长。",
+    "problem": "最终补丁修改了公共接口，违反架构约束。",
+    "analysis": "关键约束被大量日志、搜索结果和 diff 挤出或稀释，Agent 没有把不可破坏约束提升为稳定上下文。",
+    "solution": "把硬约束放入高优先级上下文区，对工具结果做摘要和筛选，并在行动前加入约束复核步骤。",
+    "takeaway": "Agent 的上下文窗口管理不是容量问题，而是任务状态和约束治理问题。"
+  },
+  "pitfalls": [
+    "把大窗口当作长期记忆，忽略每次请求仍然只看窗口内内容。",
+    "把所有检索结果和工具日志原样塞入上下文，导致成本和干扰上升。",
+    "只按时间保留最近消息，丢掉早期但关键的业务约束。",
+    "没有区分目标、证据、历史、工具结果和不可破坏规则的优先级。",
+    "上下文压缩只追求变短，没有验证压缩后是否保留关键事实。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-context-window-1",
+    "type": "single",
+    "scenario": "一个 Issue Fix Agent 在长会话后开始忽略最初的“不要改公共 API”要求。日志显示工具输出和搜索结果累计很长，系统按最近消息截断上下文。",
+    "question": "最应该优先改进哪项机制？",
+    "options": [
+      { "id": "a", "text": "只把模型温度调低，减少它偏离用户原始要求的概率" },
+      { "id": "b", "text": "建立上下文选择与约束保留机制，把硬约束固定在高优先级上下文中" },
+      { "id": "c", "text": "扩大可检索仓库范围，让 Agent 每轮能拿到更多搜索结果" },
+      { "id": "d", "text": "把工具日志压缩成摘要，但不区分硬约束和普通观察结果" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "问题不是模型不知道规则，而是关键约束在长会话中被截断或稀释。扩大检索范围和摘要工具日志可能有帮助，但如果不保留硬约束的优先级，仍会重复丢失关键规则。",
+    "troubleshootingPath": [
+      "检查请求实际携带的上下文内容",
+      "确认硬约束是否被截断或排在低优先级位置",
+      "压缩工具输出并保留关键结论",
+      "在行动前加入约束核对"
+    ],
+    "relatedConceptIds": ["context-compression", "context-pollution", "agent-loop", "issue-fix-agent"]
+  },
+  "keyTakeaways": [
+    "模型只能看到窗口内信息。",
+    "长上下文不等于长期记忆。",
+    "大窗口会增加成本、TTFT 和干扰。",
+    "Agent 需要上下文选择、压缩和排序。",
+    "关键约束应被稳定保留。"
+  ],
+  "relatedConceptIds": ["token", "attention", "prefill", "context-compression", "context-pollution", "agent-loop"]
+}

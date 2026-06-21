@@ -1,0 +1,103 @@
+{
+  "id": "ttft",
+  "title": "TTFT",
+  "slug": "ttft",
+  "moduleId": "m2",
+  "order": 3,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 9,
+  "tags": ["TTFT", "首字时延", "Prefill", "模型网关", "RAG"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "TTFT 是从请求发出到客户端收到第一个输出 Token 的时间。它代表用户是否感到系统“有反应”，但它不是总耗时，也不能单独解释完整体验。",
+  "whyItMatters": "在客服、办公助手、代码 Agent 和 MaaS 平台中，TTFT 直接影响用户对系统可用性的第一感受。企业排查 TTFT 时必须把排队、路由、RAG、工具调用、Prefill、缓存命中和网络链路拆开看，避免只把问题归咎于模型。",
+  "mentalModel": "可以把 TTFT 理解为餐厅从点单到上第一道菜的时间。第一道菜快，用户知道厨房开始工作；但慢的原因可能是排队、菜单转交、备菜、厨房调度或服务员路线，而不只是厨师炒菜慢。",
+  "mechanism": [
+    "用户请求先经过前端、模型网关、鉴权、限流和路由，这些步骤可能带来排队和控制面耗时。",
+    "如果应用使用 RAG 或工具调用，请求在进入模型前还要等待检索、重排、权限过滤或工具结果。",
+    "推理服务收到完整上下文后进入 Prefill，输入 Token 越多，首字前计算越重。",
+    "若多轮会话命中 KV Cache 或前缀缓存，部分计算可复用；若路由打散，TTFT 可能显著升高。",
+    "模型生成第一个输出 Token 并通过流式通道返回，客户端收到这一刻才结束 TTFT 计时。",
+    "TTFT 需要和 TPOT、总耗时、错误率、队列长度和缓存命中率一起观察。"
+  ],
+  "animation": {
+    "type": "prefill-decode",
+    "title": "TTFT 的端到端时间拆解",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "请求进入网关",
+        "description": "TTFT 从用户请求开始计时，鉴权、限流、排队和模型路由都会消耗首字前时间。",
+        "highlightTargets": ["gateway", "queue", "route"]
+      },
+      {
+        "id": "s2",
+        "title": "RAG 与工具前置处理",
+        "description": "检索、重排或工具调用在模型前完成，任何一步变慢都会推迟首字。",
+        "highlightTargets": ["rag", "tool-call"]
+      },
+      {
+        "id": "s3",
+        "title": "Prefill 处理输入",
+        "description": "完整上下文进入 Prefill，输入 Token 和缓存状态决定这一段的计算量。",
+        "highlightTargets": ["prefill", "input-tokens"]
+      },
+      {
+        "id": "s4",
+        "title": "首个 Token 返回",
+        "description": "第一个输出 Token 沿流式通道返回客户端，TTFT 计时停止。",
+        "highlightTargets": ["first-token", "stream"]
+      },
+      {
+        "id": "s5",
+        "title": "拆分瓶颈归因",
+        "description": "TTFT 需要按网关、RAG、排队、Prefill 和网络等链路分段归因，不能只看端到端总值。",
+        "highlightTargets": ["latency-breakdown"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "客服助手首字突然变慢",
+    "scenario": "某客服 AI 助手在促销高峰期 TTFT 从 1 秒升到 6 秒，但总输出长度没有明显变化。",
+    "problem": "业务方要求更换更快模型，平台团队发现模型 TPOT 仍稳定，但网关排队和检索耗时升高。",
+    "analysis": "高峰期请求排队增加，RAG 知识库检索负载变高，同时部分请求被路由到冷实例导致 Prefill 无缓存可复用。",
+    "solution": "按链路拆分 TTFT，增加检索缓存和限流策略，优化路由的会话亲和，并为高峰期设置容量预热。",
+    "takeaway": "TTFT 是端到端体验指标，不能被简化成“模型速度”。"
+  },
+  "pitfalls": [
+    "只看总耗时，不看首字时延，导致用户体感问题被平均值掩盖。",
+    "把 TTFT 全部归因于模型，而忽略网关排队、RAG、工具调用和网络。",
+    "只优化前端流式展示，没有缩短服务端首个 Token 产生时间。",
+    "在多轮会话中忽略 Session 亲和，使缓存命中率下降后 TTFT 飙升。",
+    "用单次离线压测代表线上高峰期，忽略队列和调度。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-ttft-1",
+    "type": "multiple",
+    "scenario": "某 MaaS 平台高峰期 TTFT 从 800ms 上升到 4s。TPOT 基本稳定，错误率未升高，但队列长度、RAG 检索耗时和 KV Cache 未命中率都上升。",
+    "question": "以下哪些排查方向是合理的？",
+    "options": [
+      { "id": "a", "text": "检查网关和推理服务的排队等待" },
+      { "id": "b", "text": "检查 RAG 检索和重排链路是否变慢" },
+      { "id": "c", "text": "检查会话亲和和 KV Cache 命中是否下降" },
+      { "id": "d", "text": "只优化 Decode 阶段 TPOT，因为流式输出速度决定首字时延" }
+    ],
+    "correctOptionIds": ["a", "b", "c"],
+    "explanation": "TTFT 受排队、模型前处理、Prefill 和缓存命中共同影响。TPOT 稳定说明 Decode 不是首要问题；只优化输出阶段不能解释首字前的等待增长。",
+    "troubleshootingPath": [
+      "拆分端到端 TTFT 时间段",
+      "检查网关排队、限流和路由日志",
+      "检查 RAG 检索耗时和上下文长度",
+      "检查 KV Cache 命中率和会话亲和策略"
+    ],
+    "relatedConceptIds": ["prefill", "decode", "kv-cache", "model-gateway", "session-affinity"]
+  },
+  "keyTakeaways": [
+    "TTFT 衡量首个 Token 返回时间。",
+    "TTFT 代表系统是否有反应。",
+    "TTFT 不是总耗时。",
+    "RAG、工具、路由和缓存都会影响 TTFT。",
+    "诊断 TTFT 必须做链路拆分。"
+  ],
+  "relatedConceptIds": ["token", "prefill", "decode", "kv-cache", "model-gateway", "session-affinity"]
+}

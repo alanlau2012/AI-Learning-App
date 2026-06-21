@@ -1,0 +1,110 @@
+{
+  "id": "issue-fix-agent",
+  "title": "Issue Fix Agent",
+  "slug": "issue-fix-agent",
+  "moduleId": "m5",
+  "order": 2,
+  "difficulty": "advanced",
+  "estimatedMinutes": 12,
+  "tags": ["Issue Fix Agent", "AI 原生软件工程", "测试", "PR", "质量回流"],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "Issue Fix Agent 是围绕问题单完成理解、定位、修改、验证、提交和人审协作的软件工程 Agent。它不是简单“让 AI 改代码”，而是把修复任务纳入可追踪的工程闭环。",
+  "whyItMatters": "企业软件工程中的缺陷修复涉及需求理解、上下文检索、代码所有权、测试、回归风险和评审责任。Issue Fix Agent 能提升修复效率，但前提是问题单质量、仓库上下文、测试门禁和人审流程足够清晰。",
+  "mentalModel": "可以把 Issue Fix Agent 理解为一名默认受限执行的工程师助手，它能阅读工单、查代码、跑测试和提交补丁，但需要清楚的问题描述、修改边界、验证标准和资深工程师评审。",
+  "mechanism": [
+    "Agent 读取问题单，提取现象、复现步骤、期望行为、影响范围和约束条件。",
+    "Agent 规范化任务，判断是否信息不足、是否需要澄清、是否属于可自动修复范围。",
+    "Agent 检索仓库上下文，定位相关模块、近期变更、测试和代码所有权信息。",
+    "Agent 制定最小修改方案，按权限和约束编辑代码或配置，并避免无关重构。",
+    "Agent 运行相关测试、类型检查或复现脚本，记录通过与失败证据。",
+    "Agent 生成 PR 或修复说明，交给人工评审；评审意见和失败模式回流到问题单模板、Skill 和评测集。"
+  ],
+  "animation": {
+    "type": "issue-fix-flow",
+    "title": "从问题单到 PR 的修复闭环",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "理解问题单",
+        "description": "Issue 中的现象、复现步骤、期望行为和约束需要先被结构化提取。",
+        "highlightTargets": ["issue", "requirements"]
+      },
+      {
+        "id": "s2",
+        "title": "定位相关上下文",
+        "description": "Agent 搜索代码、测试和历史变更，缩小修改范围。",
+        "highlightTargets": ["repo-context", "search"]
+      },
+      {
+        "id": "s3",
+        "title": "最小化修改",
+        "description": "补丁只落在相关文件，避免顺手重构和扩大影响面。",
+        "highlightTargets": ["patch", "scope"]
+      },
+      {
+        "id": "s4",
+        "title": "验证与失败处理",
+        "description": "Agent 运行测试和类型检查；失败时回到定位或修改步骤，而不是盲目继续扩散修改。",
+        "highlightTargets": ["tests", "validation"]
+      },
+      {
+        "id": "s5",
+        "title": "提交 PR 与人审",
+        "description": "Agent 输出修复摘要、验证证据和剩余风险，进入人工评审。",
+        "highlightTargets": ["pr", "human-review"]
+      },
+      {
+        "id": "s6",
+        "title": "质量回流",
+        "description": "评审意见、测试失败和问题单缺陷回流到模板、Skill 和评测集。",
+        "highlightTargets": ["feedback", "eval", "skill"]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "问题单质量差导致修复失败",
+    "scenario": "某研发组织试点 Issue Fix Agent，希望自动处理低风险缺陷。",
+    "problem": "Agent 经常修改错误模块或提交无法复现的补丁，人工评审退回率很高。",
+    "analysis": "许多 Issue 只有一句“页面偶现报错”，缺少复现步骤、期望行为、日志和影响范围。Agent 在信息不足时没有停下来澄清，而是过早进入修改。",
+    "solution": "建立问题单模板和准入门槛，要求复现步骤、日志、期望行为和测试建议；Agent 对信息不足的问题先生成澄清问题，不直接改代码。",
+    "takeaway": "Issue Fix Agent 的上限不只取决于模型能力，也取决于问题单和工程流程质量。"
+  },
+  "pitfalls": [
+    "把 Issue Fix Agent 当成自动改代码按钮，忽略问题理解和修复边界。",
+    "问题单缺少复现步骤时仍强行修复，导致补丁靠猜测。",
+    "只看代码能否编译，不验证问题是否真正被复现和修复。",
+    "允许 Agent 大范围重构，增加评审成本和回归风险。",
+    "评审意见没有回流到模板、Skill 和评测集，导致同类错误反复出现。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-issue-fix-agent-1",
+    "type": "single",
+    "scenario": "某 Issue Fix Agent 对“订单页偶现空白”问题提交了一个大范围重构 PR，但没有复现用例，也没有说明根因。评审认为风险过高并退回。",
+    "question": "最应该先改进哪一环？",
+    "options": [
+      { "id": "a", "text": "让 Agent 扩大搜索范围并生成多个候选根因，再选择最可能的一项修改" },
+      { "id": "b", "text": "要求问题单结构化，并让 Agent 在信息不足时先澄清和复现，再最小化修改" },
+      { "id": "c", "text": "要求 Agent 先补充更详细 PR 描述和风险说明，再维持当前补丁范围" },
+      { "id": "d", "text": "优先增加自动生成测试用例，但不要求先复现原始问题" }
+    ],
+    "correctOptionIds": ["b"],
+    "explanation": "没有复现、根因和边界的大范围修改不适合自动合入。扩大搜索、补 PR 描述或补测试都有价值，但优先级应是规范化问题、复现并定位，再做最小修改和验证。",
+    "troubleshootingPath": [
+      "检查 Issue 是否包含现象、复现步骤、期望行为和日志",
+      "要求 Agent 先复现或声明无法复现",
+      "限定修改范围并说明根因假设",
+      "运行相关测试并把证据写入 PR",
+      "把退回原因回流到 Issue 模板和 Skill"
+    ],
+    "relatedConceptIds": ["agent-loop", "repo-context", "spec-driven-development", "test-generation-agent", "human-in-the-loop"]
+  },
+  "keyTakeaways": [
+    "Issue Fix Agent 不是直接让 AI 改代码。",
+    "修复闭环包括理解、定位、修改、测试、PR 和人审。",
+    "问题单质量决定修复成功率。",
+    "最小修改和验证证据比大范围重构更重要。",
+    "评审反馈要回流到流程和 Skill。"
+  ],
+  "relatedConceptIds": ["agent-loop", "repo-context", "spec-driven-development", "test-generation-agent", "code-review-agent", "human-in-the-loop"]
+}
