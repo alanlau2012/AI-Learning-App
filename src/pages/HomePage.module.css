@@ -1,0 +1,210 @@
+.home {
+  max-width: var(--content-max-home);
+  margin: 0 auto;
+  padding: 56px var(--content-padding-x) 48px;
+}
+
+/* ---- 第一屏：主标题 + 继续学习 ---- */
+.hero {
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--color-border);
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+}
+.headline {
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1.12;
+  margin-top: 14px;
+  color: var(--color-title);
+  letter-spacing: -0.01em;
+}
+.lede {
+  margin-top: 18px;
+  max-width: 640px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.primaryBtn:hover {
+  background-color: #1838b8;
+}
+.secondaryBtn {
+  padding: 11px 16px;
+  border-radius: var(--radius);
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.secondaryBtn:hover {
+  text-decoration: underline;
+}
+
+/* ---- 简洁进度 ---- */
+.progressPanel {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.progressBig {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.progressNum {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--color-title);
+}
+.progressCaption {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.progressbar {
+  flex: 1;
+  min-width: 200px;
+}
+.progressStats {
+  display: flex;
+  gap: 20px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+/* ---- 通用章节标题 ---- */
+.sectionTitle {
+  font-size: 18px;
+  color: var(--color-title);
+}
+
+/* ---- 推荐路径 ---- */
+.paths {
+  padding: 36px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.pathGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.pathCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  text-decoration: none;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.pathCard:hover {
+  border-color: var(--color-primary-border);
+  background-color: var(--color-primary-soft);
+  text-decoration: none;
+}
+.pathName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.pathDesc {
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+
+/* ---- 六大模块（下沉，行分割，非强卡片） ---- */
+.modules {
+  padding: 36px 0 0;
+}
+.moduleList {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.moduleRow {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: baseline;
+  gap: 14px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--color-border);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background-color 150ms ease;
+}
+.moduleRow:hover {
+  background-color: var(--color-surface-soft);
+  text-decoration: none;
+}
+.moduleIndex {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-faint);
+}
+.moduleBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.moduleTitle {
+  font-size: 15px;
+  color: var(--color-title);
+}
+.moduleSubtitle {
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+.moduleDone {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+@media (max-width: 720px) {
+  .home {
+    padding: 32px 20px 40px;
+  }
+  .pathGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .progressPanel {
+    gap: 18px;
+  }
+  .progressbar {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
