@@ -1,0 +1,17 @@
+.box {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  color: var(--color-title);
+}
+
+.box li {
+  margin-left: 18px;
+}
+
+.empty {
+  color: var(--color-muted);
+}

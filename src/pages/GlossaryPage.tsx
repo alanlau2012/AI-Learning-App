@@ -1,15 +1,45 @@
-/**
- * 术语索引（/glossary）—— P5 实现。P2 先占位。
- */
-import { PagePlaceholder } from '../components/layout/PagePlaceholder';
+import { Link } from 'react-router-dom';
+import { concepts } from '../data/concepts';
+import { glossary } from '../data/glossary';
+import { modules } from '../data/modules';
+import styles from './GlossaryPage.module.css';
+
+const moduleById = new Map(modules.map((module) => [module.id, module]));
+const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 export function GlossaryPage() {
   return (
-    <PagePlaceholder
-      stage="P5"
-      title="术语索引"
-      intent="将提供每个术语的中/英名、一句话解释、所属模块与关联知识点的基础列表。"
-    />
+    <main className={styles.page}>
+      <section className={styles.header}>
+        <span>Glossary</span>
+        <h1>术语索引</h1>
+        <p>基础版术语列表，关联到已有知识点。</p>
+      </section>
+
+      <section className={styles.list}>
+        {glossary.map((term) => (
+          <article key={term.id} className={styles.term}>
+            <div>
+              <span className={styles.module}>{moduleById.get(term.moduleId)?.title}</span>
+              <h2>{term.name}</h2>
+              <p className={styles.en}>{term.enName}</p>
+              <p>{term.definition}</p>
+            </div>
+            <div className={styles.related}>
+              {term.relatedConceptIds.map((id) => {
+                const concept = conceptById.get(id);
+                if (!concept) return null;
+                return (
+                  <Link key={id} to={`/concepts/${concept.slug}`}>
+                    {concept.title}
+                  </Link>
+                );
+              })}
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }
 

@@ -1,0 +1,37 @@
+.option {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+}
+
+.option:hover:not(:disabled),
+.selected {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.id {
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+}
+
+.correct {
+  border-color: rgba(46, 125, 88, 0.6);
+  background: var(--color-progress-soft);
+}
+
+.wrong {
+  border-color: rgba(232, 148, 58, 0.7);
+  background: #fff5e8;
+}

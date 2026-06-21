@@ -1,0 +1,30 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.item {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.item strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--color-title);
+}
+
+.item span {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

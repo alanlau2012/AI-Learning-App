@@ -1,0 +1,72 @@
+.player {
+  display: grid;
+  gap: 14px;
+}
+
+.player h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.fallback {
+  min-height: 180px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+}
+
+.fallback strong,
+.caption strong {
+  color: var(--color-title);
+}
+
+.fallback p,
+.caption p {
+  margin-top: 6px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.controls button {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.controls button:hover:not(:disabled) {
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.controls button:disabled {
+  color: var(--color-faint);
+  cursor: not-allowed;
+}
+
+.controls span {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.caption {
+  padding: 12px 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 720px) {
+  .controls span {
+    margin-left: 0;
+  }
+}

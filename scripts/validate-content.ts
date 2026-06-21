@@ -30,11 +30,23 @@ const EXPECTED_COUNTS: Record<string, number> = {
 };
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const VALID_STATUS = new Set(['stub', 'demo', 'mvp']);
+const REGISTERED_ANIMATION_TYPES = new Set([
+  'token-flow',
+  'attention-map',
+  'context-window',
+  'prefill-decode',
+  'kv-cache',
+  'model-router',
+  'agent-loop',
+  'issue-fix-flow',
+]);
 
 const errors: string[] = [];
 const fail = (msg: string): void => {
   errors.push(msg);
 };
+
+const nonEmpty = (value: string): boolean => value.trim().length > 0;
 
 function validateStructure(): void {
   // 1. 总数 + 模块计数
@@ -155,6 +167,49 @@ function validateStructure(): void {
   }
 }
 
+function validatePublishedContent(): void {
+  const published = concepts.filter((c) => c.contentStatus === 'demo' || c.contentStatus === 'mvp');
+  for (const c of published) {
+    if (!nonEmpty(c.definition)) fail(`${c.id}: definition 不能为空`);
+    if (!nonEmpty(c.whyItMatters)) fail(`${c.id}: whyItMatters 不能为空`);
+    if (!nonEmpty(c.mentalModel)) fail(`${c.id}: mentalModel 不能为空`);
+    if (c.mechanism.length < 3) fail(`${c.id}: mechanism 至少需要 3 步`);
+    if (c.pitfalls.length < 2) fail(`${c.id}: pitfalls 至少需要 2 条`);
+    if (c.keyTakeaways.length < 2) fail(`${c.id}: keyTakeaways 至少需要 2 条`);
+    const ec = c.enterpriseCase;
+    if (!nonEmpty(ec.scenario)) fail(`${c.id}: enterpriseCase.scenario 不能为空`);
+    if (!nonEmpty(ec.problem)) fail(`${c.id}: enterpriseCase.problem 不能为空`);
+    if (!nonEmpty(ec.analysis)) fail(`${c.id}: enterpriseCase.analysis 不能为空`);
+    if (!nonEmpty(ec.solution)) fail(`${c.id}: enterpriseCase.solution 不能为空`);
+    if (!nonEmpty(ec.takeaway)) fail(`${c.id}: enterpriseCase.takeaway 不能为空`);
+    if (c.hasAnimation && (!c.animation || c.animation.steps.length < 3)) {
+      fail(`${c.id}: hasAnimation=true 时 animation.steps 至少需要 3 步`);
+    }
+  }
+}
+
+function validateAnimation(): void {
+  for (const c of concepts) {
+    if (c.hasAnimation !== Boolean(c.animation)) {
+      fail(`${c.id}: hasAnimation 必须与 animation 是否存在保持一致`);
+    }
+    if (!c.animation) continue;
+    if (!REGISTERED_ANIMATION_TYPES.has(c.animation.type)) {
+      fail(`${c.id}: animation.type 未注册：${c.animation.type}`);
+    }
+    if (c.animation.steps.length < 1) {
+      fail(`${c.id}: animation.steps 至少需要 1 步`);
+    }
+    const stepIds = new Set<string>();
+    for (const step of c.animation.steps) {
+      if (stepIds.has(step.id)) fail(`${c.id}: animation step id 重复：${step.id}`);
+      stepIds.add(step.id);
+      if (!nonEmpty(step.title)) fail(`${c.id}: animation step ${step.id} title 不能为空`);
+      if (!nonEmpty(step.description)) fail(`${c.id}: animation step ${step.id} description 不能为空`);
+    }
+  }
+}
+
 // ---- 调度 ----
 const cmd = process.argv[2] ?? 'all';
 const runStructure = cmd === 'structure' || cmd === 'all';
@@ -167,15 +222,17 @@ if (runStructure) validateStructure();
 
 if (runPublished) {
   const n = concepts.filter((c) => c.contentStatus === 'demo' || c.contentStatus === 'mvp').length;
-  console.log(
-    n === 0
-      ? '  [published-content] 当前无 demo/mvp 内容，跳过完整性校验。'
-      : `  [published-content] demo/mvp 共 ${n} 个，完整性校验（§6.2）待后续阶段实现。`,
-  );
+  if (n === 0) {
+    console.log('  [published-content] 当前无 demo/mvp 内容，跳过完整性校验。');
+  } else {
+    validatePublishedContent();
+    console.log(`  [published-content] 已校验 demo/mvp 内容 ${n} 个。`);
+  }
 }
 
 if (runAnimation) {
-  console.log('  [animation] 动画 registry 尚未落地（P3），跳过。');
+  validateAnimation();
+  console.log('  [animation] 已校验动画一致性、注册类型与步骤合法性。');
 }
 
 if (errors.length > 0) {

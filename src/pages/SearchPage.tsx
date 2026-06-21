@@ -1,15 +1,32 @@
-/**
- * 搜索（/search）—— P5 实现（utils/search.ts + SearchBox/SearchResults）。P2 先占位。
- */
-import { PagePlaceholder } from '../components/layout/PagePlaceholder';
+import { useEffect, useMemo, useState } from 'react';
+import { SearchBox } from '../components/search/SearchBox';
+import { SearchResults } from '../components/search/SearchResults';
+import { concepts } from '../data/concepts';
+import { searchConcepts } from '../utils/search';
+import styles from './SearchPage.module.css';
 
 export function SearchPage() {
+  const [query, setQuery] = useState('');
+  const results = useMemo(() => searchConcepts(concepts, query), [query]);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setQuery('');
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <PagePlaceholder
-      stage="P5"
-      title="搜索"
-      intent="将提供对标题、一句话定义、机制、企业案例、常见误区、标签的本地实时搜索，支持 / 唤起、esc 关闭。"
-    />
+    <main className={styles.page}>
+      <section className={styles.header}>
+        <span>本地搜索</span>
+        <h1>搜索知识点</h1>
+        <p>覆盖标题、一句话定义、标签、机制、企业案例与常见误区。</p>
+      </section>
+      <SearchBox query={query} onQueryChange={setQuery} />
+      <SearchResults query={query} results={results} />
+    </main>
   );
 }
 

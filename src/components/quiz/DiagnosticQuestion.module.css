@@ -1,0 +1,46 @@
+.question {
+  display: grid;
+  gap: 14px;
+}
+
+.prompt {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+}
+
+.prompt span {
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.prompt p {
+  margin-top: 8px;
+}
+
+.prompt h3 {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+.options {
+  display: grid;
+  gap: 8px;
+}
+
+.submit {
+  justify-self: start;
+  padding: 9px 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+}
+
+.submit:disabled {
+  background: var(--color-faint);
+  cursor: not-allowed;
+}
