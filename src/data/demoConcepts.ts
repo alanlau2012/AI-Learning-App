@@ -2719,5 +2719,712 @@ export const demoConcepts: KnowledgePoint[] = [
       "量化收益必须结合硬件、框架和路由策略验证。"
     ],
     "relatedConceptIds": ["tpot", "decode", "speculative-decoding", "multi-model-routing", "cost-routing", "eval"]
-  }
+  },
+    {
+        "id":  "maas",
+        "title":  "MaaS",
+        "slug":  "maas",
+        "moduleId":  "m3",
+        "order":  1,
+        "difficulty":  "intermediate",
+        "estimatedMinutes":  10,
+        "tags":  [
+                     "MaaS",
+                     "模型平台",
+                     "模型网关",
+                     "计量",
+                     "治理"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  false,
+        "definition":  "MaaS 是把模型能力封装为企业内部可接入、可治理、可计量的平台服务，让业务不再各自直连模型。",
+        "whyItMatters":  "企业 AI 应用从试点走向规模化时，真正的挑战不是调用一次模型，而是让几十个业务稳定、合规、可观测地使用模型能力。MaaS 负责统一入口、模型目录、鉴权、配额、计量、评测、路由和审计，把分散调用变成平台能力。",
+        "mentalModel":  "MaaS 像企业内部的模型能力电网。业务团队不用自己发电，但平台必须知道谁接入、用了多少、质量如何、故障时怎么降级以及成本归到哪里。",
+        "mechanism":  [
+                          "平台维护模型目录、版本、能力标签和使用边界，让业务知道哪些模型可以用于哪些场景。",
+                          "业务通过统一 API、SDK 或网关接入模型能力，而不是各自直连供应商或自建推理服务。",
+                          "鉴权、配额、限流、审计和成本计量在平台层统一执行，形成可治理的控制面。",
+                          "路由层按任务、成本、SLA 和能力选择模型或服务池，避免所有请求落到单一默认模型。",
+                          "观测和评测结果回流到模型选择、容量规划和治理策略，支撑后续优化。"
+                      ],
+        "enterpriseCase":  {
+                               "title":  "20 个应用各自直连模型导致成本和审计失控",
+                               "scenario":  "集团内客服、法务、研发和运营共 20 个应用接入 5 类模型，其中 8 个应用直连外部 API。",
+                               "problem":  "月度模型成本无法按团队归因，安全审计只能覆盖约 60% 请求，模型版本变更也缺少统一记录。",
+                               "analysis":  "缺统一模型目录、鉴权、计量和 trace，平台无法治理模型版本、数据边界和成本归属。",
+                               "solution":  "建设 MaaS 入口，统一接入网关、模型目录、配额、Token 计量和审计链路；新应用必须通过平台申请模型能力。",
+                               "takeaway":  "MaaS 的价值是把分散模型调用变成企业级平台能力。"
+                           },
+        "pitfalls":  [
+                         "把 MaaS 理解成一个模型 API 代理，忽略目录、计量、审计和治理。",
+                         "先堆模型数量，不建设接入、配额和成本归属能力。",
+                         "只服务单个明星应用，忽略多租户、公平性和平台扩展。",
+                         "没有模型版本和评测记录，导致线上变化不可追溯。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-maas-1",
+                                   "type":  "single",
+                                   "scenario":  "企业已有 15 个业务使用模型，其中 6 个直连外部 API，安全团队无法追踪敏感请求，财务也无法按部门归因成本。",
+                                   "question":  "第一步最应该建设什么？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "统一 MaaS 接入入口，纳入鉴权、计量、审计和模型目录"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "先给所有应用换成最大模型"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "让每个业务自己补充日志字段"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "先扩大 GPU 集群，避免业务抱怨"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "a"
+                                                        ],
+                                   "explanation":  "A 先建立平台控制面，能同时处理接入、计量和审计。B 和 D 只是扩大模型或资源，不解决治理。C 有帮助但仍是分散补丁，无法形成统一模型目录和成本归属。",
+                                   "troubleshootingPath":  [
+                                                               "梳理接入应用、模型来源和直连路径",
+                                                               "收敛到统一 MaaS 入口",
+                                                               "统一鉴权、配额和 Token 计量",
+                                                               "接入 trace 与审计字段",
+                                                               "按业务配置模型目录和成本归属"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "model-gateway",
+                                                             "multi-model-routing",
+                                                             "cost-routing",
+                                                             "capability-routing",
+                                                             "rate-limit-circuit-break",
+                                                             "sla"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "MaaS 是企业模型能力的平台化形态。",
+                             "统一入口、计量和治理比模型数量更基础。",
+                             "MaaS 应把成本、质量、安全和 SLA 纳入同一控制面。",
+                             "MaaS 是模型网关、多模型路由和治理能力的承载层。"
+                         ],
+        "relatedConceptIds":  [
+                                  "model-gateway",
+                                  "multi-model-routing",
+                                  "cost-routing",
+                                  "capability-routing",
+                                  "rate-limit-circuit-break",
+                                  "sla"
+                              ]
+    },
+    {
+        "id":  "cost-routing",
+        "title":  "成本路由",
+        "slug":  "cost-routing",
+        "moduleId":  "m3",
+        "order":  4,
+        "difficulty":  "advanced",
+        "estimatedMinutes":  10,
+        "tags":  [
+                     "成本路由",
+                     "Token ROI",
+                     "多模型路由",
+                     "SLA",
+                     "Eval"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  true,
+        "definition":  "成本路由是在满足质量、时延和风险底线的前提下，把请求分配给成本合适的模型或服务池。",
+        "whyItMatters":  "企业 AI 成本通常被少数高频、低价值或错误路由任务放大。成本路由不是简单选择便宜模型，而是在任务价值、质量门槛、SLA、失败代价和 Token 消耗之间做策略选择。",
+        "mentalModel":  "成本路由像差旅审批。普通出差坐经济舱，高风险客户现场可以升级；规则不是永远最便宜，而是让花出去的钱匹配业务价值和风险。",
+        "mechanism":  [
+                          "请求先被打上任务类型、风险等级、质量要求、时延预算和预算归属。",
+                          "路由策略根据标签筛选候选模型或推理服务，排除不满足质量底线的低成本选项。",
+                          "低风险任务优先走低成本模型，高风险或失败代价高的任务走强模型。",
+                          "评测和线上观测持续校准哪些任务能降级、哪些必须升级。",
+                          "成本路由要记录 Token、模型版本、失败率和回退路径，避免只看账单。"
+                      ],
+        "animation":  {
+                          "type":  "model-router",
+                          "title":  "成本、质量与 SLA 的路由权衡",
+                          "steps":  [
+                                        {
+                                            "id":  "s1",
+                                            "title":  "请求带着成本与质量约束进入",
+                                            "description":  "平台先识别任务类型、风险等级、预算归属和质量要求，而不是直接选择便宜模型。",
+                                            "highlightTargets":  [
+                                                                     "request-labels"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s2",
+                                            "title":  "候选模型画像展开",
+                                            "description":  "不同模型在能力、成本和时延上形成候选集合，低成本只是其中一个维度。",
+                                            "highlightTargets":  [
+                                                                     "model-profiles"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s3",
+                                            "title":  "路由选择性价比模型",
+                                            "description":  "在质量达标的前提下，路由优先选择成本更合适的模型或服务池。",
+                                            "highlightTargets":  [
+                                                                     "router",
+                                                                     "selected-model"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s4",
+                                            "title":  "失败或超 SLA 时升级",
+                                            "description":  "当错误率、超时或质量不达标时，请求升级到更强模型或备用路由。",
+                                            "highlightTargets":  [
+                                                                     "fallback",
+                                                                     "sla"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s5",
+                                            "title":  "评测和观测回流策略",
+                                            "description":  "回放评测和线上观测持续修正哪些任务可降级、哪些必须保留强模型。",
+                                            "highlightTargets":  [
+                                                                     "eval",
+                                                                     "observability",
+                                                                     "policy"
+                                                                 ]
+                                        }
+                                    ]
+                      },
+        "enterpriseCase":  {
+                               "title":  "客服摘要全部走旗舰模型导致成本暴涨",
+                               "scenario":  "某客服平台月 180 万次摘要请求，默认全部路由到旗舰模型。",
+                               "problem":  "两个月成本上涨 72%，但抽样评测发现 65% 低风险摘要用中模型即可达标。",
+                               "analysis":  "平台没有任务分层和质量底线，只按一个默认模型服务所有请求，低价值任务吞掉了大量预算。",
+                               "solution":  "建立摘要、投诉、合规三类任务标签，用 1 万条历史请求回放评测；低风险走中模型，高风险失败时升级旗舰。",
+                               "takeaway":  "成本路由要先定义质量底线，再谈省钱。"
+                           },
+        "pitfalls":  [
+                         "把成本路由等同于永远选择最便宜模型。",
+                         "没有评测集就直接把大比例请求切到低价模型。",
+                         "只看平均成本下降，不看失败率和人工返工。",
+                         "忽略 Token 长度，导致长输入低价值任务吞掉预算。",
+                         "没有回退策略，低成本模型失败后影响 SLA。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-cost-routing-1",
+                                   "type":  "single",
+                                   "scenario":  "MaaS 平台月成本上涨 70%，团队计划把 80% 请求直接切到便宜模型，但当前没有任务分类和质量回放结果。",
+                                   "question":  "最优先的动作是什么？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "立刻全量切换低成本模型"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "建立任务分层和回放评测，先找出可降级且质量达标的请求"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "只提高缓存时间，避免模型调用"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "先购买更多低价模型额度"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "b"
+                                                        ],
+                                   "explanation":  "B 先确定质量底线和可降级范围。A 和 D 是强干扰项，看似能省钱，但会带来质量和 SLA 风险。C 只能处理重复请求，不解决模型选择策略。",
+                                   "troubleshootingPath":  [
+                                                               "按任务、团队和 Token 消耗拆账单",
+                                                               "建立回放评测集和质量底线",
+                                                               "识别可降级任务与不可降级任务",
+                                                               "灰度低成本路由策略",
+                                                               "监控失败率、成本和人工返工"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "maas",
+                                                             "model-gateway",
+                                                             "multi-model-routing",
+                                                             "capability-routing",
+                                                             "token-roi",
+                                                             "eval",
+                                                             "sla"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "成本路由的前提是质量和 SLA 底线。",
+                             "可降级任务必须由评测和线上观测证明。",
+                             "账单要按任务、模型、Token 和团队拆分。",
+                             "成本优化必须保留升级和回退路径。"
+                         ],
+        "relatedConceptIds":  [
+                                  "maas",
+                                  "model-gateway",
+                                  "multi-model-routing",
+                                  "capability-routing",
+                                  "token-roi",
+                                  "eval",
+                                  "sla"
+                              ]
+    },
+    {
+        "id":  "capability-routing",
+        "title":  "能力路由",
+        "slug":  "capability-routing",
+        "moduleId":  "m3",
+        "order":  5,
+        "difficulty":  "advanced",
+        "estimatedMinutes":  10,
+        "tags":  [
+                     "能力路由",
+                     "模型能力",
+                     "工具调用",
+                     "Repo Context",
+                     "Eval"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  true,
+        "definition":  "能力路由是根据任务需要的推理、代码、工具、长上下文、多模态或合规能力，把请求分配给真正胜任的模型或链路。",
+        "whyItMatters":  "企业平台不能只按模型大小选路由。一个便宜模型可能足够做摘要，却不适合多文件代码修改；一个强模型可能会浪费在简单分类上。能力路由让平台按任务需求选择能力，而不是按品牌或默认配置选择模型。",
+        "mentalModel":  "能力路由像派工单。修水管、审合同和写代码需要不同技工；派最贵的人做所有事浪费，派错人做关键事会返工。",
+        "mechanism":  [
+                          "请求进入平台后先识别任务类型、输入形态、工具需求和风险等级。",
+                          "模型或链路需要维护能力标签，例如长上下文、代码、结构化输出、工具调用和合规拒答。",
+                          "路由策略把任务需求与能力标签匹配，过滤不达标候选。",
+                          "对复杂任务保留升级、重试或人工审核路径。",
+                          "评测集和线上 trace 用于修正能力标签，避免凭经验维护路由。"
+                      ],
+        "animation":  {
+                          "type":  "model-router",
+                          "title":  "按任务能力选择模型链路",
+                          "steps":  [
+                                        {
+                                            "id":  "s1",
+                                            "title":  "识别任务能力要求",
+                                            "description":  "请求被标注为代码修复、合同审查、摘要或 FAQ 等不同任务，并带上上下文、工具和风险要求。",
+                                            "highlightTargets":  [
+                                                                     "request-labels"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s2",
+                                            "title":  "候选模型能力画像",
+                                            "description":  "不同候选模型在能力、成本和时延上差异明显，不能只看价格或默认模型。",
+                                            "highlightTargets":  [
+                                                                     "model-profiles"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s3",
+                                            "title":  "过滤不达标候选",
+                                            "description":  "路由策略过滤掉不支持关键能力的候选，例如缺少代码和工具链能力的小模型。",
+                                            "highlightTargets":  [
+                                                                     "router",
+                                                                     "selected-model"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s4",
+                                            "title":  "失败时升级或人工兜底",
+                                            "description":  "复杂任务如果出现错误率或超时，平台升级到更强链路或触发人工审核。",
+                                            "highlightTargets":  [
+                                                                     "fallback",
+                                                                     "sla"
+                                                                 ]
+                                        },
+                                        {
+                                            "id":  "s5",
+                                            "title":  "用评测和观测修正能力标签",
+                                            "description":  "评测集和线上 trace 回流到路由策略，持续校准模型能力标签。",
+                                            "highlightTargets":  [
+                                                                     "eval",
+                                                                     "observability",
+                                                                     "policy"
+                                                                 ]
+                                        }
+                                    ]
+                      },
+        "enterpriseCase":  {
+                               "title":  "代码修复任务被路由到摘要模型",
+                               "scenario":  "研发平台同时提供会议摘要、知识问答和代码修复能力。",
+                               "problem":  "15% 代码修复请求被路由到通用摘要模型，PR 验证失败率达到 38%。",
+                               "analysis":  "路由只看成本和平均延迟，没有识别仓库上下文、工具调用和测试能力需求。",
+                               "solution":  "新增任务识别、能力标签和代码任务评测集；代码修复默认走具备 repo-context 和工具调用能力的链路，失败时升级人工。",
+                               "takeaway":  "能力路由要用任务能力要求约束模型选择。"
+                           },
+        "pitfalls":  [
+                         "认为大模型能力最强，所以可以覆盖所有任务。",
+                         "只按成本或延迟路由，不看任务需要的能力。",
+                         "能力标签靠人工印象维护，没有评测和 trace 回流。",
+                         "忽略工具、上下文和结构化输出能力，把它们都归为模型能力。",
+                         "没有不确定时的升级和人工审核策略。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-capability-routing-1",
+                                   "type":  "single",
+                                   "scenario":  "平台把合同审查、FAQ 和代码修复都按成本优先路由。最近代码修复失败率升到 38%，日志显示很多请求没有加载仓库上下文和测试工具。",
+                                   "question":  "最应该补哪项能力？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "把所有任务都切到旗舰模型"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "把低价模型并发调高"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "建立任务识别与能力标签，让代码修复走支持仓库上下文和工具调用的链路"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "缩短系统提示词，降低首字时间"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "c"
+                                                        ],
+                                   "explanation":  "C 对准任务能力不匹配。A 是强干扰项，可能缓解部分问题但仍可能缺工具链且成本高。B 和 D 优化性能，不解决能力路由错误。",
+                                   "troubleshootingPath":  [
+                                                               "按任务类型统计失败率",
+                                                               "检查路由标签和候选模型能力",
+                                                               "补能力矩阵和任务识别",
+                                                               "回放代码任务评测",
+                                                               "灰度新策略并监控验证失败率"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "maas",
+                                                             "multi-model-routing",
+                                                             "cost-routing",
+                                                             "tool-calling",
+                                                             "repo-context",
+                                                             "eval",
+                                                             "trace"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "能力路由按任务需求选链路，不按模型名选链路。",
+                             "能力包括模型、工具、上下文、格式和治理约束。",
+                             "能力标签必须由评测和 trace 持续校准。",
+                             "复杂任务需要升级和人审兜底。"
+                         ],
+        "relatedConceptIds":  [
+                                  "maas",
+                                  "multi-model-routing",
+                                  "cost-routing",
+                                  "tool-calling",
+                                  "repo-context",
+                                  "eval",
+                                  "trace"
+                              ]
+    },
+    {
+        "id":  "cache-system",
+        "title":  "缓存体系",
+        "slug":  "cache-system",
+        "moduleId":  "m3",
+        "order":  6,
+        "difficulty":  "advanced",
+        "estimatedMinutes":  11,
+        "tags":  [
+                     "缓存体系",
+                     "语义缓存",
+                     "RAG 缓存",
+                     "KV Cache",
+                     "Trace"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  false,
+        "definition":  "缓存体系是在 AI 平台中复用可安全复用的输入、上下文、结果或中间状态，以降低成本、延迟和重复计算。",
+        "whyItMatters":  "AI 应用的缓存不只是普通 HTTP 缓存。提示词、RAG 片段、语义相似问题、模型结果、前缀和 KV Cache 都可能被复用，但复用错误会产生过期答案、权限泄漏或错误扩散。",
+        "mentalModel":  "缓存体系像办公室里的资料夹。常用资料放手边能省时间，但如果资料过期、拿错权限或把别人的批注复用到你的报告里，效率就会变成事故。",
+        "mechanism":  [
+                          "平台先识别可缓存对象：静态提示词、检索结果、语义相似请求、模型输出、前缀或 KV 状态。",
+                          "不同缓存有不同命中条件：精确匹配、语义相似、用户权限、模型版本、时间窗口和上下文边界。",
+                          "缓存命中可降低 TTFT、TPOT、Token 成本或下游系统压力。",
+                          "缓存必须有失效、隔离和审计策略，避免复用过期或越权内容。",
+                          "命中率、节省 Token、错误复用率和回源成本要一起监控。"
+                      ],
+        "enterpriseCase":  {
+                               "title":  "语义缓存命中率高但投诉增加",
+                               "scenario":  "客服平台为 FAQ 问答启用语义缓存，日均 50 万次请求。",
+                               "problem":  "缓存命中率达到 42%，模型成本下降 28%，但政策类问题投诉率上升，部分答案引用了旧规则。",
+                               "analysis":  "缓存只按语义相似命中，没有绑定知识库版本、用户地区和政策生效时间。",
+                               "solution":  "将缓存 key 加入知识库版本、地区、租户和有效期；高风险政策问题改为短 TTL 并强制回源验证。",
+                               "takeaway":  "缓存收益必须和正确性、权限和时效一起治理。"
+                           },
+        "pitfalls":  [
+                         "只追求命中率，不看错误复用率。",
+                         "把所有相似问题都缓存，不绑定权限、版本和时间。",
+                         "混淆结果缓存、语义缓存、RAG 缓存和 KV Cache。",
+                         "缓存命中后不保留 trace，无法解释答案来源。",
+                         "缓存策略不上线灰度，一次影响所有租户。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-cache-system-1",
+                                   "type":  "single",
+                                   "scenario":  "语义缓存上线后成本下降 25%，但合规问答出现旧政策答案。缓存命中日志没有记录知识库版本和地区。",
+                                   "question":  "优先修复什么？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "把缓存 TTL 调到更长，提高命中率"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "全部关闭缓存，避免任何风险"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "把所有问题都改用旗舰模型"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "将缓存 key 和失效策略绑定知识库版本、租户/地区、权限和有效期，并监控错误复用"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "d"
+                                                        ],
+                                   "explanation":  "D 处理错误复用根因。A 会放大过期风险。B 可临时止血但不是体系化方案。C 不解决缓存命中复用旧答案的问题。",
+                                   "troubleshootingPath":  [
+                                                               "定位错误命中的缓存类型",
+                                                               "检查 cache key 组成",
+                                                               "补知识版本、租户和权限隔离",
+                                                               "设置风险分级 TTL",
+                                                               "监控命中率与错误复用率"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "kv-cache",
+                                                             "session-affinity",
+                                                             "model-gateway",
+                                                             "maas",
+                                                             "trace",
+                                                             "observability",
+                                                             "permission-governance"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "AI 缓存要同时治理命中率、正确性、权限和时效。",
+                             "不同缓存层解决不同瓶颈，不能混为一谈。",
+                             "缓存 key 必须纳入模型、知识、租户和风险边界。",
+                             "高风险任务宁可少命中，也不能错误复用。"
+                         ],
+        "relatedConceptIds":  [
+                                  "kv-cache",
+                                  "session-affinity",
+                                  "model-gateway",
+                                  "maas",
+                                  "trace",
+                                  "observability",
+                                  "permission-governance"
+                              ]
+    },
+    {
+        "id":  "rate-limit-circuit-break",
+        "title":  "限流熔断",
+        "slug":  "rate-limit-circuit-break",
+        "moduleId":  "m3",
+        "order":  7,
+        "difficulty":  "intermediate",
+        "estimatedMinutes":  10,
+        "tags":  [
+                     "限流",
+                     "熔断",
+                     "降级",
+                     "SLA",
+                     "网关"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  false,
+        "definition":  "限流熔断是在模型平台过载、下游故障或租户异常时，通过配额、排队、拒绝、降级和备用路由保护整体服务稳定性的机制。",
+        "whyItMatters":  "模型服务成本高、延迟敏感、依赖链长。没有限流熔断，一个异常租户、一次活动流量或外部模型故障，就可能拖垮整个平台，让关键业务和低优先级请求一起失败。",
+        "mentalModel":  "限流熔断像医院分诊。不是所有人同时冲进急诊室，而是按优先级、容量和风险分流；设备异常时先保护重症通道，再安排其他人等待或转诊。",
+        "mechanism":  [
+                          "平台按租户、应用、模型、任务和优先级设置配额与速率限制。",
+                          "队列长度、错误率、超时率、P99 和下游健康状态触发保护策略。",
+                          "限流可以拒绝、排队、降级模型、缩短输出或转备用服务。",
+                          "熔断用于快速隔离持续失败的模型、供应商或工具链，避免级联故障。",
+                          "恢复需要半开探测、灰度放量和观测确认，不能故障一消失就全量恢复。"
+                      ],
+        "enterpriseCase":  {
+                               "title":  "营销活动压垮共享模型池",
+                               "scenario":  "某平台平时每分钟 2 万请求，营销活动峰值冲到 9 万请求，和客服、风控共用同一模型池。",
+                               "problem":  "P99 从 3 秒升到 18 秒，客服超时率达到 22%，外部供应商同时出现 5xx 抖动。",
+                               "analysis":  "平台没有租户优先级和活动配额，外部模型错误未及时熔断，低优先级流量挤占关键业务。",
+                               "solution":  "按业务等级设置配额和队列上限，营销流量降级到低成本模型；供应商 5xx 超阈值后熔断并切备用路由。",
+                               "takeaway":  "限流熔断的目标是保护整体 SLA，而不是单纯拒绝请求。"
+                           },
+        "pitfalls":  [
+                         "认为限流就是简单返回错误。",
+                         "所有租户共用一个队列，关键业务和试验流量互相影响。",
+                         "下游持续 5xx 仍不断重试，造成级联故障。",
+                         "没有半开恢复策略，故障后要么一直熔断，要么突然全量恢复。",
+                         "只看平均延迟，不看 P99、队列长度和租户公平性。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-rate-limit-circuit-break-1",
+                                   "type":  "single",
+                                   "scenario":  "活动期间平台请求量涨到平时 4 倍，客服应用 P99 升到 18 秒。日志显示某低优先级营销应用占用 55% 队列，外部模型 5xx 也明显上升。",
+                                   "question":  "第一步最应该做什么？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "立刻给所有模型池扩容"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "按租户优先级限流营销流量，并对异常外部模型触发熔断/备用路由"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "提高 temperature，让模型更快输出"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "删除所有队列，直接并发请求下游"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "b"
+                                                        ],
+                                   "explanation":  "B 同时处理低优先级挤占和下游故障。A 是强干扰项，扩容慢且不隔离故障。C 与性能保护无关。D 会放大过载和下游失败。",
+                                   "troubleshootingPath":  [
+                                                               "按租户拆分队列、P99 和错误率",
+                                                               "确认下游模型或供应商健康状态",
+                                                               "启用优先级限流和队列上限",
+                                                               "对异常下游熔断并切备用路由",
+                                                               "半开探测恢复并观察关键业务 SLA"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "model-gateway",
+                                                             "maas",
+                                                             "session-affinity",
+                                                             "batch-scheduling",
+                                                             "sla",
+                                                             "observability"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "限流熔断保护的是平台整体稳定性和关键业务 SLA。",
+                             "队列、配额和优先级必须按租户和任务分层。",
+                             "下游故障要快速隔离，避免重试风暴。",
+                             "恢复需要半开和灰度，不应瞬间全量放开。"
+                         ],
+        "relatedConceptIds":  [
+                                  "model-gateway",
+                                  "maas",
+                                  "session-affinity",
+                                  "batch-scheduling",
+                                  "sla",
+                                  "observability"
+                              ]
+    },
+    {
+        "id":  "sla",
+        "title":  "SLA 保障",
+        "slug":  "sla",
+        "moduleId":  "m3",
+        "order":  8,
+        "difficulty":  "intermediate",
+        "estimatedMinutes":  10,
+        "tags":  [
+                     "SLA",
+                     "可用性",
+                     "P95",
+                     "质量指标",
+                     "降级"
+                 ],
+        "contentStatus":  "mvp",
+        "hasAnimation":  false,
+        "definition":  "SLA 保障是把模型平台的可用性、延迟、错误率、质量和降级策略定义为可承诺、可监控、可复盘的服务目标。",
+        "whyItMatters":  "企业用户不会只问模型能不能回答，而会问关键业务是否稳定可用。SLA 把平台责任从最好努力变成明确承诺：哪些任务要 P95 低于多少、可用性多少、失败怎么降级、质量如何评估、事故如何复盘。",
+        "mentalModel":  "SLA 像服务合同。它不是一句保证稳定，而是写清楚交付指标、例外情况、补救手段和责任边界。",
+        "mechanism":  [
+                          "平台按业务等级定义可用性、P95/P99、错误率、超时率和质量底线。",
+                          "指标必须拆到模型、网关、队列、RAG、工具和外部供应商等链路段。",
+                          "降级策略包括模型切换、缓存兜底、缩短输出、关闭非关键能力和人工升级。",
+                          "SLA 需要告警、值班、事故分级和复盘机制支撑。",
+                          "质量类 SLA 依赖 Eval、Trace 和线上抽检，不只看 HTTP 成功率。"
+                      ],
+        "enterpriseCase":  {
+                               "title":  "合同审核助手 HTTP 成功但业务 SLA 失败",
+                               "scenario":  "法务平台给 300 名合同经理提供审核助手，承诺工作时间可用性 99.5%、P95 首字 3 秒内、关键条款漏检率低于 2%。",
+                               "problem":  "HTTP 成功率 99.8%，但 P95 TTFT 多次超过 7 秒，抽检发现关键条款漏检率 5.6%。",
+                               "analysis":  "平台只监控接口成功率，没有把质量和关键路径延迟纳入 SLA，也没有降级到规则库和人工复核。",
+                               "solution":  "建立链路指标、质量抽检、失败升级和降级策略；高风险合同触发人工复核，普通合同使用缓存和中模型分流。",
+                               "takeaway":  "AI SLA 必须同时覆盖技术可用性、体验延迟和业务质量。"
+                           },
+        "pitfalls":  [
+                         "把 SLA 等同于 HTTP 200 成功率。",
+                         "只承诺平均延迟，不看 P95/P99 和关键任务。",
+                         "没有质量指标，导致模型回答错误也算成功。",
+                         "降级策略临时手工处理，没有预案和演练。",
+                         "不区分业务等级，对所有请求承诺同一指标。"
+                     ],
+        "diagnosticQuestion":  {
+                                   "id":  "q-sla-1",
+                                   "type":  "single",
+                                   "scenario":  "合同审核助手 HTTP 成功率 99.8%，但法务投诉高风险合同漏检，P95 首字也从 2.5 秒升到 7 秒。当前 SLA 只写接口可用性。",
+                                   "question":  "最应该补充什么？",
+                                   "options":  [
+                                                   {
+                                                       "id":  "a",
+                                                       "text":  "只把可用性目标从 99.5% 提高到 99.9%"
+                                                   },
+                                                   {
+                                                       "id":  "b",
+                                                       "text":  "把所有请求都切到旗舰模型"
+                                                   },
+                                                   {
+                                                       "id":  "c",
+                                                       "text":  "在 SLA 中加入关键链路延迟、质量抽检指标、降级/人工复核策略和事故复盘"
+                                                   },
+                                                   {
+                                                       "id":  "d",
+                                                       "text":  "关闭 trace，减少日志成本"
+                                                   }
+                                               ],
+                                   "correctOptionIds":  [
+                                                            "c"
+                                                        ],
+                                   "explanation":  "C 覆盖体验和质量两个缺口。A 只提高 HTTP 目标，不能解决漏检和首字变慢。B 是强干扰项，可能增慢且不保证质量。D 会削弱排查和复盘能力。",
+                                   "troubleshootingPath":  [
+                                                               "拆分技术成功率、TTFT/P99 和质量指标",
+                                                               "定义业务等级和任务成功标准",
+                                                               "补质量评测和线上抽检",
+                                                               "设计降级与人工升级",
+                                                               "建立事故复盘与 SLA 调整机制"
+                                                           ],
+                                   "relatedConceptIds":  [
+                                                             "maas",
+                                                             "model-gateway",
+                                                             "multi-model-routing",
+                                                             "rate-limit-circuit-break",
+                                                             "eval",
+                                                             "trace",
+                                                             "observability"
+                                                         ]
+                               },
+        "keyTakeaways":  [
+                             "AI SLA 要覆盖可用性、延迟、错误率和业务质量。",
+                             "HTTP 成功不等于用户任务成功。",
+                             "SLA 必须配套降级、告警、值班和复盘。",
+                             "不同业务等级应有不同承诺和成本策略。"
+                         ],
+        "relatedConceptIds":  [
+                                  "maas",
+                                  "model-gateway",
+                                  "multi-model-routing",
+                                  "rate-limit-circuit-break",
+                                  "eval",
+                                  "trace",
+                                  "observability"
+                              ]
+    }
 ];

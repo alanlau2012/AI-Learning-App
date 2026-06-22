@@ -1,20 +1,24 @@
 # 44 讲扩展计划 · expansion-plan-44-lessons
 
-> MVP 0.1 修复回合 1 封板后制定。把剩余 44 个 `stub` 讲按 **8 / 12 / 12 / 12** 四批扩展，**不一次性生成 44 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
-> 已上线 12 讲（样板锚点）：`token / attention / prefill / decode / ttft / kv-cache / model-gateway / multi-model-routing / context-window / agent-loop / skill / issue-fix-agent`。
-> 剩余 44 stub 见 [content-schema.md](content-schema.md) §4 登记表；本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
+> MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 24 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
+> 当前已上线 32 讲：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `3/16`、M5 `1/6`、M6 `0/6`。
+> 剩余 24 stub 见 [content-schema.md](content-schema.md) §4 登记表；本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---
 
+
+> 执行偏差说明：原计划 Batch 1（8）+ Batch 2 前半（6）已在 MVP 0.2 中重切为 Wave 1（7）+ Wave 2（7），合计 20 讲已完成。后续 Agent 不应再按“Batch 1 todo / Batch 2 todo / M3 todo”理解当前状态。
+
 ## 0. 批次总览
 
-| 批次 | 讲数 | 模块 | 核心定位 | 动画风险 | Owner 再确认 |
-|---|---|---|---|---|---|
-| Batch 1 | 8 | M1 收尾 | 入门路径完整闭环，纯文本为主、最低风险，验证流水线 | 低（复用通用画布） | 否 |
-| Batch 2 | 12 | M2 收尾 + M3 收尾 | 工程/平台主干，复用 2 个真实画布 | 中（可选升级 model-router 真实画布） | 知会（非阻塞） |
-| Batch 3 | 12 | M4 收尾（12/13） | Agent 与上下文工程核心，复用 agent-loop 真实画布 | 低-中 | 否 |
-| Batch 4 | 12 | M4 收尾(1) + M5 + M6 | 软件工程闭环 + 企业治理收口，可能新增治理类动画 | 中-高（可能新增动画类型） | **是**（动画范围 + 治理口径） |
-| 合计 | 44 | — | — | — | — |
+| 批次 | 原计划讲数 | 模块 | 当前状态 | 核心定位 | 动画风险 | Owner 再确认 |
+|---|---|---|---|---|---|---|
+| Batch 1 / Wave 1+2 已覆盖部分 | 8 | M1 收尾 | **done：M1 已 10/10** | 入门路径完整闭环，纯文本为主、最低风险，验证流水线 | 低（复用通用画布） | 否 |
+| Batch 2 已覆盖部分 | 6 | M2 收尾 | **done：M2 已 10/10** | 推理性能主干闭环，复用 `prefill-decode` / `kv-cache` | 低 | 否 |
+| Wave 3 | 6 | M3 收尾 | **done：M3 已 8/8** | 平台主干收口，补齐 MaaS / 路由 / 缓存 / SLA | 中（复用 model-router） | 否 |
+| Next Wave | 12 | M4 主体扩展 | todo | Agent 与上下文工程核心，复用 agent-loop 真实画布 | 低-中 | 否 |
+| Final Wave | 12 | M4 收尾(1) + M5 + M6 | todo | 软件工程闭环 + 企业治理收口，可能新增治理类动画 | 中-高（可能新增动画类型） | **是**（动画范围 + 治理口径） |
+| 合计 | 44 | — | 已完成 20，剩余 24 | — | — | — |
 
 **为什么这个顺序**：先完成已有锚点最密集、动画复用最高、内容风险最低的模块（M1→M2/M3→M4），把高不确定性（M6 治理类内容口径、可能的新动画类型）留到最后一批，并在那之前已用三批验证好整套门禁与流水线。
 
@@ -179,7 +183,8 @@
 | 批次 | 状态 | 上线讲数累计 | 四命令 | 审核结论 | 备注 |
 |---|---|---|---|---|---|
 | 封板 12 讲 | done | 12 / 56 | ✅ | PASS_WITH_MINOR_ISSUES | MVP 0.1 修复回合 1 |
-| Batch 1 | todo | → 20 / 56 | — | — | M1 收尾 |
-| Batch 2 | todo | → 32 / 56 | — | — | M2+M3 收尾 |
-| Batch 3 | todo | → 44 / 56 | — | — | M4 收尾(12) |
-| Batch 4 | todo | → 56 / 56 | — | — | M4(1)+M5+M6，全量上线 |
+| MVP 0.2 Wave 1 | done | 19 / 56 | ✅ | PASS | M1 前 7 讲，`09bfc13` / `mvp-0.2-wave1` |
+| MVP 0.2 Wave 2 | done | 26 / 56 | ✅ | PASS | M1 收口 + M2 收尾 7 讲，`2fd0fb2` |
+| MVP 0.2 Wave 3 | done | 32 / 56 | ✅ | PASS | M3 收尾 6 讲，当前 `HEAD` |
+| Next Wave | todo | → 44 / 56 | — | — | M4 主体扩展，具体范围启动前再冻结 |
+| Final Wave | todo | → 56 / 56 | — | — | M4 剩余 + M5 + M6，全量上线；治理类动画需 Owner 确认 |

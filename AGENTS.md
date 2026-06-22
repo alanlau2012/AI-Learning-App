@@ -2,6 +2,19 @@
 
 这是写给后续开发 Agent / 工程师的仓库说明书。开工前先读本文件，再读 `docs/` 下的规格文档。
 
+## 0. 当前状态快照（交接必读）
+
+截至 **2026-06-22**：
+
+- 当前代码基线：当前 `HEAD`（`feat(content): add mvp 0.2 wave 3 lessons`；具体 hash 以 `git log -1` 为准）。
+- 已封板范围：**MVP 0.2 Wave 3**；M1 / M2 / M3 三个模块已完整上线。
+- 当前上线内容：**32 / 56 讲**；剩余 `stub`：**24 讲**。
+- 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `3/16`，M5 `1/6`，M6 `0/6`。
+- Wave 1 已提交：`09bfc13`（tag: `mvp-0.2-wave1`），新增 7 讲。
+- Wave 2 已提交：`2fd0fb2`，新增 7 讲。
+- Wave 3 已完成待提交：新增 6 讲，`maas` / `cost-routing` / `capability-routing` / `cache-system` / `rate-limit-circuit-break` / `sla`。
+- Wave 3 验证：`npm run validate:content`、`npm run typecheck`、`npm run lint`、`npm run build` 均 PASS；见 `reports/mvp-0.2-wave3-summary.md` 与 `reports/e2e-verification-mvp-0.2-wave3.md`。
+- 下一轮建议：单独启动 **M4 主体扩展**，优先冻结上下文与 Agent 基础链路范围；不要误以为 M3 仍待开发。
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。
@@ -118,3 +131,17 @@ npm run validate:animation          # P3 动画 registry 落地后：hasAnimatio
 - 每完成一个开发阶段都要保证项目可运行（见 architecture.md 的阶段拆分）。
 - 代码优先保证清晰、可维护、可扩展到 100 讲，不追求炫技。
 - 改动应可追溯到某条规格；不擅自扩大范围或重构无关代码。
+
+### 8.1 封板与交接文档刷新硬规则
+
+任何开发阶段、内容 Wave、修复回合或封板提交完成后，主开发 Agent 必须同步刷新关键文档状态，避免后续 Agent 接手时读到过期结论。
+
+封板前必须检查并更新：
+
+1. `AGENTS.md`：刷新“当前状态快照”，写明当前 `main` commit、已封板范围、上线讲数、剩余 stub、下一步建议。
+2. `docs/project-board.md`：刷新“最后更新时间”“当前里程碑”“阶段任务板/扩展进度”“阻塞项”。
+3. `docs/expansion-plan-44-lessons.md`：刷新进度追踪表与已完成批次/下一批范围。
+4. `README.md`：刷新当前封版、上线讲数、关键验证报告。
+5. `reports/`：新增对应阶段 summary / E2E / merge / review 报告，并在上述文档中引用。
+
+封板提交前必须用 `git log --oneline --decorate -5` 与 `git status --short --branch` 复核真实 git 状态。禁止只新增报告、不更新看板和交接文档；禁止让 `project-board.md` 停留在旧阶段。
