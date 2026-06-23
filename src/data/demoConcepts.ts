@@ -4638,7 +4638,1172 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "layered-session",
     "context-pollution"
   ]
-}
+},
+  {
+    "id": "multi-agent",
+    "title": "多 Agent 协作",
+    "slug": "multi-agent",
+    "moduleId": "m4",
+    "order": 16,
+    "difficulty": "advanced",
+    "estimatedMinutes": 12,
+    "tags": [
+      "多 Agent",
+      "Orchestrator",
+      "上下文隔离",
+      "协调成本",
+      "Agent 协作"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "多 Agent 协作是把一个复杂任务拆给多个各自持有独立上下文的 Agent 分工完成，再由主 Agent 汇总各自结论形成最终输出。它用上下文隔离换取协调成本，并不总是比单 Agent 更优。",
+    "whyItMatters": "多 Agent 看似比单 Agent 更强，但每增加一个 Agent，都会叠加上下文传递、结论冲突和 Token 成本。企业落地的关键不是堆 Agent 数量，而是判断任务是否真的需要并行分工，以及主 Agent 如何在不被子任务过程污染的前提下汇总可信结论。",
+    "mentalModel": "把多 Agent 协作理解为一个项目组：主 Agent 是项目经理，只看每个成员交回的结论，不亲自旁观全过程；子 Agent 是专员，各自在独立工作区里干活。组织能并行处理更多事，但沟通、对齐和返工的成本也会随人数上升。",
+    "mechanism": [
+      "主 Agent 先判断任务是否需要拆分：只有当子任务相对独立、可并行、且单一上下文难以容纳时，多 Agent 才有收益。",
+      "主 Agent 把任务分解为边界清晰的子任务，分配给各子 Agent，并为每个子 Agent 设定独立的上下文和目标。",
+      "每个子 Agent 在自己的上下文窗口内完成工作，主 Agent 通常只接收其结论，而不吸收完整中间过程，避免上下文污染。",
+      "常见编排形态包括主从式（orchestrator–worker）、并行扇出后汇聚、以及串行流水线，按任务依赖关系选择。",
+      "主 Agent 汇总各子 Agent 结论，处理冲突与重叠，必要时回退重做或升级人工。",
+      "Token 成本、失败叠加和可观测性下降是多 Agent 的固有代价，需要用 trace 和评测来约束。"
+    ],
+    "enterpriseCase": {
+      "title": "多 Agent 改写流水线成本失控",
+      "scenario": "某研发平台把代码生成流水线拆成需求理解、编码、测试、评审四个子 Agent，覆盖约 200 名工程师，日均处理 6000 个任务。",
+      "problem": "上线两周后单任务平均 Token 成本上涨约 3.2 倍，且约 12% 的任务因子 Agent 结论互相冲突而需要返工。",
+      "analysis": "四个子 Agent 各自重复读取完整仓库上下文，主 Agent 又把每个子 Agent 的中间过程全部纳入，导致上下文重复膨胀；而该任务本身依赖性强，并不适合并行拆分。",
+      "solution": "将强依赖的编码与测试合并回单 Agent，仅对真正独立的需求理解与评审保留子 Agent；主 Agent 只接收结论摘要并加冲突仲裁规则；用 trace 监控每个子 Agent 的 Token 与失败率。",
+      "takeaway": "多 Agent 不是默认更优，先确认任务可独立并行，再为协调成本买单。"
+    },
+    "pitfalls": [
+      "默认认为多个 Agent 一定比单 Agent 强，把本可单 Agent 完成的任务强行拆分，反而放大协调成本和延迟。",
+      "让主 Agent 吸收所有子 Agent 的完整中间过程，造成上下文污染和 Token 浪费。",
+      "子任务之间存在强依赖却强行并行，导致结论互相冲突、频繁返工。",
+      "只统计自动化率和任务数，不监控多 Agent 带来的 Token 成本与失败叠加。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-multi-agent-1",
+      "type": "single",
+      "scenario": "某团队把一个原本单 Agent 能完成的报表生成任务拆成五个子 Agent 协作，结果延迟从 8 秒升到 25 秒，Token 成本翻倍，且偶发子 Agent 结论冲突。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "再增加一个仲裁 Agent 专门解决子 Agent 之间的结论冲突"
+        },
+        {
+          "id": "b",
+          "text": "重新评估任务是否真的需要多 Agent，把强依赖的子任务收敛回单 Agent"
+        },
+        {
+          "id": "c",
+          "text": "提高每个子 Agent 的上下文窗口上限，让它们看到更多信息"
+        },
+        {
+          "id": "d",
+          "text": "为每个子 Agent 单独扩容算力以降低延迟"
+        }
+      ],
+      "correctOptionIds": [
+        "b"
+      ],
+      "explanation": "B 是第一步：现象表明任务本不需要多 Agent 拆分，协调成本和上下文重复才是延迟与成本上升的根因。A 在错误的拆分上再加 Agent，只会进一步放大成本。C 扩大窗口会加重 Token 消耗与上下文污染。D 扩容不解决协调与冲突的结构性问题。",
+      "troubleshootingPath": [
+        "确认任务是否具备可独立并行的子任务",
+        "比较单 Agent 与多 Agent 的延迟、Token 和失败率",
+        "收敛强依赖子任务，仅保留真正独立的分工",
+        "为保留的子 Agent 配置结论摘要与冲突仲裁",
+        "用 trace 监控各子 Agent 的成本与失败"
+      ],
+      "relatedConceptIds": [
+        "subagent",
+        "human-in-the-loop",
+        "agent-loop",
+        "context-pollution",
+        "token-roi"
+      ]
+    },
+    "keyTakeaways": [
+      "多 Agent 用上下文隔离换协调成本，并非默认更优。",
+      "拆分的前提是子任务相对独立、可并行、单上下文难以容纳。",
+      "主 Agent 应只接收结论，避免被子任务过程污染。",
+      "Token 成本、失败叠加和可观测性下降是多 Agent 的固有代价。"
+    ],
+    "relatedConceptIds": [
+      "subagent",
+      "human-in-the-loop",
+      "agent-loop",
+      "context-pollution",
+      "layered-session"
+    ]
+  },
+  {
+    "id": "code-review-agent",
+    "title": "Code Review Agent",
+    "slug": "code-review-agent",
+    "moduleId": "m5",
+    "order": 1,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": [
+      "Code Review Agent",
+      "代码评审",
+      "误报率",
+      "质量门禁",
+      "AI 原生软件工程"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Code Review Agent 是在代码评审环节自动检查变更、给出问题与建议，并把评审标准沉淀为可复用规则的工程 Agent。它辅助而非替代资深评审，价值在一致性与覆盖面。",
+    "whyItMatters": "企业代码评审受限于评审人时间与状态，标准不一、覆盖不全。Code Review Agent 能稳定覆盖风格、空值、边界和安全基线，但若被当成强制门禁，会因误报阻断合并、或因漏检制造虚假安全感。",
+    "mentalModel": "把 Code Review Agent 看成一名不知疲倦的初审助理：它先过一遍机械、可枚举的检查项，把资深评审的注意力留给架构与权衡，而不是代替资深评审拍板。",
+    "mechanism": [
+      "Agent 读取变更 diff、关联 issue 和受影响模块，建立评审上下文。",
+      "按规则集逐项检查：风格规范、空值与边界、错误处理、安全基线和测试覆盖。",
+      "对每条问题给出定位、原因和建议改法，并区分阻断级与提示级。",
+      "Agent 把结论作为评审意见提交，资深评审对架构、权衡和业务正确性做最终判断。",
+      "误报、漏检和被采纳的意见回流到规则集与评测，逐步收敛准确率。"
+    ],
+    "enterpriseCase": {
+      "title": "评审 Agent 误报阻断合并",
+      "scenario": "某团队把 Code Review Agent 设为合并强制门禁，覆盖日均约 400 个 PR。",
+      "problem": "上线首周误报率约 35%，大量 PR 被错误阻断，工程师开始绕过评审直接合并。",
+      "analysis": "规则集把提示级问题也设成阻断级，且没有按模块区分基线；Agent 被当成 gate 而非 assist，缺少人工豁免通道。",
+      "solution": "把阻断级收敛到安全与正确性硬规则，其余降为提示；为评审 Agent 配置资深评审豁免；按误报回流持续调规则。",
+      "takeaway": "评审 Agent 的定位是辅助初审，强制门禁会把工程师推向绕过。"
+    },
+    "pitfalls": [
+      "把评审 Agent 当成强制门禁，提示级问题也阻断合并，反而逼工程师绕过评审。",
+      "规则集不区分模块和阻断等级，导致误报率高、信噪比差。",
+      "只看 Agent 报了多少问题，不看采纳率和漏检率，制造虚假安全感。",
+      "评审意见不回流规则与评测，准确率长期无法收敛。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-code-review-agent-1",
+      "type": "single",
+      "scenario": "Code Review Agent 上线后报出大量问题，但工程师采纳率不到 20%，多数被标记为误报，团队开始绕过评审。",
+      "question": "最优先排查什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "是否需要更换更强的模型来提升评审质量"
+        },
+        {
+          "id": "b",
+          "text": "是否应该把评审 Agent 改成非强制，彻底取消门禁作用"
+        },
+        {
+          "id": "c",
+          "text": "规则集的阻断等级与模块基线是否合理，误报是否来自提示级被当成阻断"
+        },
+        {
+          "id": "d",
+          "text": "是否需要增加评审 Agent 能看到的上下文范围"
+        }
+      ],
+      "correctOptionIds": [
+        "c"
+      ],
+      "explanation": "C 是第一步：低采纳率和高误报通常源于规则等级与基线配置不当，把提示级当阻断。A 换模型不解决规则配置问题。B 直接取消门禁是过度反应，丢掉了有效覆盖。D 扩大上下文不针对误报根因。",
+      "troubleshootingPath": [
+        "统计误报来自哪些规则与模块",
+        "区分阻断级与提示级，收敛硬规则",
+        "按模块设定差异化基线",
+        "建立资深评审豁免通道",
+        "把误报回流规则集与评测"
+      ],
+      "relatedConceptIds": [
+        "issue-fix-agent",
+        "human-in-the-loop",
+        "agent-loop",
+        "eval",
+        "test-generation-agent"
+      ]
+    },
+    "keyTakeaways": [
+      "评审 Agent 的价值在一致性与覆盖面，不在替代资深评审。",
+      "阻断级要收敛到安全与正确性硬规则，其余降为提示。",
+      "用采纳率和漏检率衡量，而不是报出的问题数量。",
+      "误报与漏检必须回流规则集和评测才能收敛。"
+    ],
+    "relatedConceptIds": [
+      "issue-fix-agent",
+      "human-in-the-loop",
+      "value-review-agent",
+      "eval",
+      "agent-loop"
+    ]
+  },
+  {
+    "id": "requirement-decomposition-agent",
+    "title": "需求拆解 Agent",
+    "slug": "requirement-decomposition-agent",
+    "moduleId": "m5",
+    "order": 3,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": [
+      "需求拆解 Agent",
+      "需求澄清",
+      "验收标准",
+      "返工率",
+      "AI 原生软件工程"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "需求拆解 Agent 是把模糊的业务需求拆成边界清晰、可验收的工程子任务的 Agent。它的产出不是任务越多越好，而是每个子任务都有明确验收标准和依赖关系。",
+    "whyItMatters": "需求模糊是研发返工的主要来源。需求拆解 Agent 能快速给出任务结构，但若缺少验收标准或过度拆解，会把模糊问题放大成一堆看似具体、实则无法验收的子任务，误导排期。",
+    "mentalModel": "把它看成一名需求分析师：先把要做什么问清楚，再拆成能验收的小块，而不是急着把一句话需求拆成几十个任务卡。拆解质量看的是可验收性，不是数量。",
+    "mechanism": [
+      "Agent 读取原始需求、相关文档和历史相似需求，识别目标、约束和未明确点。",
+      "对信息不足处主动标注澄清问题，而不是用假设直接拆解。",
+      "把需求拆成子任务，每个子任务带验收标准、依赖关系和影响范围。",
+      "标记风险与不确定子任务，区分可直接开发与需进一步确认的部分。",
+      "拆解结果交人工确认，确认意见与返工回流到拆解模板。"
+    ],
+    "enterpriseCase": {
+      "title": "过度拆解放大模糊需求",
+      "scenario": "某团队用需求拆解 Agent 处理一句话需求，覆盖约 30 个产品需求/周。",
+      "problem": "Agent 把一条模糊需求拆成 40 多个子任务，其中约 60% 缺少可验收标准，排期后返工率显著上升。",
+      "analysis": "Agent 在需求未澄清时直接拆解，用假设填补空白，把模糊放大成大量无法验收的子任务，且未标注澄清点。",
+      "solution": "强制 Agent 先输出澄清问题清单，确认后再拆解；每个子任务必须带验收标准；对不确定子任务单独标记不进排期。",
+      "takeaway": "需求拆解先澄清再拆，可验收性比子任务数量更重要。"
+    },
+    "pitfalls": [
+      "在需求未澄清时直接拆解，用假设填补空白，把模糊放大成一堆无法验收的子任务。",
+      "追求子任务数量和粒度，却不给每个子任务定验收标准。",
+      "不标注不确定与风险子任务，让它们和确定任务一起进排期。",
+      "拆解结果不经人工确认就排期，返工意见也不回流模板。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-requirement-decomposition-agent-1",
+      "type": "single",
+      "scenario": "需求拆解 Agent 把一句话需求拆成 40 多个子任务，排期后大量返工，团队发现多数子任务无法验收。",
+      "question": "最优先应该改什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "先要求 Agent 在拆解前输出澄清问题，并为每个子任务强制带验收标准"
+        },
+        {
+          "id": "b",
+          "text": "先限制 Agent 每次最多拆成 10 个子任务"
+        },
+        {
+          "id": "c",
+          "text": "先换更强的模型让拆解更准确"
+        },
+        {
+          "id": "d",
+          "text": "先让 Agent 拆完后自动估算每个子任务工时"
+        }
+      ],
+      "correctOptionIds": [
+        "a"
+      ],
+      "explanation": "A 是第一步：返工根因是需求未澄清就拆解、子任务缺验收标准。B 限制数量治标不治本，模糊仍在。C 换模型不解决澄清缺失。D 在无法验收的任务上估工时没有意义。",
+      "troubleshootingPath": [
+        "检查拆解前是否做了需求澄清",
+        "为每个子任务补验收标准",
+        "标记不确定子任务不进排期",
+        "人工确认拆解结果",
+        "把返工回流拆解模板"
+      ],
+      "relatedConceptIds": [
+        "spec-driven-development",
+        "issue-fix-agent",
+        "human-in-the-loop",
+        "eval",
+        "test-generation-agent"
+      ]
+    },
+    "keyTakeaways": [
+      "需求拆解先澄清再拆，不能用假设填补模糊。",
+      "每个子任务必须带可验收标准，数量不是目标。",
+      "不确定子任务要单独标记，不混进排期。",
+      "返工意见应回流拆解模板持续改进。"
+    ],
+    "relatedConceptIds": [
+      "spec-driven-development",
+      "issue-fix-agent",
+      "human-in-the-loop",
+      "value-review-agent",
+      "agents-md"
+    ]
+  },
+  {
+    "id": "test-generation-agent",
+    "title": "测试生成 Agent",
+    "slug": "test-generation-agent",
+    "moduleId": "m5",
+    "order": 4,
+    "difficulty": "intermediate",
+    "estimatedMinutes": 10,
+    "tags": [
+      "测试生成 Agent",
+      "缺陷捕获率",
+      "变异测试",
+      "覆盖率",
+      "AI 原生软件工程"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "测试生成 Agent 是根据代码、需求或缺陷自动生成测试用例的 Agent。它的关键不是把覆盖率拉高，而是生成能真正捕获缺陷的有效断言。",
+    "whyItMatters": "测试生成能快速补齐用例，但覆盖率上涨不等于有效性上涨。空洞断言、只测正常路径、断言恒真的测试会制造覆盖率上升、缺陷照样漏的假象，反而拖慢回归，还会消耗团队对测试套件的信任。",
+    "mentalModel": "把它看成一名测试工程师助手：先想清楚这段代码可能怎么坏，再写能验证它的断言，而不是为了凑覆盖率写一堆永远通过的测试。",
+    "mechanism": [
+      "Agent 分析被测代码、需求和已知缺陷，识别关键路径、边界和异常分支。",
+      "针对每个场景生成测试用例，重点在有意义的断言而非仅调用覆盖。",
+      "区分正常路径、边界条件和错误处理，避免只测正常路径。",
+      "运行生成的测试，剔除恒真断言和不稳定测试。",
+      "线上缺陷和漏测回流为新的测试场景，补强评测集。"
+    ],
+    "enterpriseCase": {
+      "title": "覆盖率上升但缺陷照漏",
+      "scenario": "某团队用测试生成 Agent 给核心模块补测试，单元测试覆盖率从 55% 升到 88%，覆盖约 1200 个函数。",
+      "problem": "覆盖率大涨后，线上缺陷率几乎没下降，复盘发现约 40% 的生成测试断言空洞或恒真。",
+      "analysis": "Agent 以覆盖率为目标生成测试，大量用例只调用函数不做有效断言，只覆盖正常路径，没覆盖边界和异常。",
+      "solution": "把目标从覆盖率改为缺陷捕获率；引入变异测试评估断言有效性；剔除恒真断言；线上缺陷回流为测试场景。",
+      "takeaway": "测试生成要看缺陷捕获率，覆盖率高不等于测得有效。"
+    },
+    "pitfalls": [
+      "以覆盖率为目标生成测试，产出大量只调用不断言的空洞用例。",
+      "只测正常路径，不覆盖边界和异常分支，漏掉真实缺陷。",
+      "保留恒真断言和不稳定测试，让测试套件失去信号。",
+      "只看覆盖率数字，不看缺陷捕获率，制造质量假象。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-test-generation-agent-1",
+      "type": "single",
+      "scenario": "测试生成 Agent 把覆盖率从 55% 提到 88%，但线上缺陷率没有下降，复盘发现大量断言恒真。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "继续提高覆盖率到 95% 以上"
+        },
+        {
+          "id": "b",
+          "text": "增加测试生成 Agent 的运行频率"
+        },
+        {
+          "id": "c",
+          "text": "把生成的测试全部交人工重写"
+        },
+        {
+          "id": "d",
+          "text": "把目标从覆盖率改为缺陷捕获率，并用变异测试剔除恒真断言"
+        }
+      ],
+      "correctOptionIds": [
+        "d"
+      ],
+      "explanation": "D 是第一步：问题是断言无效而非覆盖不足，应改优化目标并用变异测试度量断言有效性。A 继续堆覆盖率会放大空洞测试。B 提高频率无助于有效性。C 全部人工重写成本过高且否定了 Agent 价值。",
+      "troubleshootingPath": [
+        "评估生成测试的断言有效性",
+        "引入变异测试度量缺陷捕获",
+        "剔除恒真和不稳定断言",
+        "补齐边界与异常用例",
+        "把线上缺陷回流为测试场景"
+      ],
+      "relatedConceptIds": [
+        "issue-fix-agent",
+        "code-review-agent",
+        "eval",
+        "human-in-the-loop",
+        "agent-loop"
+      ]
+    },
+    "keyTakeaways": [
+      "测试生成的目标是缺陷捕获率，不是覆盖率。",
+      "有效断言比调用覆盖更重要，要覆盖边界和异常。",
+      "用变异测试评估断言有效性，剔除恒真用例。",
+      "线上缺陷应回流为新的测试场景。"
+    ],
+    "relatedConceptIds": [
+      "issue-fix-agent",
+      "code-review-agent",
+      "eval",
+      "value-review-agent",
+      "spec-driven-development"
+    ]
+  },
+  {
+    "id": "ops-diagnosis-agent",
+    "title": "运维诊断 Agent",
+    "slug": "ops-diagnosis-agent",
+    "moduleId": "m5",
+    "order": 5,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": [
+      "运维诊断 Agent",
+      "MTTR",
+      "根因假设",
+      "权限收敛",
+      "AI 原生软件工程"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "运维诊断 Agent 是在故障发生时聚合告警、日志、指标和变更，生成根因假设与排查路径的 Agent。它的定位是缩短 MTTR 的假设生成器，而非自动处置。",
+    "whyItMatters": "线上故障的代价随定位时间放大。运维诊断 Agent 能快速收敛排查方向，但若给它自动处置的写权限，一旦误诊就会把诊断错误变成二次故障，因此写权限必须严格收敛。",
+    "mentalModel": "把它看成一名值班 SRE 助手：它快速把可疑线索摆到你面前并给出假设，但要不要重启、要不要回滚这种动作，仍由人按权限决定。",
+    "mechanism": [
+      "Agent 聚合告警、日志、指标和近期变更，构建故障时间线。",
+      "基于异常模式和变更关联生成多个根因假设，并按置信度排序。",
+      "为每个假设给出验证步骤和需要的观测数据。",
+      "默认只读：Agent 提出处置建议，实际写操作走人工审批或受限权限。",
+      "误诊、漏诊和真实根因回流到诊断模板与评测集。"
+    ],
+    "enterpriseCase": {
+      "title": "自动处置把误诊变成二次故障",
+      "scenario": "某平台给运维诊断 Agent 开放了自动重启和回滚权限，覆盖约 300 个服务。",
+      "problem": "一次告警中 Agent 误判根因为某服务过载，自动回滚了无关变更，导致故障范围从 1 个服务扩大到 6 个。",
+      "analysis": "Agent 在根因未经验证时就执行了高风险写操作，缺少人工审批和权限边界；诊断假设没有先验证就处置。",
+      "solution": "收回自动写权限，Agent 默认只读只给假设；高风险处置走人工审批；按假设置信度分级，只有低风险动作可受限自动执行。",
+      "takeaway": "诊断 Agent 默认只读，写权限不收敛就会把误诊放大成事故。"
+    },
+    "pitfalls": [
+      "给诊断 Agent 开放自动处置写权限，一旦误诊就把诊断错误放大成二次故障。",
+      "在根因未验证时就执行高风险动作，跳过假设验证步骤。",
+      "只给单一根因结论，不给多个假设和验证路径，误导排查方向。",
+      "误诊和真实根因不回流模板，诊断准确率长期不提升。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-ops-diagnosis-agent-1",
+      "type": "single",
+      "scenario": "运维诊断 Agent 被授予自动回滚权限，一次误判根因后自动回滚无关变更，把单服务故障扩大到 6 个服务。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "提高诊断 Agent 的模型能力以减少误判"
+        },
+        {
+          "id": "b",
+          "text": "收回自动写权限，让 Agent 默认只读、只给假设，高风险处置走人工审批"
+        },
+        {
+          "id": "c",
+          "text": "增加更多告警和日志数据源给 Agent"
+        },
+        {
+          "id": "d",
+          "text": "为回滚动作增加一次自动重试以确认效果"
+        }
+      ],
+      "correctOptionIds": [
+        "b"
+      ],
+      "explanation": "B 是第一步：根本问题是高风险写权限未收敛，误诊被直接执行。A 即使误判减少，未验证就处置的结构性风险仍在。C 增加数据不解决权限问题。D 自动重试会进一步扩大误操作。",
+      "troubleshootingPath": [
+        "收回 Agent 的高风险写权限",
+        "把处置动作改为人工审批",
+        "要求根因假设先验证再处置",
+        "按风险分级受限授权",
+        "把误诊回流诊断模板"
+      ],
+      "relatedConceptIds": [
+        "permission-governance",
+        "human-in-the-loop",
+        "trace",
+        "observability",
+        "issue-fix-agent"
+      ]
+    },
+    "keyTakeaways": [
+      "运维诊断 Agent 是缩短 MTTR 的假设生成器，不是自动处置器。",
+      "高风险写权限必须收敛，默认只读。",
+      "根因假设要先验证再处置，并给出多个候选。",
+      "误诊与真实根因应回流模板提升准确率。"
+    ],
+    "relatedConceptIds": [
+      "permission-governance",
+      "human-in-the-loop",
+      "trace",
+      "observability",
+      "issue-fix-agent"
+    ]
+  },
+  {
+    "id": "value-review-agent",
+    "title": "价值复盘 Agent",
+    "slug": "value-review-agent",
+    "moduleId": "m5",
+    "order": 6,
+    "difficulty": "intermediate",
+    "estimatedMinutes": 10,
+    "tags": [
+      "价值复盘 Agent",
+      "采纳率",
+      "ROI",
+      "虚荣指标",
+      "AI 原生软件工程"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "价值复盘 Agent 是在任务或迭代结束后，评估 AI 产出的实际价值、采纳率和成本，并把经验回流到模板、Skill 和评测集的 Agent。它是 AI 原生研发的闭环收口。",
+    "whyItMatters": "很多团队只统计 AI 生成了多少，却不评估有多少真正被采纳、带来多少价值、花了多少成本。价值复盘 Agent 把产出与采纳、成本、ROI 对齐，避免用生成量这种虚荣指标自我感觉良好。",
+    "mentalModel": "把它看成一次结构化复盘会的主持人：不问 AI 干了多少活，而问哪些被真正采纳、省了什么、花了多少、下次怎么更好，并把结论沉淀成可复用资产。",
+    "mechanism": [
+      "Agent 收集任务产出、采纳情况、返工记录和 Token 成本。",
+      "计算采纳率、返工率和单位价值成本，区分高价值与低价值场景。",
+      "识别反复出现的失败模式和高价值用法。",
+      "把经验回流为模板、Skill、评测样本和规则更新。",
+      "向负责人输出价值与成本视图，支撑是否扩大或收缩使用的判断。"
+    ],
+    "enterpriseCase": {
+      "title": "只看生成量的虚荣指标",
+      "scenario": "某研发组织用生成量考核 AI 工具效果，覆盖约 500 名工程师。",
+      "problem": "报表显示 AI 月生成 12 万行代码，但复盘发现实际采纳率不足 30%，部分场景返工成本反超收益。",
+      "analysis": "组织用生成量这种虚荣指标衡量价值，没有对齐采纳率、返工和成本，导致低价值场景被持续投入。",
+      "solution": "引入价值复盘 Agent，按采纳率、返工率和单位价值成本评估；低价值场景收缩，高价值场景沉淀 Skill；用 ROI 视图决策。",
+      "takeaway": "衡量 AI 价值要看采纳率和 ROI，而不是生成量。"
+    },
+    "pitfalls": [
+      "用生成量、行数这种虚荣指标衡量价值，掩盖真实采纳率和成本。",
+      "只复盘成功案例，不识别反复出现的失败模式，经验无法沉淀。",
+      "复盘结论停留在文档，不回流为模板、Skill 和评测，下次照样踩坑。",
+      "不算返工和 Token 成本，把负 ROI 场景误判为有价值。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-value-review-agent-1",
+      "type": "single",
+      "scenario": "某组织用 AI 月生成 12 万行代码汇报成效，但实际采纳率不足 30%，部分场景返工成本超过收益。",
+      "question": "最优先应该改什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "继续提高 AI 的代码生成量"
+        },
+        {
+          "id": "b",
+          "text": "暂停所有 AI 工具的使用，回到纯人工开发"
+        },
+        {
+          "id": "c",
+          "text": "把衡量指标从生成量改为采纳率、返工率和单位价值成本，并据此收缩低价值场景"
+        },
+        {
+          "id": "d",
+          "text": "给每个工程师设定 AI 生成量的考核目标"
+        }
+      ],
+      "correctOptionIds": [
+        "c"
+      ],
+      "explanation": "C 是第一步：根因是用生成量这种虚荣指标衡量价值，应改为采纳率与 ROI 并据此调整投入。A、D 继续强化错误指标。B 一刀切停用丢掉了高价值场景，属于过度反应。",
+      "troubleshootingPath": [
+        "停用生成量作为价值指标",
+        "统计采纳率、返工率和成本",
+        "区分高价值与负 ROI 场景",
+        "收缩低价值、沉淀高价值用法",
+        "把经验回流模板与评测"
+      ],
+      "relatedConceptIds": [
+        "token-roi",
+        "eval",
+        "issue-fix-agent",
+        "human-in-the-loop",
+        "ai-native-org"
+      ]
+    },
+    "keyTakeaways": [
+      "价值复盘看采纳率和 ROI，不看生成量。",
+      "要识别反复失败模式，而不只复盘成功。",
+      "复盘结论必须回流模板、Skill 和评测。",
+      "负 ROI 场景应收缩，高价值场景应沉淀。"
+    ],
+    "relatedConceptIds": [
+      "token-roi",
+      "eval",
+      "issue-fix-agent",
+      "ai-native-org",
+      "code-review-agent"
+    ]
+  },
+  {
+    "id": "eval",
+    "title": "Eval",
+    "slug": "eval",
+    "moduleId": "m6",
+    "order": 1,
+    "difficulty": "advanced",
+    "estimatedMinutes": 12,
+    "tags": [
+      "Eval",
+      "评测集",
+      "回归测试",
+      "质量度量",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Eval 是用离线评测集和在线指标系统性衡量 AI 系统质量的方法。它是 AI 系统的测试套件，核心原则是先有评测再上线，让质量变化可度量、可回归。",
+    "whyItMatters": "AI 系统的质量不像传统软件可以靠单测穷举，输出是概率性的。没有评测集，模型升级、提示词改动和数据变化的影响就无法量化，只能靠主观感觉；先上线再补评测，等于在没有回归测试的情况下持续改动生产系统。",
+    "mentalModel": "把 Eval 看成 AI 系统的回归测试套件：每次改动前先在固定评测集上跑一遍，看质量是涨是跌，而不是上线后等用户投诉。评测集就是你对什么叫好的可执行定义。",
+    "mechanism": [
+      "构建覆盖典型与边界场景的评测集，标注期望输出或评分标准，规模通常从数百到数千条起步。",
+      "选择评分方式：规则匹配、人工标注或模型评审，并校准评审与人工的一致性。",
+      "每次模型、提示词或数据变更前在评测集上回归，量化质量变化。",
+      "在线补充真实流量指标，监控离线评测覆盖不到的长尾问题。",
+      "线上失败样本回流评测集，让评测集随业务持续演进。"
+    ],
+    "enterpriseCase": {
+      "title": "先上线后补评测的代价",
+      "scenario": "某企业客服 Agent 直接上线，未建评测集，覆盖日均约 5 万次会话。",
+      "problem": "一次提示词优化后整体满意度不升反降，因为没有评测集，团队两周后才从投诉中发现质量回退。",
+      "analysis": "缺少离线评测集，提示词改动的质量影响无法在上线前量化，只能靠线上投诉这种滞后信号发现回退。",
+      "solution": "建立约 800 条覆盖典型与边界场景的评测集（参考量级），改动前必跑回归；校准模型评审与人工一致性；线上失败样本回流评测集。",
+      "takeaway": "评测要先于上线，没有评测集的改动等于无回归测试改生产。"
+    },
+    "pitfalls": [
+      "先上线再补评测，质量回退只能靠线上投诉这种滞后信号发现。",
+      "评测集只覆盖典型场景，不含边界和失败样本，漏掉真实风险。",
+      "用模型评审却不校准与人工的一致性，把不可靠评分当权威。",
+      "评测集一成不变，不随线上失败样本演进，逐渐与业务脱节。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-eval-1",
+      "type": "single",
+      "scenario": "某客服 Agent 一次提示词优化后满意度不升反降，团队两周后才从投诉中发现，此前没有任何评测集。",
+      "question": "最优先应该建立什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "先建覆盖典型与边界场景的评测集，把改动前回归作为上线前置条件"
+        },
+        {
+          "id": "b",
+          "text": "先回滚这次提示词改动，恢复到上一个版本"
+        },
+        {
+          "id": "c",
+          "text": "先增加线上满意度采集的频率"
+        },
+        {
+          "id": "d",
+          "text": "先换一个更强的模型来提升整体质量"
+        }
+      ],
+      "correctOptionIds": [
+        "a"
+      ],
+      "explanation": "A 是第一步：根因是缺少评测集导致改动质量无法在上线前量化。B 回滚只解决这一次，下次照样盲改。C 提高采集频率仍是滞后信号。D 换模型在没有评测的情况下同样无法验证好坏。",
+      "troubleshootingPath": [
+        "构建覆盖典型与边界的评测集",
+        "标注期望输出与评分标准",
+        "把改动前回归设为上线前置",
+        "校准模型评审与人工一致性",
+        "线上失败样本回流评测集"
+      ],
+      "relatedConceptIds": [
+        "value-review-agent",
+        "observability",
+        "token-roi",
+        "human-in-the-loop",
+        "code-review-agent"
+      ]
+    },
+    "keyTakeaways": [
+      "Eval 是 AI 系统的回归测试，必须先于上线。",
+      "评测集要覆盖边界和失败样本，不只典型场景。",
+      "模型评审必须与人工校准一致性才可信。",
+      "评测集要随线上失败样本持续演进。"
+    ],
+    "relatedConceptIds": [
+      "value-review-agent",
+      "observability",
+      "token-roi",
+      "trace",
+      "human-in-the-loop"
+    ]
+  },
+  {
+    "id": "trace",
+    "title": "Trace",
+    "slug": "trace",
+    "moduleId": "m6",
+    "order": 2,
+    "difficulty": "advanced",
+    "estimatedMinutes": 10,
+    "tags": [
+      "Trace",
+      "Span",
+      "调用链",
+      "可追溯",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Trace 是把一次 AI 请求从输入、提示组装、工具调用到子 Agent 和最终输出的完整链路记录下来的结构。它是排障与归因的原子单位，让概率性系统变得可追溯。",
+    "whyItMatters": "AI 系统的失败常发生在中间环节：提示组装错、工具返回脏数据、子 Agent 偏题。没有 trace，你只能看到最终错误答案，无法定位是哪一步出问题；调用链越长、Agent 越多，缺少 trace 的归因成本越高。",
+    "mentalModel": "把 trace 看成一次请求的完整病历：每一步（span）记录输入、输出和耗时，排障时顺着病历回看是哪一环异常，而不是只盯着最终症状猜原因。",
+    "mechanism": [
+      "为一次请求分配唯一 trace id，串联其下所有处理步骤。",
+      "每个步骤记录为一个 span：输入、输出、耗时、所用模型或工具。",
+      "提示组装、工具调用、子 Agent 调用都作为子 span 挂在链路上。",
+      "采样策略平衡成本与覆盖，高风险或异常请求全量采。",
+      "trace 关联评测和告警，定位是哪一步导致质量或延迟问题。"
+    ],
+    "enterpriseCase": {
+      "title": "无 trace 导致归因困难",
+      "scenario": "某多步 Agent 系统偶发错误答案，调用链含提示组装、3 个工具和 2 个子 Agent，日均约 8 万次请求。",
+      "problem": "错误率约 4%，但因为只记录最终输出，团队无法定位错误来自哪一步，排查一个 case 平均耗时数小时。",
+      "analysis": "系统没有按 trace 和 span 记录中间环节，最终答案错误时无法回溯是提示、工具还是子 Agent 出问题。",
+      "solution": "引入 trace id 与 span 记录每一步输入输出；异常请求全量采样；trace 关联评测，把高频失败 span 定位出来。",
+      "takeaway": "调用链越长，trace 越是排障的前提，否则只能盲猜。"
+    },
+    "pitfalls": [
+      "只记录最终输出，不记录中间步骤，出错时无法定位是哪一环。",
+      "span 粒度太粗，把提示组装和工具调用混成一步，丢失关键信息。",
+      "为省成本对所有请求统一低采样，异常请求也采不到。",
+      "trace 与评测、告警割裂，记录了却不用于定位质量问题。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-trace-1",
+      "type": "single",
+      "scenario": "某多步 Agent 系统错误率约 4%，但只记录最终输出，每排查一个错误 case 要数小时，无法确定是提示、工具还是子 Agent 的问题。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "提高整体模型能力以降低错误率"
+        },
+        {
+          "id": "b",
+          "text": "增加更多工具让 Agent 有更多选择"
+        },
+        {
+          "id": "c",
+          "text": "对所有请求统一降低采样率以节省成本"
+        },
+        {
+          "id": "d",
+          "text": "引入 trace id 和 span 记录每一步输入输出，异常请求全量采样"
+        }
+      ],
+      "correctOptionIds": [
+        "d"
+      ],
+      "explanation": "D 是第一步：排障困难的根因是中间链路不可见，必须先让每一步可追溯。A 降错误率但定位问题仍靠猜。B 增加工具反而加长链路。C 降采样会让异常更采不到，方向相反。",
+      "troubleshootingPath": [
+        "为请求分配 trace id",
+        "按 span 记录每步输入输出与耗时",
+        "对异常请求全量采样",
+        "trace 关联评测定位失败 span",
+        "按高频失败 span 优化"
+      ],
+      "relatedConceptIds": [
+        "observability",
+        "eval",
+        "ops-diagnosis-agent",
+        "multi-agent",
+        "tool-calling"
+      ]
+    },
+    "keyTakeaways": [
+      "Trace 是排障与归因的原子单位。",
+      "span 粒度要细到能区分提示、工具和子 Agent。",
+      "异常和高风险请求应全量采样。",
+      "trace 要关联评测和告警才能定位问题。"
+    ],
+    "relatedConceptIds": [
+      "observability",
+      "eval",
+      "ops-diagnosis-agent",
+      "multi-agent",
+      "tool-calling"
+    ]
+  },
+  {
+    "id": "observability",
+    "title": "Observability",
+    "slug": "observability",
+    "moduleId": "m6",
+    "order": 3,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": [
+      "Observability",
+      "质量监控",
+      "告警",
+      "可观测性",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Observability 是把 trace 聚合成系统级的质量、延迟和成本视图，让团队持续看见 AI 系统真实运行状态的能力。它比传统 APM 多一个无法回避的维度：输出质量。",
+    "whyItMatters": "传统监控盯的是延迟、错误率和资源，但 AI 系统可以全程不报错却持续给出低质量答案。没有质量维度的可观测，劣化会在指标全绿的情况下悄悄发生，等用户流失才被发现。",
+    "mentalModel": "把 AI 可观测看成三块仪表盘：质量、延迟、成本，三者要一起看。传统 APM 只有后两块，AI 系统必须补上质量这块，否则你监控的是一个不报错但答错的黑箱。",
+    "mechanism": [
+      "从 trace 聚合系统级指标：质量评分、延迟分布、Token 成本和失败率。",
+      "质量维度接入在线评测或用户反馈，监控答非所问、拒答和事实错误。",
+      "为质量回退、延迟和成本异常设告警，而不只盯资源指标。",
+      "按应用、模型、版本切分，定位劣化来自哪个变更。",
+      "异常会话下钻到 trace，把系统级信号连回单次请求。"
+    ],
+    "enterpriseCase": {
+      "title": "指标全绿但质量在劣化",
+      "scenario": "某 RAG 问答系统延迟和错误率监控长期正常，覆盖日均约 10 万次问答。",
+      "problem": "一次知识库更新后事实错误率从约 3% 升到 11%，但传统监控全绿，三周后才因业务方反馈发现。",
+      "analysis": "可观测只有延迟和错误率，没有质量维度；系统不报错地给出错误答案，劣化在指标层面完全不可见。",
+      "solution": "补上质量仪表盘：接入在线评测监控事实错误率；为质量回退设告警；按知识库版本切分定位；异常会话下钻 trace。",
+      "takeaway": "AI 可观测必须含质量维度，不报错不等于没问题。"
+    },
+    "pitfalls": [
+      "只监控延迟、错误率和资源，没有质量维度，劣化在指标全绿时悄悄发生。",
+      "质量只靠人工抽查，没有持续在线信号，发现总是滞后。",
+      "不按应用、模型和版本切分，劣化发生却定位不到来源。",
+      "系统级告警无法下钻到 trace，看见异常却查不到根因。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-observability-1",
+      "type": "single",
+      "scenario": "某 RAG 系统延迟和错误率监控长期全绿，但一次知识库更新后事实错误率从 3% 升到 11%，三周后才被业务方发现。",
+      "question": "可观测体系最缺的是什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "更低的延迟监控阈值"
+        },
+        {
+          "id": "b",
+          "text": "质量维度的持续监控，比如在线事实错误率与质量回退告警"
+        },
+        {
+          "id": "c",
+          "text": "更多的服务器资源监控指标"
+        },
+        {
+          "id": "d",
+          "text": "更高频的人工抽查"
+        }
+      ],
+      "correctOptionIds": [
+        "b"
+      ],
+      "explanation": "B 是核心：失败被忽视的根因是可观测缺少质量维度，系统不报错地答错。A、C 仍在传统资源与延迟维度，覆盖不到质量。D 人工抽查无法持续且滞后，正是要被在线质量信号替代的。",
+      "troubleshootingPath": [
+        "接入在线评测作为质量信号",
+        "为事实错误率与质量回退设告警",
+        "按应用、模型、版本切分指标",
+        "异常会话下钻到 trace",
+        "把质量纳入常态仪表盘"
+      ],
+      "relatedConceptIds": [
+        "trace",
+        "eval",
+        "ops-diagnosis-agent",
+        "token-roi",
+        "sla"
+      ]
+    },
+    "keyTakeaways": [
+      "AI 可观测必须包含质量维度，不只延迟和资源。",
+      "质量要有持续在线信号，而非人工滞后抽查。",
+      "指标要按应用、模型、版本切分以定位劣化。",
+      "系统级异常要能下钻到 trace 找根因。"
+    ],
+    "relatedConceptIds": [
+      "trace",
+      "eval",
+      "ops-diagnosis-agent",
+      "token-roi",
+      "sla"
+    ]
+  },
+  {
+    "id": "token-roi",
+    "title": "Token ROI",
+    "slug": "token-roi",
+    "moduleId": "m6",
+    "order": 4,
+    "difficulty": "advanced",
+    "estimatedMinutes": 12,
+    "tags": [
+      "Token ROI",
+      "单位经济学",
+      "成本治理",
+      "成本质量曲线",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "Token ROI 是把 Token 成本对齐到业务价值来评估 AI 投入是否划算的方法。它反对两个极端：既不为省 Token 牺牲质量，也不为堆质量无视成本，而是看单位价值的成本。",
+    "whyItMatters": "Token 成本会随调用量、上下文长度和多 Agent 线性甚至成倍增长。只看总成本会盲目压缩、伤害质量；只看质量会让成本失控。负责人需要的是成本与价值对齐的判断，决定哪些场景该投入、哪些该收缩或换小模型。",
+    "mentalModel": "把 Token ROI 看成 AI 场景的单位经济学：每个场景算清楚一次任务花多少 Token、产出多少可量化价值，再决定加码、维持还是砍掉，而不是用总账单或总质量一刀切。",
+    "mechanism": [
+      "按场景统计单位任务的输入与输出 Token 及调用成本。",
+      "把成本对齐到可量化价值：节省工时、转化提升或人力替代。",
+      "计算成本与质量曲线，找到边际收益递减的拐点。",
+      "对高成本低价值场景换小模型、压上下文或下线。",
+      "用缓存命中、提示精简和路由把成本压在不伤质量的范围。"
+    ],
+    "enterpriseCase": {
+      "title": "为省 Token 反伤质量的伪优化",
+      "scenario": "某企业为压成本统一把所有场景换成小模型并截断上下文，覆盖约 20 个业务场景。",
+      "problem": "Token 成本月降约 40%，但核心场景准确率下降导致人工返工增加，综合成本反而上升。",
+      "analysis": "优化只看 Token 总成本，没有对齐每个场景的价值；在高价值场景上牺牲质量，省下的 Token 远小于返工代价。",
+      "solution": "按场景算 Token ROI：高价值场景保留大模型，低价值场景换小模型或下线；用缓存和提示精简在不伤质量处省成本。",
+      "takeaway": "Token 优化要按场景看 ROI，全局压缩会在高价值处反伤价值。"
+    },
+    "pitfalls": [
+      "只看 Token 总成本不看价值，全局压缩在高价值场景反伤质量。",
+      "只追求质量不算成本，让低价值场景的 Token 开销失控。",
+      "用统一模型和上下文策略，不区分场景的价值与成本差异。",
+      "不监控缓存命中和上下文膨胀，成本悄悄随调用量成倍增长。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-token-roi-1",
+      "type": "single",
+      "scenario": "某企业把所有场景统一换小模型并截断上下文，Token 成本月降 40%，但核心场景因准确率下降导致返工增加，综合成本反而上升。",
+      "question": "最优先应该怎么做？",
+      "options": [
+        {
+          "id": "a",
+          "text": "继续把更多场景换成更小的模型以进一步降成本"
+        },
+        {
+          "id": "b",
+          "text": "全部换回大模型并恢复完整上下文"
+        },
+        {
+          "id": "c",
+          "text": "按场景计算 Token ROI，高价值场景保质量、低价值场景才压缩"
+        },
+        {
+          "id": "d",
+          "text": "统一给所有场景增加上下文长度以提升质量"
+        }
+      ],
+      "correctOptionIds": [
+        "c"
+      ],
+      "explanation": "C 是正解：问题是用全局压缩取代了按场景的价值判断。A 继续全局压缩会加重高价值场景损失。B 全换回大模型又回到不看成本的另一极端。D 统一加长上下文同样无视场景差异且推高成本。",
+      "troubleshootingPath": [
+        "按场景统计单位任务 Token 成本",
+        "把成本对齐到可量化价值",
+        "识别高价值与负 ROI 场景",
+        "高价值保质量、低价值再压缩",
+        "用缓存和提示精简降本不伤质"
+      ],
+      "relatedConceptIds": [
+        "token",
+        "cost-routing",
+        "value-review-agent",
+        "eval",
+        "kv-cache"
+      ]
+    },
+    "keyTakeaways": [
+      "Token ROI 看单位价值的成本，不看总账单。",
+      "全局压缩会在高价值场景反伤价值。",
+      "按场景区分投入：高价值保质量、低价值压缩。",
+      "用缓存和提示精简在不伤质量处降本。"
+    ],
+    "relatedConceptIds": [
+      "token",
+      "cost-routing",
+      "value-review-agent",
+      "eval",
+      "kv-cache"
+    ]
+  },
+  {
+    "id": "permission-governance",
+    "title": "权限治理",
+    "slug": "permission-governance",
+    "moduleId": "m6",
+    "order": 5,
+    "difficulty": "advanced",
+    "estimatedMinutes": 11,
+    "tags": [
+      "权限治理",
+      "最小权限",
+      "审批边界",
+      "可审计",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "权限治理是为 AI Agent 设定最小权限、审批边界和可审计记录，确保它只能在授权范围内行动的机制。Agent 能自动执行动作，权限就是它不越界的护栏。",
+    "whyItMatters": "Agent 越自动，误操作和被滥用的影响越大：删库、对外发送、资金操作、权限变更都可能被一次错误判断触发。没有最小权限和审批边界，一个提示注入或误判就可能造成真实事故，且事后无法审计追责。",
+    "mentalModel": "把 Agent 的权限治理看成给一名能力很强但可能犯错的新员工配工卡：默认只给完成任务所需的最小门禁，高风险动作要审批，所有操作留痕，而不是直接给管理员权限。",
+    "mechanism": [
+      "按角色和任务给 Agent 分配最小权限，默认只读，写权限单独申请。",
+      "对高风险动作（删除、对外、资金、权限变更）设强制人工审批。",
+      "所有 Agent 操作记录可审计日志，含发起者、动作、对象和依据。",
+      "用沙箱和速率限制约束爆炸半径，防止误操作或注入被放大。",
+      "定期复核权限，回收不再需要的授权，越权尝试触发告警。"
+    ],
+    "enterpriseCase": {
+      "title": "过度授权放大注入风险",
+      "scenario": "某企业给数据分析 Agent 直接授予生产库读写权限，覆盖约 50 名分析师使用。",
+      "problem": "一次被构造的提示注入诱导 Agent 执行了批量删除，因权限过大影响 3 张核心表，且日志不足难以追责。",
+      "analysis": "Agent 被授予远超任务所需的写权限，没有审批边界和爆炸半径限制；操作日志不完整，事后无法追溯。",
+      "solution": "收敛到最小权限默认只读；写和删除走人工审批；接入完整审计日志；用沙箱和速率限制约束爆炸半径。",
+      "takeaway": "Agent 越自动，最小权限和审批边界越是不可省的护栏。"
+    },
+    "pitfalls": [
+      "给 Agent 远超任务所需的权限，一次误判或注入就造成大范围破坏。",
+      "高风险动作没有人工审批边界，写、删、对外操作可被自动触发。",
+      "操作日志不完整，出事后无法审计追责。",
+      "授权一次发放不再复核，长期累积出大量无人回收的权限。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-permission-governance-1",
+      "type": "single",
+      "scenario": "某数据分析 Agent 被授予生产库读写权限，一次提示注入诱导它批量删除，影响 3 张核心表，事后因日志不足难以追责。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "收敛到最小权限默认只读，高风险写或删动作走人工审批并接入完整审计日志"
+        },
+        {
+          "id": "b",
+          "text": "提高模型的安全对齐能力以抵抗注入"
+        },
+        {
+          "id": "c",
+          "text": "增加 Agent 可访问的数据表以提升分析能力"
+        },
+        {
+          "id": "d",
+          "text": "给 Agent 增加一次自我确认的提示步骤"
+        }
+      ],
+      "correctOptionIds": [
+        "a"
+      ],
+      "explanation": "A 是第一步：根因是权限过大且无审批与审计，必须先收敛权限、加审批边界和留痕。B 安全对齐有帮助但抵不住权限本身过大。C 方向相反。D 让 Agent 自我确认无法替代真正的权限边界和人工审批。",
+      "troubleshootingPath": [
+        "收敛 Agent 到最小权限默认只读",
+        "高风险动作设人工审批",
+        "接入完整可审计日志",
+        "用沙箱和速率限制爆炸半径",
+        "定期复核回收冗余授权"
+      ],
+      "relatedConceptIds": [
+        "ops-diagnosis-agent",
+        "human-in-the-loop",
+        "trace",
+        "observability",
+        "tool-calling"
+      ]
+    },
+    "keyTakeaways": [
+      "Agent 默认最小权限，写权限单独申请。",
+      "高风险动作必须有人工审批边界。",
+      "所有操作要留可审计日志以便追责。",
+      "用沙箱和速率限制约束爆炸半径。"
+    ],
+    "relatedConceptIds": [
+      "ops-diagnosis-agent",
+      "human-in-the-loop",
+      "trace",
+      "observability",
+      "tool-calling"
+    ]
+  },
+  {
+    "id": "ai-native-org",
+    "title": "AI 原生组织阵型",
+    "slug": "ai-native-org",
+    "moduleId": "m6",
+    "order": 6,
+    "difficulty": "advanced",
+    "estimatedMinutes": 12,
+    "tags": [
+      "AI 原生组织",
+      "人机分工",
+      "责任归属",
+      "组织阵型",
+      "AI 治理"
+    ],
+    "contentStatus": "mvp",
+    "hasAnimation": false,
+    "definition": "AI 原生组织阵型是指随着 Agent 进入研发闭环，团队的角色、责任和人审分布如何重新设计。它的核心问题不是减多少人，而是人该把精力放在哪、责任归谁。",
+    "whyItMatters": "Agent 把大量执行性工作自动化后，组织若不调整阵型，会出现责任真空：出了问题不知道是 Agent 还是人负责，资深人员仍困在被自动化的细节里，价值最高的判断、评审和方向反而没人专注。这决定 AI 投入能否转化为组织能力。",
+    "mentalModel": "把 AI 原生组织看成人机分工的重新编队：Agent 接管可自动化的执行，人上移到设定目标、定义验收、做高风险判断和兜底责任，而不是让人和 Agent 抢同一份活。",
+    "mechanism": [
+      "区分可自动化执行与必须由人负责的判断、评审和高风险决策。",
+      "把人的角色上移到目标设定、验收标准、方向判断和异常兜底。",
+      "明确每个 Agent 产出的责任归属，避免出事后的责任真空。",
+      "用评测、可观测和价值复盘支撑组织级决策，而非个人感觉。",
+      "随采纳率和能力变化持续调整人机分工，而不是一次定型。"
+    ],
+    "enterpriseCase": {
+      "title": "责任真空与角色错配",
+      "scenario": "某研发组织大规模引入 Agent，但沿用原有角色分工，覆盖约 800 名工程师。",
+      "problem": "Agent 采纳率上去后，线上事故的责任归属不清，资深工程师仍在做被自动化的细节复核，约 30% 的人审是重复劳动。",
+      "analysis": "组织只引入工具不调整阵型，没有重新定义人机责任边界，资深人力被困在低价值复核，高价值判断反而缺人。",
+      "solution": "重画人机分工：Agent 接管可自动化执行，资深人员上移到验收、方向和高风险判断；明确每类产出的责任归属；用评测和复盘支撑决策。",
+      "takeaway": "AI 原生组织的关键是重编人机分工和责任，而非简单减人。"
+    },
+    "pitfalls": [
+      "只引入 Agent 工具却不调整组织阵型，导致责任真空和角色错配。",
+      "让资深人员继续做被自动化的细节复核，高价值判断反而缺人。",
+      "不明确 Agent 产出的责任归属，出事后无人负责。",
+      "把 AI 转型简单等同于减人，忽视人机分工的重新设计。"
+    ],
+    "diagnosticQuestion": {
+      "id": "q-ai-native-org-1",
+      "type": "single",
+      "scenario": "某组织大规模引入 Agent 但沿用原角色分工，结果事故责任归属不清，资深工程师仍在做被自动化的重复复核，高价值判断缺人。",
+      "question": "最优先应该做什么？",
+      "options": [
+        {
+          "id": "a",
+          "text": "进一步提高 Agent 采纳率以替代更多人力"
+        },
+        {
+          "id": "b",
+          "text": "暂停 Agent 使用，回到引入前的分工"
+        },
+        {
+          "id": "c",
+          "text": "给资深工程师增加更多复核任务以保证质量"
+        },
+        {
+          "id": "d",
+          "text": "重新设计人机分工与责任归属，让人上移到验收、方向和高风险判断"
+        }
+      ],
+      "correctOptionIds": [
+        "d"
+      ],
+      "explanation": "D 是正解：问题是引入工具却没调整组织阵型。A 在阵型未理顺时扩大采纳会加重责任真空。B 回退放弃了已有价值。C 让资深人员继续做低价值复核，正是要纠正的错配。",
+      "troubleshootingPath": [
+        "区分可自动化执行与人负责的判断",
+        "把人的角色上移到验收与方向",
+        "明确每类产出的责任归属",
+        "用评测与复盘支撑组织决策",
+        "随能力变化持续调整分工"
+      ],
+      "relatedConceptIds": [
+        "value-review-agent",
+        "human-in-the-loop",
+        "permission-governance",
+        "eval",
+        "multi-agent"
+      ]
+    },
+    "keyTakeaways": [
+      "AI 原生组织是重编人机分工，不是简单减人。",
+      "人的角色应上移到验收、方向和高风险判断。",
+      "每类 Agent 产出都要有明确责任归属。",
+      "组织决策要靠评测和复盘，而非个人感觉。"
+    ],
+    "relatedConceptIds": [
+      "value-review-agent",
+      "human-in-the-loop",
+      "permission-governance",
+      "eval",
+      "multi-agent"
+    ]
+  }
 ];
 
 export const demoConcepts: KnowledgePoint[] = applyV2Revisions(rawDemoConcepts);

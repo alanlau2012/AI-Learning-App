@@ -3,17 +3,17 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（冗余文件清理 + v2 封板）
+**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（Final Wave 全量上线封板）
 
 ## 1. 当前里程碑
 
-- **当前阶段**：**正文改版 v2 已完成**。44 讲已发布内容全部 `contentRevision: v2`（机制分组、术语表、字段深度、编辑排版语言）。
-- **当前上线内容**：44 / 56 讲；剩余 `stub`：12 讲。
-- **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `15/16`，M5 `1/6`，M6 `0/6`。
-- **改版验证**：`validate:content`（含 terminology）、`typecheck`、`lint`、`build` 均 PASS；见 `reports/content-revision-platform-summary.md`。
-- **仓库清理（2026-06-23）**：已合入草稿 → `content/archive/merged/`；历史报告 → `reports/archive/`；MVP 0.1 复盘 → `reviews/archive/`；原始 PDF/zip → `materials/archive/`；过期文档 → `docs/archive/`；删除 src 死代码、`tmp_claude_design_019ee7/`、根目录 dev log；`.cursor/` 脱库。Final Wave 新草稿仍写 `content/drafts/`。
-- **下一轮建议**：Final Wave — `multi-agent` + M5 剩余 + M6 全量；新内容直接按 `content-schema.md` §7 入库。
-- 后续推进仍需遵守内容流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
+- **当前阶段**：**Final Wave 已完成**。剩余 12 讲（`multi-agent` + M5×5 + M6×6）入库，56 讲全部 `contentRevision: v2`。
+- **当前上线内容**：**56 / 56 讲**；剩余 `stub`：**0**。地图无 stub。
+- **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`（全部满额）。
+- **验证**：`validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build` 均 PASS；Playwright 浏览器抽查 PASS；诊断批级 A/B/C/D=3/3/3/3。见 `reports/final-wave-summary.md`。
+- **本轮不动**：可选新动画（`observability-trace`/`token-roi-flow`/`model-router` 升级真实画布）、P1-01 字体网络拦截。
+- **下一轮建议（均需 Owner 确认）**：治理类新动画、PWA、搜索/术语/Profile 打磨。
+- 后续内容（如样板回改）仍走流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
 ## 2. 阶段任务板
 
@@ -27,7 +27,7 @@
 | MVP 0.3 Wave 4A | M4 上下文工程与 Agent 基础链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 38/56，M4 9/16 |
 | MVP 0.3 Wave 4B | M4 剩余主体链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 44/56，M4 15/16 |
 | Content Revision v2 | 44 讲正文改版 + 全站编辑排版语言 | 主开发 | done | validate:content（含 terminology）+ 四命令全绿 | 见 `reports/content-revision-*.md` |
-| Final Wave | multi-agent + M5 剩余 + M6 全量入库 | 待启动 | todo | draft → review → merge → 四命令全绿 → E2E | 入库直接按 content-schema §7 |
+| Final Wave | multi-agent + M5 剩余 5 讲 + M6 全 6 讲入库 | 主开发 | done | 四命令全绿 + Playwright 抽查 + 诊断配平 | 累计 56/56，见 `reports/final-wave-summary.md` |
 ## 3. 内容生产流水线（draft → review → 入库）
 
 权威字段只能落入 `src/data/*`，但内容**不得**由内容 Agent 直接写入 `src/data/*`。统一走三段式：

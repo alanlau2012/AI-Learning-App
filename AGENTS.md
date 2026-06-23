@@ -6,13 +6,14 @@
 
 截至 **2026-06-23**：
 
-- 当前代码基线：MVP 0.3 Wave 4B 之上完成 **全站正文改版样板推广**（平台层 + 44 讲 v2 正文）；具体 hash 以 `git log -1` / 后续提交为准。
-- 已封板范围：**正文改版 v2**（schema §7、渲染层、全站编辑排版语言、44 讲 `contentRevision: v2`）。
-- 当前上线内容：**44 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**12 讲**。
-- 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `15/16`，M5 `1/6`，M6 `0/6`。
-- 改版验证：`npm run validate:content`（含 `validate:terminology`）、`typecheck`、`lint`、`build` 均 PASS；见 `reports/content-revision-platform-summary.md` 与各模块 `reports/content-revision-m*.md`。
-- **仓库清理（2026-06-23）**：已入库内容草稿 → `content/archive/merged/`；历史 Wave 报告 → `reports/archive/`；MVP 0.1 复盘 → `reviews/archive/`（保留 `reviews/transformer-改版样板对比.html` v2 金样）；原始 PRD/素材 PDF 与高保真 zip → `materials/archive/`；删除 src 零引用组件、`tmp_claude_design_019ee7/`、根目录 dev `*.log`；`.cursor/` 已脱库；过期文档 → `docs/archive/`。
-- 下一轮建议：启动 **Final Wave**，完成 `multi-agent`、M5 剩余 5 讲和 M6 6 讲（入库时直接按 `docs/content-schema.md` §7 写作）；M6 治理类内容口径与可选新动画需 Owner 确认。
+- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线**（剩余 12 讲入库，56 讲全部 `contentRevision: v2`）；具体 hash 以 `git log -1` / 后续提交为准。
+- 已封板范围：**Final Wave**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲），56/56 全部上线。
+- 当前上线内容：**56 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**0**。地图无 stub。
+- 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`。
+- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build` 均 PASS；Playwright 浏览器抽查 PASS（`token-roi` 四层闭环 + v2 分组、`/modules/m6` 无 stub 占位）；见 `reports/final-wave-summary.md`。
+- 诊断题批级配平：Final Wave 12 题正确答案 A/B/C/D = 3/3/3/3。
+- 本轮不动：可选新动画（`observability-trace`/`token-roi-flow`/`model-router` 升级真实画布）、P1-01 字体网络拦截。
+- 下一轮建议（均需 Owner 确认）：治理类新动画、PWA、搜索/术语/Profile 打磨。
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。

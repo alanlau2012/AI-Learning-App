@@ -3,7 +3,7 @@
 > 来源：PRD（产品需求）+ 56 讲内容开发素材（信息架构）+ design.md（信息密度与视觉）。
 > 三条权威决策见 [content-schema.md](content-schema.md) 与 [AGENTS.md](../AGENTS.md)。
 >
-> **当前里程碑（2026-06-23）**：44 / 56 讲已上线（全部 `contentRevision: v2`）；剩余 12 stub 待 Final Wave。模块进度见 [content-schema.md](content-schema.md) §4 登记表。
+> **当前里程碑（2026-06-23）**：Final Wave 完成，**56 / 56 讲全部上线**（全部 `contentRevision: v2`），模块计数 `10/10/8/16/6/6` 全部满额，地图无 stub。见 `reports/final-wave-summary.md`。
 
 ## 1. 产品定位
 
