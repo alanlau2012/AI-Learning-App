@@ -3443,14 +3443,14 @@ export const demoConcepts: KnowledgePoint[] = [
   ],
   "contentStatus": "mvp",
   "hasAnimation": false,
-  "definition": "Prompt 是本轮给模型的显式指令，Context 是模型在回答时可见的全部信息，包括系统规则、历史对话、检索材料、工具结果和运行时状态。",
+  "definition": "Prompt 是一次调用中表达任务意图的提示内容，Context 是模型当轮可见的全部材料；系统提示词、用户问题、历史消息、检索片段和工具结果都属于 Context，其中一部分也同时是 Prompt。",
   "whyItMatters": "很多 AI 应用问题并不是模型不会，而是上下文里放错、放少或放乱了信息。企业应用要稳定，不能只打磨一句提示词，还要治理哪些信息进入窗口、顺序如何、证据是否可信、过期信息如何清理。",
   "mentalModel": "把 Prompt 看成一次任务的指令单，把 Context 看成模型桌面上摊开的全部材料。指令再清楚，如果桌面上混着旧版本政策、无关聊天和错误检索片段，执行结果仍会偏离目标。",
   "mechanism": [
     "系统提示、开发者指令、用户问题、历史消息、RAG 片段和工具返回会共同组成模型可见上下文。",
     "模型不会天然区分哪些信息权威、哪些只是噪音，应用需要通过层级、顺序、标签和裁剪策略表达优先级。",
     "Prompt 负责声明目标、角色、约束和输出格式，Context 负责提供完成任务所需的事实、状态和证据。",
-    "上下文越长并不一定越好，冗余材料会增加成本、延迟和误读概率。",
+    "系统提示词既是 Prompt 的一类，也是 Context 的组成部分；本讲区分二者，是为了强调“指令”和“材料”的治理重点不同。",
     "工程上需要记录每次请求的上下文构成，才能复盘质量问题而不是只改提示词。"
   ],
   "enterpriseCase": {
@@ -3471,29 +3471,29 @@ export const demoConcepts: KnowledgePoint[] = [
     "id": "q-prompt-context-1",
     "type": "single",
     "scenario": "客服助手系统提示写明只能引用最新政策，但退款问题仍频繁引用旧条款。抽样 trace 显示新旧政策片段同时进入模型窗口，旧片段排序更靠前。",
-    "question": "最优先应该处理什么？",
+    "question": "第一步应该做什么？",
     "options": [
       {
         "id": "a",
-        "text": "治理进入 Context 的材料版本、权威级和排序，并记录每轮上下文构成"
+        "text": "先核对政策版本、排序、来源权威级和生效状态"
       },
       {
         "id": "b",
-        "text": "把系统提示改得更严厉，重复三遍不要引用旧政策"
+        "text": "先重写系统提示，要求引用政策生效日期"
       },
       {
         "id": "c",
-        "text": "扩大上下文窗口，让模型看到更多政策材料"
+        "text": "先扩大退款知识库召回数量、重建索引并观察命中率"
       },
       {
         "id": "d",
-        "text": "提高温度，让回答更灵活"
+        "text": "先把退款意图全量转人工、等待旧政策页面统一下线"
       }
     ],
     "correctOptionIds": [
       "a"
     ],
-    "explanation": "A 直接处理错误依据进入上下文的问题。B 是强干扰项，提示更严厉不能消除旧材料。C 会把更多噪音放进窗口。D 会增加不确定性，和政策准确性目标相反。",
+    "explanation": "A 是第一步，因为 trace 已显示新旧政策同时进入窗口，必须先核对版本、排序、来源权威级和生效状态。B 能加强输出约束，但不能定位错误片段为什么进入上下文。C 可能扩大召回噪音。D 是临时止血，不是根因修复。",
     "troubleshootingPath": [
       "查看实际进入模型的上下文",
       "核对材料版本、生效时间和来源权威级",
@@ -3570,25 +3570,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "把温度调低，减少模型发挥"
+        "text": "先降低温度并缩短输出，让承诺性话术更少出现"
       },
       {
         "id": "b",
-        "text": "要求销售发送前人工阅读所有回复，但不改系统链路"
+        "text": "先把所有销售回复改成人工审核，并在事故后补抽检"
       },
       {
         "id": "c",
-        "text": "补系统提示边界与升级规则，并在工具权限上屏蔽未授权价格字段"
+        "text": "先写清折扣边界、收紧价格字段权限并记录拦截证据"
       },
       {
         "id": "d",
-        "text": "扩大上下文窗口，加入更多成交案例"
+        "text": "先补充更多成交案例和客户分层话术，让模型学习折扣习惯"
       }
     ],
     "correctOptionIds": [
       "c"
     ],
-    "explanation": "C 同时处理规则缺失和工具越权。A 只能降低随机性，不能定义业务边界。B 有帮助但只是末端兜底，不是第一修复。D 可能让模型学到更多折扣话术，风险更高。",
+    "explanation": "C 同时修补系统提示缺少价格边界和工具层越权，并留下拦截证据。A 只降低随机性，不能定义业务边界。B 是人工兜底，不是链路修复。D 会引入更多折扣模式，可能加重越界生成。",
     "troubleshootingPath": [
       "确认系统提示是否写明禁止事项和升级条件",
       "检查工具可见字段是否超出应用权限",
@@ -3599,9 +3599,9 @@ export const demoConcepts: KnowledgePoint[] = [
     "relatedConceptIds": [
       "prompt-context",
       "tool-calling",
-      "permission-governance",
-      "eval",
-      "trace"
+      "context-pollution",
+      "human-in-the-loop",
+      "agents-md"
     ]
   },
   "keyTakeaways": [
@@ -3612,9 +3612,9 @@ export const demoConcepts: KnowledgePoint[] = [
   "relatedConceptIds": [
     "prompt-context",
     "tool-calling",
-    "permission-governance",
-    "eval",
-    "trace"
+    "context-pollution",
+    "human-in-the-loop",
+    "agents-md"
   ]
 },
 {
@@ -3640,7 +3640,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "先区分必须保留的信息：当前目标、硬约束、用户偏好、已验证事实、工具结果和未关闭风险。",
     "对冗长历史做结构化摘要，保留来源和时间戳，避免摘要变成无证据的新事实。",
     "对检索材料采用片段裁剪、去重和按任务重排，而不是简单截断前 N 个 Token。",
-    "压缩结果需要可回溯，必要时能定位原始消息或文档片段。",
+    "本讲只处理“当轮窗口放不下时怎么取舍”；跨会话长期保存和失效治理属于记忆，状态分层属于分层会话。",
     "压缩策略要用任务成功率、遗漏率、Token 成本和首字延迟共同评估。"
   ],
   "enterpriseCase": {
@@ -3661,29 +3661,29 @@ export const demoConcepts: KnowledgePoint[] = [
     "id": "q-context-compression-1",
     "type": "single",
     "scenario": "采购 Agent 在长任务中经常忘记早期审批红线。日志显示历史超过窗口后按时间截断，摘要只有一段自然语言，没有来源引用。",
-    "question": "最优先应该怎样改？",
+    "question": "第一步应该怎样改压缩策略？",
     "options": [
       {
         "id": "a",
-        "text": "直接换更大上下文窗口的模型"
+        "text": "先切到更大窗口模型，保留时间截断策略"
       },
       {
         "id": "b",
-        "text": "把硬约束、已确认结论、待办和证据来源压缩成结构化任务状态"
+        "text": "先抽取审批红线、已确认结论和证据来源为任务状态"
       },
       {
         "id": "c",
-        "text": "把所有历史都放进向量库，回答时随机召回"
+        "text": "先把全部历史写入向量库，再按相似度补回最近片段"
       },
       {
         "id": "d",
-        "text": "降低输出长度，节省更多 Token"
+        "text": "先限制模型输出长度，把节省的 token 留给更多历史"
       }
     ],
     "correctOptionIds": [
       "b"
     ],
-    "explanation": "B 保留任务决策状态和可回溯证据。A 是强干扰项，更大窗口只能推迟问题且成本更高。C 没有解决权威状态和召回排序。D 影响输出，不解决输入历史丢失。",
+    "explanation": "B 针对遗忘审批红线的根因，把硬约束、确认结论和证据来源提升为任务状态。A 只是推迟窗口耗尽。C 会补回相似片段但不保证权威状态。D 节省输出 token，不解决输入历史丢失。",
     "troubleshootingPath": [
       "识别被遗忘的是硬约束、事实还是偏好",
       "检查当前裁剪和摘要策略",
@@ -3760,25 +3760,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "提高模型能力，让模型自己判断哪个页面新"
+        "text": "先让模型比较新旧页面内容和发布日期，再自行选择更可信答案"
       },
       {
         "id": "b",
-        "text": "把旧页面也加入系统提示，提醒模型不要使用"
+        "text": "先把旧地址写入系统提示黑名单，并继续保留检索召回"
       },
       {
         "id": "c",
-        "text": "增加更多历史工单，提高召回率"
+        "text": "先增加历史工单召回，确认旧地址是否是环境差异"
       },
       {
         "id": "d",
-        "text": "清理或降权过期页面，补生效状态和权威级，并记录引用 trace"
+        "text": "先降低旧页面权重、补生效状态并按权威级重排结果"
       }
     ],
     "correctOptionIds": [
       "d"
     ],
-    "explanation": "D 直接治理污染源和可追踪性。A 把数据治理问题推给模型。B 会让旧内容继续进入上下文，是强干扰项。C 可能增加更多噪音。",
+    "explanation": "D 直接处理污染源、有效期和权威排序。A 把数据治理推给模型。B 仍让旧地址进入上下文。C 会引入更多历史噪音，且 trace 已经指向旧页面排序问题。",
     "troubleshootingPath": [
       "定位错误答案引用的上下文片段",
       "检查片段来源、版本和生效状态",
@@ -3791,7 +3791,7 @@ export const demoConcepts: KnowledgePoint[] = [
       "context-window",
       "context-compression",
       "hallucination",
-      "trace"
+      "system-prompt"
     ]
   },
   "keyTakeaways": [
@@ -3804,7 +3804,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "context-window",
     "context-compression",
     "hallucination",
-    "trace"
+    "system-prompt"
   ]
 },
 {
@@ -3831,7 +3831,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "任务层保存目标、计划、当前状态、已完成步骤、待确认问题和失败重试记录。",
     "短期对话层保留最近几轮自然语言交互，用于维持语义连贯。",
     "工具层保存结构化返回和来源，按新鲜度、可信度和任务相关性决定是否进入上下文。",
-    "审计层记录原始消息、工具调用、模型输出和人工修改，用于追责和复盘，但不必全部回灌给模型。"
+    "分层会话关心“状态放在哪一层、生命周期多长”；哪些事实值得跨任务沉淀，是记忆治理的职责。"
   ],
   "enterpriseCase": {
     "title": "报销助手把临时审批意见带到下一位员工",
@@ -3855,25 +3855,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "把系统提示改成不要混淆用户"
+        "text": "先在系统提示中要求复述员工姓名，再输出报销判断"
       },
       {
         "id": "b",
-        "text": "扩大日志保留时间，方便事后查看"
+        "text": "先扩大审计日志保留时间，方便事后追查串用案例"
       },
       {
         "id": "c",
-        "text": "按用户和任务隔离会话层，给工具结果设置任务级生命周期"
+        "text": "先按用户和任务隔离 session，并设置工具结果 TTL"
       },
       {
         "id": "d",
-        "text": "把所有历史压缩成更短摘要"
+        "text": "先把所有历史压缩成摘要，并让模型在摘要里区分员工、审批意见和工具结果"
       }
     ],
     "correctOptionIds": [
       "c"
     ],
-    "explanation": "C 处理状态串用的根因。A 只能提示模型，不能隔离后端状态。B 有助审计但不阻止污染。D 可能把错误状态压缩后继续传播。",
+    "explanation": "C 直接修复后端任务状态和工具结果串用。A 只提示模型，不能隔离状态。B 有助审计但不阻止污染。D 可能把错误状态压缩后继续传播。",
     "troubleshootingPath": [
       "确认污染信息来自对话、任务状态还是工具结果",
       "检查 session key 是否包含用户和任务边界",
@@ -4012,25 +4012,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "拆清只读/写入工具，补权限与审批校验，并记录工具调用参数"
+        "text": "先拆清只读/写入边界，再补审批、权限和 trace"
       },
       {
         "id": "b",
-        "text": "把模型换成更强版本，让它更会理解工具"
+        "text": "先换更强模型，观察误调用率是否下降"
       },
       {
         "id": "c",
-        "text": "在系统提示中强调不要调错工具"
+        "text": "先在系统提示中声明不要调错工具，并要求逐步解释调用理由"
       },
       {
         "id": "d",
-        "text": "失败时自动重试同一个工具三次"
+        "text": "先给失败调用自动重试三次，避免查询失败被误判为开通"
       }
     ],
     "correctOptionIds": [
       "a"
     ],
-    "explanation": "A 同时解决工具边界、权限和审计。B 是强干扰项，模型更强也不能替代运行时校验。C 有帮助但不足以控制写入风险。D 会放大错误动作。",
+    "explanation": "A 是第一步，先把只读和写入边界拆清，再为写工具补审批、权限和 trace。B 不能替代运行时边界。C 只是提示约束，挡不住写入型误调用。D 会放大错误动作。",
     "troubleshootingPath": [
       "复盘错误调用的工具名、参数和上下文",
       "检查工具描述与 schema 是否区分只读和写入",
@@ -4043,8 +4043,8 @@ export const demoConcepts: KnowledgePoint[] = [
       "system-prompt",
       "layered-session",
       "human-in-the-loop",
-      "permission-governance",
-      "trace"
+      "subagent",
+      "agents-md"
     ]
   },
   "keyTakeaways": [
@@ -4058,8 +4058,8 @@ export const demoConcepts: KnowledgePoint[] = [
     "system-prompt",
     "layered-session",
     "human-in-the-loop",
-    "permission-governance",
-    "trace"
+    "subagent",
+    "agents-md"
   ]
 },
 {
@@ -4078,8 +4078,8 @@ export const demoConcepts: KnowledgePoint[] = [
   ],
   "contentStatus": "mvp",
   "hasAnimation": false,
-  "definition": "AGENTS.md 是写给后续开发 Agent 和工程师的仓库级操作说明，用来固定项目边界、文件所有权、验证命令、内容流水线和不可破坏的工程约定。",
-  "whyItMatters": "Agent 不会自动知道一个仓库里的隐性协作规则。没有 AGENTS.md，后续执行者可能读错权威文档、改错目录、绕过审核流程，甚至把写作模板字段直接写进生产数据。",
+  "definition": "AGENTS.md 是写给 Agent 运行环境的项目级操作手册，用来固定业务边界、角色权限、可调用工具、验证命令和升级条件；在代码仓库中它表现为仓库说明，在业务 Agent 平台中也可以是同类运行规程。",
+  "whyItMatters": "Agent 不会自动知道组织里的隐性协作规则。没有类似 AGENTS.md 的操作手册，后续执行者可能读错权威文档、调用错工具、绕过审批流程，或者把草稿内容直接写入生产系统。",
   "mentalModel": "把 AGENTS.md 看成进入工地前必须看的施工牌：它不替代图纸，但告诉每个角色能进哪片区域、先读哪份图纸、完工前必须验收什么。",
   "mechanism": [
     "AGENTS.md 应先声明当前项目状态，让接手者知道哪些模块已封板、哪些范围仍是 stub。",
@@ -4089,12 +4089,12 @@ export const demoConcepts: KnowledgePoint[] = [
     "每次封板后必须刷新 AGENTS.md，否则后续 Agent 会基于过期状态继续开发。"
   ],
   "enterpriseCase": {
-    "title": "内容 Agent 绕过流水线写入生产数据",
-    "scenario": "一个 AI 学习应用同时有主开发、内容、审核和 E2E 四类 Agent 协作，每轮内容扩展约 6 到 12 讲。",
-    "problem": "早期一次扩展中，内容 Agent 直接修改 src/data，把 oneSentence 和 commonPitfalls 等写作字段混入权威数据，导致 validate:content 失败。",
-    "analysis": "仓库没有把文件所有权、draft -> review -> 入库流程和 schema 映射规则写在开工入口，Agent 只按局部任务理解权限。",
-    "solution": "在 AGENTS.md 中冻结角色权限、目录边界、验证命令和封板刷新规则；每轮开工前先读 AGENTS.md 与 project-board。",
-    "takeaway": "多 Agent 协作中，AGENTS.md 是降低上下文丢失和权限误用的第一道工程防线。"
+    "title": "金融运营 Agent 缺少操作手册导致越权改配置",
+    "scenario": "一家金融集团为 22 个运营团队上线内部 Agent 平台，覆盖 140 个自动化流程和 900 多名一线员工，Agent 可读取工单、生成配置变更建议并创建审批单。",
+    "problem": "试点两周内出现 13 起越权建议，其中 5 起把“生成审批草稿”误做成“直接提交变更”，平均回滚耗时 46 分钟。",
+    "analysis": "平台只有工具列表，没有统一说明哪些团队可改哪些系统、哪些动作必须转审批、哪些文档是权威来源；不同团队把口头规则写在各自聊天模板里。",
+    "solution": "为每个业务域建立 AGENTS.md 式操作手册，声明角色边界、工具权限、审批阈值、验证命令和人工升级条件，并把手册版本写入每次 trace。",
+    "takeaway": "AGENTS.md 的核心价值不是仓库自述，而是把 Agent 的隐性操作规则变成可审计、可继承的运行契约。"
   },
   "pitfalls": [
     "把 AGENTS.md 写成泛泛介绍，没有明确可写范围和禁止事项。",
@@ -4105,36 +4105,36 @@ export const demoConcepts: KnowledgePoint[] = [
   "diagnosticQuestion": {
     "id": "q-agents-md-1",
     "type": "single",
-    "scenario": "一次内容扩展中，内容 Agent 直接改了 src/data/concepts.ts，并把写作模板字段 oneSentence 写进生产数据。validate:content 失败后发现 AGENTS.md 没写文件所有权，也没有说明 draft -> review -> 入库流程。",
+    "scenario": "金融运营 Agent 频繁把“生成审批草稿”误做成“提交变更”。排查发现平台只有工具清单，没有说明团队权限、审批阈值和哪些文档是权威规则。",
     "question": "最优先应该补什么？",
     "options": [
       {
         "id": "a",
-        "text": "要求所有 Agent 以后自行阅读更多源码"
+        "text": "先把各团队口头规则继续追加到提示词末尾"
       },
       {
         "id": "b",
-        "text": "在 AGENTS.md 中明确角色可写范围、内容流水线、schema 映射和封板门禁"
+        "text": "先补 Agent 操作手册，写清权限、权威来源和升级条件"
       },
       {
         "id": "c",
-        "text": "删除内容草稿目录，减少混乱"
+        "text": "先关闭提交类工具，只保留读取能力直到事故归零"
       },
       {
         "id": "d",
-        "text": "把 validate:content 改成忽略未知字段"
+        "text": "先把审批阈值写入输出格式，让模型自行判断每次是否需要审批和提交"
       }
     ],
     "correctOptionIds": [
       "b"
     ],
-    "explanation": "B 直接补齐协作入口规则。A 太依赖个人习惯。C 会破坏既定内容流水线。D 是危险绕过，会让 schema 外字段进入生产数据。",
+    "explanation": "B 是第一步，用操作手册统一权限、权威来源和升级条件。A 会继续分散规则。C 可以止血但会让业务流程瘫痪。D 把审批判断交给模型，缺少运行时契约和审计。",
     "troubleshootingPath": [
-      "复盘失败文件和越权角色",
-      "检查 AGENTS.md 是否声明文件所有权",
-      "补 draft/review/入库流程和验证命令",
-      "同步 project-board 当前状态",
-      "用下一轮内容合入验证规则是否可执行"
+      "复盘越权动作对应的规则缺口",
+      "梳理角色、工具和审批边界",
+      "形成项目级 Agent 操作手册",
+      "把手册版本写入 trace",
+      "用高风险流程回放验证规则是否生效"
     ],
     "relatedConceptIds": [
       "prompt-context",
@@ -4173,8 +4173,8 @@ export const demoConcepts: KnowledgePoint[] = [
   ],
   "contentStatus": "mvp",
   "hasAnimation": false,
-  "definition": "仓库上下文是开发 Agent 执行任务前需要读取和整理的项目事实集合，包括架构文档、类型定义、入口文件、测试、验证命令、Git 状态和近期变更。",
-  "whyItMatters": "代码 Agent 的很多错误不是写代码能力不足，而是读错项目事实。仓库越大，越需要有选择地收集上下文：读太少会误判架构，读太多会淹没关键约束。",
+  "definition": "仓库上下文是当 Agent 的工作对象是代码或配置仓库时，需要读取和整理的项目事实集合，包括架构文档、类型定义、入口文件、测试、验证命令、Git 状态和近期变更。它是“Agent 观察环境”的一种工程形态。",
+  "whyItMatters": "代码和配置类 Agent 的很多错误不是写代码能力不足，而是读错项目事实。仓库越大，越需要有选择地收集上下文：读太少会误判架构，读太多会淹没关键约束。",
   "mentalModel": "仓库上下文像手术前的病历摘要：医生不需要背完整医院档案，但必须知道病史、禁忌、影像、当前用药和这次手术的目标部位。",
   "mechanism": [
     "先读 AGENTS.md、README、project-board 和相关规格，确认当前阶段和不可破坏约定。",
@@ -4184,12 +4184,12 @@ export const demoConcepts: KnowledgePoint[] = [
     "遇到规格冲突时，以权威文档和现有测试为准，并把冲突显式登记。"
   ],
   "enterpriseCase": {
-    "title": "代码助手只读组件导致进度口径改错",
-    "scenario": "一个学习应用请 Agent 修改模块页进度展示，仓库有 docs/content-schema.md、progressStore 和 progress utils 三处相关事实。",
-    "problem": "Agent 只读了 ModulePage，把总进度改成只统计已发布内容，结果和 56 讲地图口径冲突，E2E 发现模块计数不一致。",
-    "analysis": "执行前没有建立仓库上下文包，忽略了 content-schema 中 56 讲权威计数和 progress.ts 的派生计算约定。",
-    "solution": "重新收集 AGENTS.md、content-schema、progress utils 和模块页调用链，确认总进度按 56 讲、主路径按 published 过滤，再做局部修复。",
-    "takeaway": "仓库上下文不是读最多文件，而是读对能决定行为口径的文件。"
+    "title": "零售集团配置 Agent 只读报错文件导致价格规则回退",
+    "scenario": "一家零售集团有 180 个微服务和 37 个区域价格配置仓库，配置 Agent 每周处理约 260 个促销规则变更。",
+    "problem": "一次华东区促销修复中，Agent 只读取报错 YAML，把全局折扣上限从 8% 回退到旧版 5%，影响 4300 个 SKU 的次日价格预览。",
+    "analysis": "Agent 没读取区域覆盖规则、价格引擎 README、最近 3 个变更提交和回归测试，误把局部报错当成全局规则问题。",
+    "solution": "为配置任务建立仓库上下文包：权威 README、区域覆盖链、变更历史、测试命令和 Git dirty 状态；改动前输出影响范围摘要。",
+    "takeaway": "仓库上下文让 Agent 先理解代码和配置的真实边界，再选择最小安全改动。"
   },
   "pitfalls": [
     "只读报错文件，不读调用链和权威规格。",
@@ -4201,30 +4201,30 @@ export const demoConcepts: KnowledgePoint[] = [
   "diagnosticQuestion": {
     "id": "q-repo-context-1",
     "type": "single",
-    "scenario": "Agent 接到“修正模块进度”的任务后只读了页面组件，把总进度改成只统计 published 内容。后来发现 docs/content-schema.md 明确 56 讲地图必须完整保留，progress.ts 也有总进度派生约定。",
+    "scenario": "配置 Agent 修复促销规则时只读了报错 YAML，没读区域覆盖链和最近变更，结果把华东区规则误改成全局折扣上限。",
     "question": "下一次最应该如何避免同类问题？",
     "options": [
       {
         "id": "a",
-        "text": "先把全仓库所有文件都塞进上下文"
+        "text": "先把全仓 YAML、README、历史报告和最近提交都塞进模型窗口"
       },
       {
         "id": "b",
-        "text": "只依赖 TypeScript 报错定位相关文件"
+        "text": "先只依赖报错行和配置校验输出，定位需要修改的位置"
       },
       {
         "id": "c",
-        "text": "让用户口头确认每个字段含义"
+        "text": "先让业务方口头确认每个价格字段含义，再允许修改"
       },
       {
         "id": "d",
-        "text": "建立任务相关仓库上下文包：权威规格、数据源、调用链、测试和 Git 状态"
+        "text": "先建立任务上下文包，覆盖权威规则、覆盖链、变更史和验收命令"
       }
     ],
     "correctOptionIds": [
       "d"
     ],
-    "explanation": "D 用最小但关键的事实集合约束实现。A 会造成上下文噪音。B 只能发现类型问题，不能发现产品口径。C 成本高且很多事实可从仓库读取。",
+    "explanation": "D 是第一步，把权威规则、覆盖链、变更历史和验收命令组成最小关键事实。A 会带来噪音和窗口压力。B 只能定位语法或局部报错，不能判断业务口径。C 可用于模糊字段，但不应替代仓库事实收集。",
     "troubleshootingPath": [
       "确认任务影响的用户行为",
       "读取 AGENTS.md 和权威规格",
@@ -4237,7 +4237,7 @@ export const demoConcepts: KnowledgePoint[] = [
       "context-compression",
       "spec-driven-development",
       "issue-fix-agent",
-      "code-review-agent"
+      "subagent"
     ]
   },
   "keyTakeaways": [
@@ -4250,7 +4250,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "context-compression",
     "spec-driven-development",
     "issue-fix-agent",
-    "code-review-agent"
+    "subagent"
   ]
 },
 {
@@ -4269,7 +4269,7 @@ export const demoConcepts: KnowledgePoint[] = [
   ],
   "contentStatus": "mvp",
   "hasAnimation": false,
-  "definition": "规格驱动开发是先冻结产品、架构、数据、视觉和验收规则，再让实现、测试和复盘都围绕这些规格闭环，而不是边写边猜需求。",
+  "definition": "规格驱动开发是先冻结产品、架构、数据、视觉和验收规则，再让 Agent 实现、测试和复盘都围绕这些规格闭环，而不是边写边猜需求。",
   "whyItMatters": "AI 辅助开发速度很快，也更容易把示例、占位文案和临时想法误当权威。规格驱动把“哪个文档说了算、改完怎么验收、哪些边界不能碰”显式化，减少 Agent 自作主张。",
   "mentalModel": "规格不是写给归档系统看的文档，而是开发时的导航仪。它告诉 Agent 目标、道路限制、禁止驶入区域和到达后如何判定成功。",
   "mechanism": [
@@ -4280,12 +4280,12 @@ export const demoConcepts: KnowledgePoint[] = [
     "规格变更本身也要走同步更新：类型、校验脚本、文档和测试必须一起改。"
   ],
   "enterpriseCase": {
-    "title": "原型占位数字被误当正式计数",
-    "scenario": "一个学习 App 的 design.md 示例中有 50 讲和 0/12 占位数字，content-schema.md 则登记了 56 讲和 10/10/8/16/6/6 模块构成。",
-    "problem": "一次 UI 调整中，Agent 直接复制原型数字，导致首页显示 50 讲，模块页计数和数据层 56 讲冲突。",
-    "analysis": "实现没有先识别权威规格。视觉文档只负责风格，讲数和模块计数应以 content-schema 为准。",
-    "solution": "在 AGENTS.md 和 content-schema 中明确数量权威来源；实现时从数据层派生计数，并用 validate:structure 验证 56 登记。",
-    "takeaway": "规格驱动开发的关键是先判断哪份规格对哪个问题有权威性。"
+    "title": "保险理赔助手把原型示例误当合规规则",
+    "scenario": "一家保险公司建设理赔 Agent，涉及 4 条产品线、12 类理赔材料和 3 个合规审查节点，月均约 7.5 万次理赔咨询。",
+    "problem": "灰度中有 6.8% 的高额理赔被错误引导到普通材料清单，因为 Agent 实现时复制了原型里的示例金额阈值 5 万元，而合规规格规定应为 2 万元。",
+    "analysis": "团队没有区分视觉原型、产品规格和合规规则的权威范围，验收也只检查页面流程，没有用高额理赔回放集验证。",
+    "solution": "建立规格优先级：合规规则高于产品示例，产品规格高于原型占位；金额阈值从规则表派生，并补 200 条历史理赔回放测试。",
+    "takeaway": "规格驱动开发的关键是让 Agent 知道每类决策的权威来源，并把验收绑定到这些来源。"
   },
   "pitfalls": [
     "把高保真原型里的占位数字当成真实数据。",
@@ -4296,30 +4296,30 @@ export const demoConcepts: KnowledgePoint[] = [
   "diagnosticQuestion": {
     "id": "q-spec-driven-development-1",
     "type": "single",
-    "scenario": "设计原型中写着 50 讲，但 content-schema.md 登记表写明 56 讲。Agent 实现首页时复制了原型数字，导致 validate:structure 虽通过但 UI 口径错误。",
+    "scenario": "理赔 Agent 把原型示例里的 5 万元阈值写进实现，但合规规格规定高额理赔阈值是 2 万元。页面流程可用，历史回放却暴露误导。",
     "question": "最优先应该建立什么规则？",
     "options": [
       {
         "id": "a",
-        "text": "明确不同规格的权威边界，讲数一律从 content-schema/数据层派生"
+        "text": "先定义规格权威顺序，并明确合规规则高于原型示例"
       },
       {
         "id": "b",
-        "text": "让设计稿以后不要出现任何数字"
+        "text": "先禁止设计稿出现任何金额、比例或流程示例，避免被复制"
       },
       {
         "id": "c",
-        "text": "把 validate:structure 改成读取 UI 文案"
+        "text": "先把合规阈值写进 UI 文案，方便人工浏览时发现错误"
       },
       {
         "id": "d",
-        "text": "上线前人工浏览首页即可"
+        "text": "先增加人工点击验收，只要页面流程可走通就放行"
       }
     ],
     "correctOptionIds": [
       "a"
     ],
-    "explanation": "A 建立权威来源和实现方式。B 不现实，原型需要占位。C 方向反了，UI 应服从数据权威。D 只能发现部分问题，不能防止口径漂移。",
+    "explanation": "A 是第一步，先明确合规规则、产品规格和原型示例的权威顺序。B 不现实，原型需要示例。C 可能暴露信息且不能约束数据来源。D 只能检查流程，不能验证合规阈值。",
     "troubleshootingPath": [
       "列出冲突规格和涉及字段",
       "判断每份规格的权威范围",
@@ -4330,9 +4330,9 @@ export const demoConcepts: KnowledgePoint[] = [
     "relatedConceptIds": [
       "agents-md",
       "repo-context",
-      "eval",
-      "trace",
-      "context-pollution"
+      "context-pollution",
+      "prompt-context",
+      "system-prompt"
     ]
   },
   "keyTakeaways": [
@@ -4343,9 +4343,9 @@ export const demoConcepts: KnowledgePoint[] = [
   "relatedConceptIds": [
     "agents-md",
     "repo-context",
-    "eval",
-    "trace",
-    "context-pollution"
+    "context-pollution",
+    "prompt-context",
+    "system-prompt"
   ]
 },
 {
@@ -4375,12 +4375,12 @@ export const demoConcepts: KnowledgePoint[] = [
     "当 Subagent 发现范围外问题，应报告而不是擅自扩大任务。"
   ],
   "enterpriseCase": {
-    "title": "两个 Subagent 同时改核心数据冲突",
-    "scenario": "一个课程应用让内容 Subagent 写草稿、审核 Subagent 做质量检查，同时主 Agent 准备合入 6 讲内容。",
-    "problem": "内容 Subagent 直接修改 src/data，审核 Subagent 又在同一文件追加审查意见，最终产生冲突并混入 schema 外字段。",
-    "analysis": "任务委派只说明了目标，没有说明可写范围和交付格式；主 Agent 也没有保留唯一合入权。",
-    "solution": "把内容 Subagent 限定到 content/drafts，审核 Subagent 限定到 content/reviewed，主 Agent 负责映射入库和跑门禁。",
-    "takeaway": "Subagent 提升效率的前提是边界清楚，最终集成权必须集中。"
+    "title": "风控平台 Subagent 并行分析导致结论冲突",
+    "scenario": "一家支付公司用主 Agent 协调三个 Subagent 处理商户风控申诉：交易分析、合规检查和客服摘要，日均约 1800 个申诉工单。",
+    "problem": "灰度首周 14% 的申诉报告出现互相矛盾结论：交易分析建议恢复商户，合规检查却要求冻结，主 Agent 直接拼接两份结论发给审核员。",
+    "analysis": "Subagent 只收到宽泛目标，没有统一证据口径、输出格式和冲突升级规则；主 Agent 也没有最终裁决和合并检查。",
+    "solution": "为每个 Subagent 限定输入证据、输出字段和置信度；主 Agent 负责冲突检测，遇到恢复/冻结不一致必须转人工审核。",
+    "takeaway": "Subagent 的价值在分工，风险在集成；没有主控合并规则，并行只会放大冲突。"
   },
   "pitfalls": [
     "把模糊目标直接丢给 Subagent，导致产物不可合并。",
@@ -4392,30 +4392,30 @@ export const demoConcepts: KnowledgePoint[] = [
   "diagnosticQuestion": {
     "id": "q-subagent-1",
     "type": "single",
-    "scenario": "主 Agent 派内容和审核两个 Subagent 处理同一批课程，但没有限制可写范围。两者都改了 src/data/demoConcepts.ts，产生冲突并混入审核备注。",
+    "scenario": "支付风控主 Agent 调用交易分析和合规检查两个 Subagent。一个建议恢复商户，一个建议继续冻结，主 Agent 直接拼接结论发给审核员。",
     "question": "最优先应该调整什么？",
     "options": [
       {
         "id": "a",
-        "text": "以后不再使用 Subagent"
+        "text": "先取消并行，让主 Agent 独立完成全部分析"
       },
       {
         "id": "b",
-        "text": "让两个 Subagent 先自己协商谁改文件"
+        "text": "先让两个 Subagent 互相读取草稿，自行协商统一结论"
       },
       {
         "id": "c",
-        "text": "为每个 Subagent 固定上下文、可写目录、交付格式，并保留主 Agent 唯一合入权"
+        "text": "先让主 Agent 负责冲突检测、证据合并和升级路径"
       },
       {
         "id": "d",
-        "text": "把 src/data 拆成更多文件，降低冲突概率"
+        "text": "先拆更多 Subagent，把交易、设备、合规和客服拆更细"
       }
     ],
     "correctOptionIds": [
       "c"
     ],
-    "explanation": "C 解决委派边界和最终集成问题。A 放弃了并行价值。B 仍缺少主控规则。D 可能有帮助，但不解决权限和交付格式。",
+    "explanation": "C 是第一步，主 Agent 必须承担冲突检测、证据合并和升级职责。A 放弃了分工价值。B 会让子任务互相污染且缺少最终责任。D 会增加更多冲突来源。",
     "troubleshootingPath": [
       "确认冲突文件和越权角色",
       "拆分子任务的输入和输出",
@@ -4427,8 +4427,8 @@ export const demoConcepts: KnowledgePoint[] = [
       "agents-md",
       "repo-context",
       "human-in-the-loop",
-      "multi-agent",
-      "tool-calling"
+      "tool-calling",
+      "agent-loop"
     ]
   },
   "keyTakeaways": [
@@ -4440,8 +4440,8 @@ export const demoConcepts: KnowledgePoint[] = [
     "agents-md",
     "repo-context",
     "human-in-the-loop",
-    "multi-agent",
-    "tool-calling"
+    "tool-calling",
+    "agent-loop"
   ]
 },
 {
@@ -4467,7 +4467,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "先区分短期上下文、任务状态、长期偏好和组织规则，避免全部混进同一存储。",
     "每条记忆应有来源、作用域、更新时间、置信度和删除或过期策略。",
     "记忆写入需要触发条件，不能把每轮对话自动永久保存。",
-    "记忆读取要受权限、任务相关性和新鲜度约束，不应默认全部回灌给模型。",
+    "记忆只负责跨会话复用；当轮窗口的裁剪属于上下文压缩，会话内状态放置属于分层会话。",
     "记忆效果要用任务连续性、错误复用率、隐私事件和用户纠错成本评估。"
   ],
   "enterpriseCase": {
@@ -4493,25 +4493,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "关闭所有记忆，避免再出错"
+        "text": "先关闭长期记忆，只保留当前对话和人工粘贴材料"
       },
       {
         "id": "b",
-        "text": "为记忆增加来源、作用域、版本、过期规则，并让最新 ADR 覆盖旧结论"
+        "text": "先给记忆绑定 ADR 来源、版本、作用域和失效规则"
       },
       {
         "id": "c",
-        "text": "把旧方案也放进系统提示，提醒模型注意"
+        "text": "先把旧方案和新方案都写进系统提示，让模型自行判断是否过期"
       },
       {
         "id": "d",
-        "text": "提高模型温度，让它不要总重复旧结论"
+        "text": "先提高生成随机性，降低模型重复旧结论的概率"
       }
     ],
     "correctOptionIds": [
       "b"
     ],
-    "explanation": "B 建立可追溯和可失效的记忆治理。A 会牺牲连续性。C 会继续把旧信息带进上下文。D 与记忆污染无关，还会增加不稳定性。",
+    "explanation": "B 建立来源、版本、作用域和失效治理。A 可短期止血但丢失连续性。C 会继续把旧方案带进上下文。D 与记忆污染无关，还会增加不稳定性。",
     "troubleshootingPath": [
       "定位错误建议来自上下文还是长期记忆",
       "检查记忆来源、作用域和更新时间",
@@ -4524,7 +4524,7 @@ export const demoConcepts: KnowledgePoint[] = [
       "context-compression",
       "context-pollution",
       "repo-context",
-      "trace"
+      "agents-md"
     ]
   },
   "keyTakeaways": [
@@ -4537,7 +4537,7 @@ export const demoConcepts: KnowledgePoint[] = [
     "context-compression",
     "context-pollution",
     "repo-context",
-    "trace"
+    "agents-md"
   ]
 },
 {
@@ -4589,25 +4589,25 @@ export const demoConcepts: KnowledgePoint[] = [
     "options": [
       {
         "id": "a",
-        "text": "关闭自动发送，所有邮件都人工处理"
+        "text": "先关闭自动发送，把所有采购邮件退回人工队列"
       },
       {
         "id": "b",
-        "text": "把系统提示改成发送前更谨慎"
+        "text": "先把系统提示改成务必谨慎，并要求模型复述币种和金额来源"
       },
       {
         "id": "c",
-        "text": "提高模型置信度阈值，但不展示证据"
+        "text": "先提高置信度阈值，允许达到阈值时继续自动发送"
       },
       {
         "id": "d",
-        "text": "为高金额、币种不确定和条款缺失设置发送前人工确认，并展示证据与工具结果"
+        "text": "先设置发送前审核条件，覆盖高金额、币种不明和条款缺失"
       }
     ],
     "correctOptionIds": [
       "d"
     ],
-    "explanation": "D 建立风险触发和可判断的人工节点。A 牺牲全部自动化，不是优先修复。B 不能替代流程控制。C 只改阈值且不给证据，人工仍难以判断。",
+    "explanation": "D 是第一步，把高金额、币种不确定和条款缺失变成流程级人工确认。A 会牺牲全部自动化。B 只是提示约束，不能拦截风险动作。C 缺少证据展示和人工判断，仍可能自动放行高风险邮件。",
     "troubleshootingPath": [
       "列出自动动作和风险等级",
       "定义金额、权限、证据冲突等升级条件",
@@ -4619,9 +4619,8 @@ export const demoConcepts: KnowledgePoint[] = [
       "tool-calling",
       "subagent",
       "agent-loop",
-      "permission-governance",
-      "eval",
-      "trace"
+      "layered-session",
+      "context-pollution"
     ]
   },
   "keyTakeaways": [
@@ -4634,9 +4633,8 @@ export const demoConcepts: KnowledgePoint[] = [
     "tool-calling",
     "subagent",
     "agent-loop",
-    "permission-governance",
-    "eval",
-    "trace"
+    "layered-session",
+    "context-pollution"
   ]
 }
 ];

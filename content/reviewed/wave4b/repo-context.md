@@ -3,14 +3,15 @@
 ## 结论：PASS
 
 ## 1. 诊断题门禁
-- 分布：纳入 Wave 4B 整批分布复算。
 - 正确项：D。
-- 强干扰项：具备，解析已说明其他选项为何不是第一步或最佳判断。
-- 排查路径：按真实工程排查顺序书写。
+- 选项长度复核：A=33, B=24, C=23, D=29；正确项长度 rank=3/4，满足 min < correct < max。
+- 关键词/句式复核：选项均以同类工程动作句式呈现，正确项不靠最短/最长、裸短语或 trace/权限/结构化关键词暴露。
+- 强干扰项：具备，错误项为正确但顺序错、范围错或时机错的工程动作。
+- 解析：已逐项说明其他选项为何不是第一步或最佳判断。
 
 ## 2. 结构门禁
-- 机制 5 条，误区 5 条，结论 3 条，满足区间且未机械同构。
-- definition / whyItMatters / mentalModel 均完整。
+- 机制 5 条，误区 5 条，结论 3 条。
+- definition / whyItMatters / mentalModel 均完整；概念边界已显式说明。
 
 ## 3. 企业案例门禁
 - 五段完整。
@@ -19,10 +20,9 @@
 ## 4. 动画门禁
 - 无动画配置，hasAnimation=false。
 
-## 5. schema 门禁
-- reviewed 内容可按 content-schema §3 映射入库。
+## 5. schema / 关联门禁
 - 无 schema 外字段进入权威数据。
-- relatedConceptIds 均指向 56 讲登记表内已有 id。
+- relatedConceptIds 均指向当前已上线或样板内容，避免关联区被未上线 stub 稀释。
 
 ## 6. 合入注意
 - 入库为 contentStatus=mvp。

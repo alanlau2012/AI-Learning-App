@@ -47,14 +47,14 @@ scenario: 运维 Agent 把查询权限误执行为开通权限。两个工具描
 
 question: 最优先的修复是什么？
 
-- A. 拆清只读/写入工具，补权限与审批校验，并记录工具调用参数
-- B. 把模型换成更强版本，让它更会理解工具
-- C. 在系统提示中强调不要调错工具
-- D. 失败时自动重试同一个工具三次
+- A. 先拆清只读/写入边界，再补审批、权限和 trace
+- B. 先换更强模型，观察误调用率是否下降
+- C. 先在系统提示中声明不要调错工具，并要求逐步解释调用理由
+- D. 先给失败调用自动重试三次，避免查询失败被误判为开通
 
 answer: A
 
-explanation: A 同时解决工具边界、权限和审计。B 是强干扰项，模型更强也不能替代运行时校验。C 有帮助但不足以控制写入风险。D 会放大错误动作。
+explanation: A 是第一步，先把只读和写入边界拆清，再为写工具补审批、权限和 trace。B 不能替代运行时边界。C 只是提示约束，挡不住写入型误调用。D 会放大错误动作。
 
 troubleshootingPath:
 - 复盘错误调用的工具名、参数和上下文
@@ -74,5 +74,5 @@ troubleshootingPath:
 - system-prompt
 - layered-session
 - human-in-the-loop
-- permission-governance
-- trace
+- subagent
+- agents-md

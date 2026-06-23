@@ -1,10 +1,10 @@
 # 仓库上下文
 
 ## oneSentence
-仓库上下文是开发 Agent 执行任务前需要读取和整理的项目事实集合，包括架构文档、类型定义、入口文件、测试、验证命令、Git 状态和近期变更。
+仓库上下文是当 Agent 的工作对象是代码或配置仓库时，需要读取和整理的项目事实集合，包括架构文档、类型定义、入口文件、测试、验证命令、Git 状态和近期变更。它是“Agent 观察环境”的一种工程形态。
 
 ## whyItMatters
-代码 Agent 的很多错误不是写代码能力不足，而是读错项目事实。仓库越大，越需要有选择地收集上下文：读太少会误判架构，读太多会淹没关键约束。
+代码和配置类 Agent 的很多错误不是写代码能力不足，而是读错项目事实。仓库越大，越需要有选择地收集上下文：读太少会误判架构，读太多会淹没关键约束。
 
 ## mentalModel
 仓库上下文像手术前的病历摘要：医生不需要背完整医院档案，但必须知道病史、禁忌、影像、当前用药和这次手术的目标部位。
@@ -20,12 +20,12 @@
 无。
 
 ## enterpriseCase
-- title: 代码助手只读组件导致进度口径改错
-- scenario: 一个学习应用请 Agent 修改模块页进度展示，仓库有 docs/content-schema.md、progressStore 和 progress utils 三处相关事实。
-- problem: Agent 只读了 ModulePage，把总进度改成只统计已发布内容，结果和 56 讲地图口径冲突，E2E 发现模块计数不一致。
-- analysis: 执行前没有建立仓库上下文包，忽略了 content-schema 中 56 讲权威计数和 progress.ts 的派生计算约定。
-- solution: 重新收集 AGENTS.md、content-schema、progress utils 和模块页调用链，确认总进度按 56 讲、主路径按 published 过滤，再做局部修复。
-- takeaway: 仓库上下文不是读最多文件，而是读对能决定行为口径的文件。
+- title: 零售集团配置 Agent 只读报错文件导致价格规则回退
+- scenario: 一家零售集团有 180 个微服务和 37 个区域价格配置仓库，配置 Agent 每周处理约 260 个促销规则变更。
+- problem: 一次华东区促销修复中，Agent 只读取报错 YAML，把全局折扣上限从 8% 回退到旧版 5%，影响 4300 个 SKU 的次日价格预览。
+- analysis: Agent 没读取区域覆盖规则、价格引擎 README、最近 3 个变更提交和回归测试，误把局部报错当成全局规则问题。
+- solution: 为配置任务建立仓库上下文包：权威 README、区域覆盖链、变更历史、测试命令和 Git dirty 状态；改动前输出影响范围摘要。
+- takeaway: 仓库上下文让 Agent 先理解代码和配置的真实边界，再选择最小安全改动。
 
 ## commonPitfalls
 - 只读报错文件，不读调用链和权威规格。
@@ -35,18 +35,18 @@
 - 把过期报告当成当前状态。
 
 ## diagnosticQuestion
-scenario: Agent 接到“修正模块进度”的任务后只读了页面组件，把总进度改成只统计 published 内容。后来发现 docs/content-schema.md 明确 56 讲地图必须完整保留，progress.ts 也有总进度派生约定。
+scenario: 配置 Agent 修复促销规则时只读了报错 YAML，没读区域覆盖链和最近变更，结果把华东区规则误改成全局折扣上限。
 
 question: 下一次最应该如何避免同类问题？
 
-- A. 先把全仓库所有文件都塞进上下文
-- B. 只依赖 TypeScript 报错定位相关文件
-- C. 让用户口头确认每个字段含义
-- D. 建立任务相关仓库上下文包：权威规格、数据源、调用链、测试和 Git 状态
+- A. 先把全仓 YAML、README、历史报告和最近提交都塞进模型窗口
+- B. 先只依赖报错行和配置校验输出，定位需要修改的位置
+- C. 先让业务方口头确认每个价格字段含义，再允许修改
+- D. 先建立任务上下文包，覆盖权威规则、覆盖链、变更史和验收命令
 
 answer: D
 
-explanation: D 用最小但关键的事实集合约束实现。A 会造成上下文噪音。B 只能发现类型问题，不能发现产品口径。C 成本高且很多事实可从仓库读取。
+explanation: D 是第一步，把权威规则、覆盖链、变更历史和验收命令组成最小关键事实。A 会带来噪音和窗口压力。B 只能定位语法或局部报错，不能判断业务口径。C 可用于模糊字段，但不应替代仓库事实收集。
 
 troubleshootingPath:
 - 确认任务影响的用户行为
@@ -65,4 +65,4 @@ troubleshootingPath:
 - context-compression
 - spec-driven-development
 - issue-fix-agent
-- code-review-agent
+- subagent
