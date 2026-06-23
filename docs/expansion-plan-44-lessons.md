@@ -192,3 +192,4 @@
 | MVP 0.3 Wave 4B | done | 44 / 56 | PASS | PASS | M4 剩余主体链路 6 讲，multi-agent 暂留收口 |
 | Final Wave | done | 56 / 56 | PASS | PASS | multi-agent + M5×5 + M6×6 全量上线；诊断 A/B/C/D=3/3/3/3；见 `reports/final-wave-summary.md` |
 | Backlog Polish | done | 56 / 56 | PASS | PASS | PWA manifest、字体外链移除、路由切包、M6 治理动画；见 `reports/backlog-polish-summary.md` |
+| Desktop Electron MVP | done | 56 / 56 | PASS | 不涉及内容审核 | 新增 Windows 桌面发行通道；内容清单、schema、模块计数均不变；见 `reports/desktop-electron-mvp-summary.md` |

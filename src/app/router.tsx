@@ -3,10 +3,10 @@
  * AppShell 为布局路由（<Outlet/> 注入页面），其余为页面。
  * 未匹配路由回退首页。
  */
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, createHashRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 
-export const router = createBrowserRouter([
+const routes = [
   {
     path: '/',
     element: <AppShell />,
@@ -49,6 +49,10 @@ export const router = createBrowserRouter([
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
-]);
+];
+
+export const router = import.meta.env.MODE === 'desktop'
+  ? createHashRouter(routes)
+  : createBrowserRouter(routes);
 
 export default router;

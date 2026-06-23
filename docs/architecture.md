@@ -1,6 +1,6 @@
 # 技术架构 · architecture
 
-> 纯前端、内容数据驱动的 Web/PWA。技术栈与目录见 [AGENTS.md](../AGENTS.md)。数据 schema 见 [content-schema.md](content-schema.md)。
+> 纯前端、内容数据驱动的 Web/PWA，并通过 Electron 提供 Windows 桌面发行通道。技术栈与目录见 [AGENTS.md](../AGENTS.md)。数据 schema 见 [content-schema.md](content-schema.md)。
 
 ## 1. 分层架构
 
@@ -116,7 +116,17 @@ function migrateProgress(fromVersion: number, data: unknown): UserProgress { /* 
 - 桌面端：固定左侧栏约 256px + 顶部工具条（约 56px，半透明 + blur）+ 主阅读画布。首页主区最大宽约 1120px，详情页正文 760–860px，左右留白约 40px。
 - 移动端（后续适配，保留同样阅读节奏）：左侧导航收为抽屉或底部导航；主内容单列；首页只保留继续学习、进度、推荐路径核心入口；详情页优先阅读舒适，不堆侧边信息；无横向滚动。
 
-## 6. 可拆分开发阶段
+## 6. 桌面发行通道（Electron）
+
+桌面版是 Web/PWA 的新增发行通道，不是第二套应用。Electron 主进程只负责窗口、安全外壳、外链处理与生产包加载；学习内容、搜索、动画、诊断题与进度状态仍全部来自 React/Vite 前端。
+
+- 入口：`electron/main.cjs`，默认窗口 `1280x820`，最小 `1024x720`，背景色沿用 `#faf9f6`。
+- 安全：关闭 `nodeIntegration`，启用 `contextIsolation` / `sandbox`，拒绝权限请求，外部链接交给系统浏览器，禁止不受控新窗口。
+- 路由：Web mode 使用 `createBrowserRouter`；desktop mode 使用 `createHashRouter`，避免 `file://dist/index.html` 下刷新和深链失效。
+- 资源：desktop mode 的 Vite `base` 为 `./`；Hyperframe iframe 使用 `import.meta.env.BASE_URL` 的安全兜底，兼容 Node 内容校验、Web 构建和 Electron `file://` 加载。
+- 打包：`npm run build:desktop` 先执行 `vite build --mode desktop`，再通过 `scripts/build-desktop.cjs` 调用 electron-builder。Windows 中文工作区路径下 Builder 直接输出到 `release/` 会在 rename 阶段触发 `EPERM`，因此脚本使用系统临时目录作为 Builder 输出目录，成功后复制回仓库 `release/`。
+- 持久化：桌面版仍使用 `localStorage` 的 `ai-learning-app-progress-v1`，但 Electron 生产包拥有独立 origin，因此与浏览器 Web 版进度互不自动同步。
+## 7. 可拆分开发阶段
 
 对齐 PRD 里程碑，拆为 7 个阶段，每阶段结束项目必须可运行。依赖为线性顺序（P0→P6），P3 与 P4 可在 P2 完成后并行。
 
@@ -148,13 +158,13 @@ flowchart LR
   P3 -.->|"启用 validate:animation"| Content
 ```
 
-## 7. 工程约束
+## 8. 工程约束
 
 - 数据与组件分离；动画步骤、诊断题配置化；状态集中。
 - TypeScript 无类型错误；ESLint 无严重错误；构建成功；路由刷新不报错。
 - 不引入重型 UI 框架与未使用的大型依赖。
 
-### 7.1 可执行内容门禁（分级 `validate:*`）
+### 8.1 可执行内容门禁（分级 `validate:*`）
 
 仅靠人工无法阻止数据漂移，骨架阶段（P1.5）即落地 `scripts/validate-content.ts`。为避免在动画/内容实现前被卡住，门禁拆为三个子命令，按阶段启用（规则与启用阶段以 [content-schema.md](content-schema.md) §6 为权威）：
 

@@ -1,5 +1,7 @@
 import type { HyperframeMaterial } from '../types';
 
+const rawAssetBase = import.meta.env?.BASE_URL ?? '/';
+const assetBase = rawAssetBase.endsWith('/') ? rawAssetBase : `${rawAssetBase}/`;
 export const hyperframeMaterials: HyperframeMaterial[] = [
   {
     id: 'text-to-answer',
@@ -7,7 +9,7 @@ export const hyperframeMaterials: HyperframeMaterial[] = [
     subtitle: '从自然语言到下一个 Token，串起模型回答的完整工程链路。',
     moduleId: 'm1',
     durationSeconds: 45,
-    src: '/hyperframes/text-to-answer/index.html',
+    src: `${assetBase}hyperframes/text-to-answer/index.html`,
     width: 1920,
     height: 1080,
     relatedConceptIds: [
