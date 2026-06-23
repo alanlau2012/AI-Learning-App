@@ -143,3 +143,22 @@ export interface GlossaryTerm {
   relatedConceptIds: string[]; // 指向已存在的 KnowledgePoint.id
   tags?: string[];
 }
+export interface HyperframeChapter {
+  id: string;
+  title: string;
+  startSeconds: number;
+  relatedConceptId?: string;
+}
+
+export interface HyperframeMaterial {
+  id: string;
+  title: string;
+  subtitle: string;
+  moduleId: string;
+  durationSeconds: number;
+  src: string;
+  width: number;
+  height: number;
+  relatedConceptIds: string[];
+  chapters: HyperframeChapter[];
+}
