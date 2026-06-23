@@ -3426,5 +3426,640 @@ export const demoConcepts: KnowledgePoint[] = [
                                   "trace",
                                   "observability"
                               ]
-    }
+    },
+{
+  "id": "prompt-context",
+  "title": "Prompt 与 Context",
+  "slug": "prompt-context",
+  "moduleId": "m4",
+  "order": 1,
+  "difficulty": "basic",
+  "estimatedMinutes": 9,
+  "tags": [
+    "Prompt",
+    "Context",
+    "上下文工程",
+    "Agent"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "Prompt 是本轮给模型的显式指令，Context 是模型在回答时可见的全部信息，包括系统规则、历史对话、检索材料、工具结果和运行时状态。",
+  "whyItMatters": "很多 AI 应用问题并不是模型不会，而是上下文里放错、放少或放乱了信息。企业应用要稳定，不能只打磨一句提示词，还要治理哪些信息进入窗口、顺序如何、证据是否可信、过期信息如何清理。",
+  "mentalModel": "把 Prompt 看成一次任务的指令单，把 Context 看成模型桌面上摊开的全部材料。指令再清楚，如果桌面上混着旧版本政策、无关聊天和错误检索片段，执行结果仍会偏离目标。",
+  "mechanism": [
+    "系统提示、开发者指令、用户问题、历史消息、RAG 片段和工具返回会共同组成模型可见上下文。",
+    "模型不会天然区分哪些信息权威、哪些只是噪音，应用需要通过层级、顺序、标签和裁剪策略表达优先级。",
+    "Prompt 负责声明目标、角色、约束和输出格式，Context 负责提供完成任务所需的事实、状态和证据。",
+    "上下文越长并不一定越好，冗余材料会增加成本、延迟和误读概率。",
+    "工程上需要记录每次请求的上下文构成，才能复盘质量问题而不是只改提示词。"
+  ],
+  "enterpriseCase": {
+    "title": "客服助手提示词正确但引用旧政策",
+    "scenario": "一家 SaaS 公司将 8 个产品线的客服助手接入知识库，每月约 18 万次对话，系统提示要求只能引用当前生效政策。",
+    "problem": "上线后一周内，退款类回答准确率从 91% 降到 76%，抽样发现 24% 错答引用了三个月前的旧政策片段。",
+    "analysis": "团队只检查了 Prompt，没有检查 Context 构成；检索结果中旧政策和新政策同时进入窗口，且没有生效日期和权威级标签。",
+    "solution": "为上下文增加来源、版本、生效日期和业务线标签，检索阶段过滤过期文档，并在 trace 中记录每轮进入窗口的片段。",
+    "takeaway": "Prompt 决定任务意图，Context 决定模型实际依据；两者必须一起治理。"
+  },
+  "pitfalls": [
+    "把 Prompt 优化当成全部上下文工程。",
+    "只追加更多材料，不处理权威性、时效性和冲突。",
+    "让历史对话无限累积，导致旧目标污染新任务。",
+    "线上只记录最终回答，不记录进入模型的上下文。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-prompt-context-1",
+    "type": "single",
+    "scenario": "客服助手系统提示写明只能引用最新政策，但退款问题仍频繁引用旧条款。抽样 trace 显示新旧政策片段同时进入模型窗口，旧片段排序更靠前。",
+    "question": "最优先应该处理什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "治理进入 Context 的材料版本、权威级和排序，并记录每轮上下文构成"
+      },
+      {
+        "id": "b",
+        "text": "把系统提示改得更严厉，重复三遍不要引用旧政策"
+      },
+      {
+        "id": "c",
+        "text": "扩大上下文窗口，让模型看到更多政策材料"
+      },
+      {
+        "id": "d",
+        "text": "提高温度，让回答更灵活"
+      }
+    ],
+    "correctOptionIds": [
+      "a"
+    ],
+    "explanation": "A 直接处理错误依据进入上下文的问题。B 是强干扰项，提示更严厉不能消除旧材料。C 会把更多噪音放进窗口。D 会增加不确定性，和政策准确性目标相反。",
+    "troubleshootingPath": [
+      "查看实际进入模型的上下文",
+      "核对材料版本、生效时间和来源权威级",
+      "调整检索过滤与排序策略",
+      "补充 trace 字段以便持续复盘",
+      "再评估 Prompt 是否需要简化或补充约束"
+    ],
+    "relatedConceptIds": [
+      "context-window",
+      "context-compression",
+      "context-pollution",
+      "system-prompt",
+      "agent-loop"
+    ]
+  },
+  "keyTakeaways": [
+    "Prompt 是指令，Context 是模型实际可见的工作材料。",
+    "上下文质量决定模型依据，不能只靠提示词补救。",
+    "上下文治理要覆盖来源、版本、优先级、裁剪和 trace。"
+  ],
+  "relatedConceptIds": [
+    "context-window",
+    "context-compression",
+    "context-pollution",
+    "system-prompt",
+    "agent-loop"
+  ]
+},
+{
+  "id": "system-prompt",
+  "title": "系统提示词",
+  "slug": "system-prompt",
+  "moduleId": "m4",
+  "order": 2,
+  "difficulty": "basic",
+  "estimatedMinutes": 8,
+  "tags": [
+    "System Prompt",
+    "安全边界",
+    "角色约束",
+    "上下文工程"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "系统提示词是在用户输入之前注入的高优先级指令，用来定义应用身份、任务边界、安全约束、输出规则和升级条件。",
+  "whyItMatters": "企业 AI 应用不能把关键规则交给用户临时描述。系统提示词把产品边界、合规要求和工作流约束固化到每次调用中，是让同一个模型在不同业务场景中表现稳定的基础。",
+  "mentalModel": "系统提示词更像岗位说明和操作规程，不是给模型的口号。它应该告诉模型什么任务能做、什么不能做、遇到不确定时怎么升级，而不是堆满形容词。",
+  "mechanism": [
+    "系统提示词通常位于上下文最高优先级位置，用来声明角色、目标、禁止事项和输出格式。",
+    "它需要和产品权限、工具白名单、数据范围、审计要求配套，否则文字约束容易被运行时链路绕开。",
+    "好的系统提示词会包含拒答、澄清、引用证据和人工升级规则。",
+    "系统提示词应按应用版本管理，并和线上评测、trace、事故复盘关联。",
+    "当任务差异很大时，应拆分应用或模板，而不是让一个系统提示词覆盖所有场景。"
+  ],
+  "enterpriseCase": {
+    "title": "销售助手越权生成折扣承诺",
+    "scenario": "B2B 销售助手服务 400 名销售，每天生成约 3200 条客户回复，允许读取 CRM 摘要但不能承诺价格和合同条款。",
+    "problem": "上线两周后，法务抽检发现 37 条回复暗示可提供超审批折扣，其中 11 条被销售直接发送给客户。",
+    "analysis": "系统提示只写了友好专业，没有写清价格承诺边界、审批升级条件和输出前风险检查；CRM 工具也没有给价格字段做权限隔离。",
+    "solution": "重写系统提示，明确禁止承诺折扣和法律条款，遇到价格请求必须生成待审批草稿；同时在工具层屏蔽未授权价格字段并记录 trace。",
+    "takeaway": "系统提示词要和权限、工具和审计一起构成边界，不能只靠风格描述。"
+  },
+  "pitfalls": [
+    "把系统提示词写成品牌语气指南，却缺少任务边界。",
+    "在系统提示中承诺模型无法验证的事实准确性。",
+    "一个提示词覆盖所有业务线，导致规则互相冲突。",
+    "只改提示词，不同步权限、工具白名单和评测用例。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-system-prompt-1",
+    "type": "single",
+    "scenario": "销售助手偶尔生成超审批折扣承诺。当前系统提示只有“保持专业、帮助销售提升转化”，工具层仍可读取 CRM 中的历史折扣字段。",
+    "question": "最优先的修复组合是什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "把温度调低，减少模型发挥"
+      },
+      {
+        "id": "b",
+        "text": "要求销售发送前人工阅读所有回复，但不改系统链路"
+      },
+      {
+        "id": "c",
+        "text": "补系统提示边界与升级规则，并在工具权限上屏蔽未授权价格字段"
+      },
+      {
+        "id": "d",
+        "text": "扩大上下文窗口，加入更多成交案例"
+      }
+    ],
+    "correctOptionIds": [
+      "c"
+    ],
+    "explanation": "C 同时处理规则缺失和工具越权。A 只能降低随机性，不能定义业务边界。B 有帮助但只是末端兜底，不是第一修复。D 可能让模型学到更多折扣话术，风险更高。",
+    "troubleshootingPath": [
+      "确认系统提示是否写明禁止事项和升级条件",
+      "检查工具可见字段是否超出应用权限",
+      "补充价格请求评测集",
+      "上线前用 trace 抽检高风险回复",
+      "建立版本化提示词变更记录"
+    ],
+    "relatedConceptIds": [
+      "prompt-context",
+      "tool-calling",
+      "permission-governance",
+      "eval",
+      "trace"
+    ]
+  },
+  "keyTakeaways": [
+    "系统提示词是应用级边界，不是单纯语气配置。",
+    "关键约束要同时落在提示、工具权限和评测中。",
+    "系统提示词需要版本管理和线上事故复盘。"
+  ],
+  "relatedConceptIds": [
+    "prompt-context",
+    "tool-calling",
+    "permission-governance",
+    "eval",
+    "trace"
+  ]
+},
+{
+  "id": "context-compression",
+  "title": "上下文压缩",
+  "slug": "context-compression",
+  "moduleId": "m4",
+  "order": 4,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Context Compression",
+    "摘要",
+    "长上下文",
+    "成本优化"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "上下文压缩是在不丢失关键决策信息的前提下，把历史对话、检索材料或工具结果裁剪、摘要、结构化，放入有限上下文窗口的工程策略。",
+  "whyItMatters": "Agent 和企业助手常常需要跨多轮任务工作。如果原样塞入全部历史，成本和延迟会上升，关键事实还会被噪音淹没；如果压缩过度，又会丢掉约束、证据和用户偏好。",
+  "mentalModel": "上下文压缩不是把文本变短，而是把工作现场整理成交接记录。交接记录要保留目标、已做决定、未解决问题、证据来源和风险，而不是把所有聊天压成一句泛泛摘要。",
+  "mechanism": [
+    "先区分必须保留的信息：当前目标、硬约束、用户偏好、已验证事实、工具结果和未关闭风险。",
+    "对冗长历史做结构化摘要，保留来源和时间戳，避免摘要变成无证据的新事实。",
+    "对检索材料采用片段裁剪、去重和按任务重排，而不是简单截断前 N 个 Token。",
+    "压缩结果需要可回溯，必要时能定位原始消息或文档片段。",
+    "压缩策略要用任务成功率、遗漏率、Token 成本和首字延迟共同评估。"
+  ],
+  "enterpriseCase": {
+    "title": "采购 Agent 多轮谈判后遗忘红线",
+    "scenario": "采购团队用 Agent 辅助供应商谈判，单个任务平均 26 轮对话，涉及报价、交期、合规条款和审批记录。",
+    "problem": "当历史超过 45k Token 后，系统自动截断早期对话，导致 14% 的草案遗漏“付款周期不得短于 60 天”的采购红线。",
+    "analysis": "链路只按时间截断，没有把硬约束和已审批结论提升为结构化任务状态；摘要也没有保留证据来源。",
+    "solution": "把上下文压缩为目标、硬约束、已确认条款、待确认问题和证据引用五栏，原文保留可回溯链接，并用 120 个历史任务回放评估遗漏率。",
+    "takeaway": "压缩的目标是保留决策状态，不是机械减少 Token。"
+  },
+  "pitfalls": [
+    "把压缩等同于通用摘要，丢掉约束和证据。",
+    "只按时间截断历史，早期硬规则最容易消失。",
+    "压缩后没有原文引用，错误摘要无法追责。",
+    "只看 Token 下降，不评估任务成功率和遗漏率。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-context-compression-1",
+    "type": "single",
+    "scenario": "采购 Agent 在长任务中经常忘记早期审批红线。日志显示历史超过窗口后按时间截断，摘要只有一段自然语言，没有来源引用。",
+    "question": "最优先应该怎样改？",
+    "options": [
+      {
+        "id": "a",
+        "text": "直接换更大上下文窗口的模型"
+      },
+      {
+        "id": "b",
+        "text": "把硬约束、已确认结论、待办和证据来源压缩成结构化任务状态"
+      },
+      {
+        "id": "c",
+        "text": "把所有历史都放进向量库，回答时随机召回"
+      },
+      {
+        "id": "d",
+        "text": "降低输出长度，节省更多 Token"
+      }
+    ],
+    "correctOptionIds": [
+      "b"
+    ],
+    "explanation": "B 保留任务决策状态和可回溯证据。A 是强干扰项，更大窗口只能推迟问题且成本更高。C 没有解决权威状态和召回排序。D 影响输出，不解决输入历史丢失。",
+    "troubleshootingPath": [
+      "识别被遗忘的是硬约束、事实还是偏好",
+      "检查当前裁剪和摘要策略",
+      "设计结构化任务状态字段",
+      "补原文引用和更新时间",
+      "用历史任务回放评估遗漏率与成本"
+    ],
+    "relatedConceptIds": [
+      "context-window",
+      "prompt-context",
+      "context-pollution",
+      "memory",
+      "agent-loop"
+    ]
+  },
+  "keyTakeaways": [
+    "上下文压缩要保留决策状态和证据链。",
+    "时间截断是最危险也最常见的简化策略。",
+    "压缩效果要用质量、成本和延迟一起验证。"
+  ],
+  "relatedConceptIds": [
+    "context-window",
+    "prompt-context",
+    "context-pollution",
+    "memory",
+    "agent-loop"
+  ]
+},
+{
+  "id": "context-pollution",
+  "title": "上下文污染",
+  "slug": "context-pollution",
+  "moduleId": "m4",
+  "order": 5,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Context Pollution",
+    "上下文污染",
+    "提示注入",
+    "质量风险"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "上下文污染是指无关、过期、冲突、低可信或恶意的信息进入模型可见上下文，干扰模型对当前任务的判断。",
+  "whyItMatters": "Agent 越依赖检索、工具和多轮历史，越容易把外部噪音带进决策。污染不会像接口错误那样明显报错，而是让模型看似正常地给出错误结论，是企业 AI 最隐蔽的质量风险之一。",
+  "mentalModel": "上下文污染像把错误便利贴贴到操作台上。模型可能仍然按流程工作，但它参考的是被污染的线索，最后错误看起来像推理失败，根因却在输入材料。",
+  "mechanism": [
+    "污染来源包括过期文档、低质量检索片段、用户提示注入、历史对话残留和工具返回的未校验数据。",
+    "当上下文中出现冲突信息时，模型可能选择位置更靠前、措辞更强或更近期的内容，而不一定选择权威来源。",
+    "污染会放大幻觉、越权操作和错误工具调用，尤其在自动执行链路中风险更高。",
+    "治理污染需要来源分级、输入过滤、冲突检测、隔离不可信内容和 trace 复盘。",
+    "高风险任务应把外部材料作为待验证证据，而不是默认事实。"
+  ],
+  "enterpriseCase": {
+    "title": "内部知识库被旧页面污染",
+    "scenario": "IT 服务台助手接入 12 万篇内部文档和工单历史，每日处理约 9000 次员工咨询。",
+    "problem": "VPN 配置问题的首解率从 82% 降到 61%，大量回答引用了旧网关地址，导致员工按错步骤操作。",
+    "analysis": "检索索引保留了迁移前页面，旧页面点击量高、关键词匹配强，被排在新文档前；上下文没有来源权威级和失效标记。",
+    "solution": "清理过期页面，为文档增加生效状态和系统边界标签，检索时降低工单历史权重，并对冲突答案触发澄清或人工确认。",
+    "takeaway": "上下文污染通常来自看似合法的数据源，必须靠元数据和过滤策略治理。"
+  },
+  "pitfalls": [
+    "认为只要来源是内部系统就一定可信。",
+    "把用户上传内容和系统规则放在同一权威层级。",
+    "只关注提示注入，忽视过期文档和历史残留。",
+    "没有 trace，无法知道错误答案引用了哪段材料。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-context-pollution-1",
+    "type": "single",
+    "scenario": "IT 助手频繁给出旧 VPN 网关地址。检索日志显示旧页面和新页面同时命中，旧页面点击量高所以排序靠前，回答 trace 引用了旧页面。",
+    "question": "最优先应该做什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "提高模型能力，让模型自己判断哪个页面新"
+      },
+      {
+        "id": "b",
+        "text": "把旧页面也加入系统提示，提醒模型不要使用"
+      },
+      {
+        "id": "c",
+        "text": "增加更多历史工单，提高召回率"
+      },
+      {
+        "id": "d",
+        "text": "清理或降权过期页面，补生效状态和权威级，并记录引用 trace"
+      }
+    ],
+    "correctOptionIds": [
+      "d"
+    ],
+    "explanation": "D 直接治理污染源和可追踪性。A 把数据治理问题推给模型。B 会让旧内容继续进入上下文，是强干扰项。C 可能增加更多噪音。",
+    "troubleshootingPath": [
+      "定位错误答案引用的上下文片段",
+      "检查片段来源、版本和生效状态",
+      "清理或降权过期与低可信材料",
+      "补冲突检测和权威来源优先级",
+      "回放高频问题验证首解率"
+    ],
+    "relatedConceptIds": [
+      "prompt-context",
+      "context-window",
+      "context-compression",
+      "hallucination",
+      "trace"
+    ]
+  },
+  "keyTakeaways": [
+    "上下文污染是输入材料问题，不只是模型推理问题。",
+    "内部来源也需要版本、权威级和生效状态。",
+    "trace 是定位污染片段和复盘错误的关键。"
+  ],
+  "relatedConceptIds": [
+    "prompt-context",
+    "context-window",
+    "context-compression",
+    "hallucination",
+    "trace"
+  ]
+},
+{
+  "id": "layered-session",
+  "title": "分层会话",
+  "slug": "layered-session",
+  "moduleId": "m4",
+  "order": 6,
+  "difficulty": "advanced",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Layered Session",
+    "会话状态",
+    "Agent",
+    "上下文工程"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "分层会话是把一次 AI 交互中的长期偏好、任务状态、短期对话、工具结果和审计记录拆成不同层级管理，而不是把所有内容混在同一段历史里。",
+  "whyItMatters": "企业 Agent 需要既记得任务进度，又不能让过期工具结果、临时偏好或敏感信息长期污染后续请求。分层会话让上下文可裁剪、可审计、可恢复，也能降低成本和安全风险。",
+  "mentalModel": "分层会话像项目工作台：长期规则放在制度柜，当前任务放在看板，刚刚查到的工具结果放在临时夹，审计日志单独归档。不同材料有不同生命周期。",
+  "mechanism": [
+    "长期层保存稳定偏好、角色和组织规则，但必须受权限和版本控制约束。",
+    "任务层保存目标、计划、当前状态、已完成步骤、待确认问题和失败重试记录。",
+    "短期对话层保留最近几轮自然语言交互，用于维持语义连贯。",
+    "工具层保存结构化返回和来源，按新鲜度、可信度和任务相关性决定是否进入上下文。",
+    "审计层记录原始消息、工具调用、模型输出和人工修改，用于追责和复盘，但不必全部回灌给模型。"
+  ],
+  "enterpriseCase": {
+    "title": "报销助手把临时审批意见带到下一位员工",
+    "scenario": "财务共享中心上线报销 Agent，覆盖 6000 名员工，单日约 2500 个报销会话，支持读取发票、制度和审批流。",
+    "problem": "灰度期间出现 19 起错误建议：上一位经理对特例报销的临时意见被带入下一位员工的普通报销判断。",
+    "analysis": "系统把最近对话、审批工具结果和长期偏好放在同一个会话历史中，切换用户后只清空了 UI 消息，没有清空任务层和工具层状态。",
+    "solution": "按用户、任务和工具结果拆分会话层级；跨用户强制隔离任务状态，工具结果设置任务级 TTL，并把审计日志只用于复盘不回灌模型。",
+    "takeaway": "会话不是一段聊天记录，而是一组生命周期不同的状态层。"
+  },
+  "pitfalls": [
+    "把所有历史消息都当成同等权重的上下文。",
+    "用户切换时只清 UI，不清任务状态和工具缓存。",
+    "让审计日志长期进入模型窗口，造成隐私和污染风险。",
+    "没有任务级状态，Agent 只能依赖自然语言历史猜进度。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-layered-session-1",
+    "type": "single",
+    "scenario": "报销 Agent 偶尔把上一位员工的特例审批意见用于下一位员工。排查发现 UI 对话已清空，但工具结果和任务状态仍挂在同一个后端 session 上。",
+    "question": "最优先应该调整什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "把系统提示改成不要混淆用户"
+      },
+      {
+        "id": "b",
+        "text": "扩大日志保留时间，方便事后查看"
+      },
+      {
+        "id": "c",
+        "text": "按用户和任务隔离会话层，给工具结果设置任务级生命周期"
+      },
+      {
+        "id": "d",
+        "text": "把所有历史压缩成更短摘要"
+      }
+    ],
+    "correctOptionIds": [
+      "c"
+    ],
+    "explanation": "C 处理状态串用的根因。A 只能提示模型，不能隔离后端状态。B 有助审计但不阻止污染。D 可能把错误状态压缩后继续传播。",
+    "troubleshootingPath": [
+      "确认污染信息来自对话、任务状态还是工具结果",
+      "检查 session key 是否包含用户和任务边界",
+      "为工具结果设置 TTL 与作用域",
+      "区分模型上下文和审计日志",
+      "用跨用户切换用例回归验证"
+    ],
+    "relatedConceptIds": [
+      "prompt-context",
+      "context-compression",
+      "context-pollution",
+      "memory",
+      "tool-calling"
+    ]
+  },
+  "keyTakeaways": [
+    "分层会话把不同生命周期的信息分开管理。",
+    "任务状态、工具结果和审计日志不应混成普通聊天历史。",
+    "会话隔离是 Agent 安全和稳定性的基础。"
+  ],
+  "relatedConceptIds": [
+    "prompt-context",
+    "context-compression",
+    "context-pollution",
+    "memory",
+    "tool-calling"
+  ]
+},
+{
+  "id": "tool-calling",
+  "title": "工具调用",
+  "slug": "tool-calling",
+  "moduleId": "m4",
+  "order": 11,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Tool Calling",
+    "Function Calling",
+    "Agent Loop",
+    "工具权限"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": true,
+  "definition": "工具调用是让模型在生成自然语言之外，按约定参数请求外部函数、系统或数据源执行动作，并把返回结果纳入后续推理的机制。",
+  "whyItMatters": "Agent 能从聊天变成做事，关键就在于工具调用。但工具调用也是权限、可靠性和审计风险的入口：模型决定调用什么，系统必须决定能不能调用、参数是否合规、结果是否可信、失败如何恢复。",
+  "mentalModel": "工具调用不是给模型一把万能钥匙，而是给它一组带权限、参数校验和回执的工单通道。模型可以提出要办什么，平台负责检查、执行和记录。",
+  "mechanism": [
+    "平台向模型暴露工具名称、用途、参数 schema、权限边界和调用示例。",
+    "模型在 Agent Loop 中观察任务状态，决定是否需要工具以及使用哪组参数。",
+    "运行时校验参数、权限、速率和敏感操作风险，通过后才真正执行工具。",
+    "工具返回结构化结果或错误，模型需要基于结果继续推理、重试、澄清或转人工。",
+    "每次工具调用都应进入 trace，便于排查错误动作、成本异常和权限问题。"
+  ],
+  "animation": {
+    "type": "agent-loop",
+    "title": "工具调用如何进入 Agent Loop",
+    "steps": [
+      {
+        "id": "s1",
+        "title": "目标进入循环",
+        "description": "用户给出需要完成的任务，系统同时带入权限、可用工具和业务约束。",
+        "highlightTargets": [
+          "goal",
+          "constraints"
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "观察上下文",
+        "description": "Agent 读取当前对话、任务状态和可用证据，判断是否仅靠模型回答足够。",
+        "highlightTargets": [
+          "observe",
+          "context"
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "决定调用工具",
+        "description": "当任务需要外部事实或动作时，模型生成工具调用意图和参数，进入执行前校验。",
+        "highlightTargets": [
+          "plan",
+          "tools"
+        ]
+      },
+      {
+        "id": "s4",
+        "title": "执行并返回结果",
+        "description": "运行时校验权限和参数后执行工具，工具结果回到循环中成为新的上下文。",
+        "highlightTargets": [
+          "act",
+          "tool-result"
+        ]
+      },
+      {
+        "id": "s5",
+        "title": "校验结果",
+        "description": "Agent 检查工具结果是否满足目标，失败时重试、澄清或升级人工。",
+        "highlightTargets": [
+          "check",
+          "evidence"
+        ]
+      },
+      {
+        "id": "s6",
+        "title": "继续或停止",
+        "description": "如果目标未完成，循环继续；如果完成或触发风险条件，则停止或转人工。",
+        "highlightTargets": [
+          "continue",
+          "stop",
+          "human-review"
+        ]
+      }
+    ]
+  },
+  "enterpriseCase": {
+    "title": "工单 Agent 调错权限工具",
+    "scenario": "IT 运维 Agent 每天处理约 1400 个账号和权限工单，可调用查询用户、重置密码、开通权限和创建审批单等工具。",
+    "problem": "灰度第 3 天出现 7 起错误开通权限，均来自模型把“查询某系统权限”误判为“开通某系统权限”。",
+    "analysis": "工具描述过于相似，参数 schema 缺少操作意图字段，高风险工具没有二次确认和审批校验；trace 只记录最终文本，没有记录工具参数。",
+    "solution": "重命名工具并拆分只读/写入能力，为写工具增加审批单号、影响范围和人工确认校验，所有调用参数进入 trace。",
+    "takeaway": "工具调用的核心不是能调通，而是权限、参数、风险和审计闭环。"
+  },
+  "pitfalls": [
+    "把工具描述写得含糊，导致模型误选工具。",
+    "只校验参数类型，不校验业务权限和操作风险。",
+    "让写入型工具无需确认直接执行。",
+    "工具失败后让模型自由重试，造成重复动作。",
+    "不记录工具调用参数，事故后无法复盘。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-tool-calling-1",
+    "type": "single",
+    "scenario": "运维 Agent 把查询权限误执行为开通权限。两个工具描述相似，高风险写工具无需审批单号，trace 里没有保存调用参数。",
+    "question": "最优先的修复是什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "拆清只读/写入工具，补权限与审批校验，并记录工具调用参数"
+      },
+      {
+        "id": "b",
+        "text": "把模型换成更强版本，让它更会理解工具"
+      },
+      {
+        "id": "c",
+        "text": "在系统提示中强调不要调错工具"
+      },
+      {
+        "id": "d",
+        "text": "失败时自动重试同一个工具三次"
+      }
+    ],
+    "correctOptionIds": [
+      "a"
+    ],
+    "explanation": "A 同时解决工具边界、权限和审计。B 是强干扰项，模型更强也不能替代运行时校验。C 有帮助但不足以控制写入风险。D 会放大错误动作。",
+    "troubleshootingPath": [
+      "复盘错误调用的工具名、参数和上下文",
+      "检查工具描述与 schema 是否区分只读和写入",
+      "为高风险工具增加权限、审批和人工确认",
+      "记录调用参数、结果和错误码",
+      "用历史工单回放评估误调用率"
+    ],
+    "relatedConceptIds": [
+      "agent-loop",
+      "system-prompt",
+      "layered-session",
+      "human-in-the-loop",
+      "permission-governance",
+      "trace"
+    ]
+  },
+  "keyTakeaways": [
+    "工具调用让 Agent 能执行外部动作，也引入权限和审计风险。",
+    "写入型工具必须有参数校验、权限控制和升级条件。",
+    "工具结果要回到 Agent Loop 中被校验，而不是默认成功。",
+    "trace 应记录工具选择、参数、返回和失败路径。"
+  ],
+  "relatedConceptIds": [
+    "agent-loop",
+    "system-prompt",
+    "layered-session",
+    "human-in-the-loop",
+    "permission-governance",
+    "trace"
+  ]
+}
 ];

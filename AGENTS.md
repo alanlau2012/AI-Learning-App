@@ -4,17 +4,18 @@
 
 ## 0. 当前状态快照（交接必读）
 
-截至 **2026-06-22**：
+截至 **2026-06-23**：
 
-- 当前代码基线：当前 `HEAD`（`feat(content): add mvp 0.2 wave 3 lessons`；具体 hash 以 `git log -1` 为准）。
-- 已封板范围：**MVP 0.2 Wave 3**；M1 / M2 / M3 三个模块已完整上线。
-- 当前上线内容：**32 / 56 讲**；剩余 `stub`：**24 讲**。
-- 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `3/16`，M5 `1/6`，M6 `0/6`。
+- 当前代码基线：当前工作区基于 `be4472e`（`feat(content): add mvp 0.2 wave 3 lessons`）完成 **MVP 0.3 Wave 4A**；Wave 4A 改动尚待提交，具体 hash 以 `git log -1` / 后续提交为准。
+- 已封板范围：**MVP 0.3 Wave 4A**；M1 / M2 / M3 已完整上线，M4 已完成上下文工程与 Agent 基础链路首批扩展。
+- 当前上线内容：**38 / 56 讲**；剩余 `stub`：**18 讲**。
+- 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `9/16`，M5 `1/6`，M6 `0/6`。
 - Wave 1 已提交：`09bfc13`（tag: `mvp-0.2-wave1`），新增 7 讲。
 - Wave 2 已提交：`2fd0fb2`，新增 7 讲。
-- Wave 3 已完成待提交：新增 6 讲，`maas` / `cost-routing` / `capability-routing` / `cache-system` / `rate-limit-circuit-break` / `sla`。
-- Wave 3 验证：`npm run validate:content`、`npm run typecheck`、`npm run lint`、`npm run build` 均 PASS；见 `reports/mvp-0.2-wave3-summary.md` 与 `reports/e2e-verification-mvp-0.2-wave3.md`。
-- 下一轮建议：单独启动 **M4 主体扩展**，优先冻结上下文与 Agent 基础链路范围；不要误以为 M3 仍待开发。
+- Wave 3 已提交：`be4472e`，新增 6 讲，`maas` / `cost-routing` / `capability-routing` / `cache-system` / `rate-limit-circuit-break` / `sla`。
+- Wave 4A 已完成待提交：新增 6 讲，`prompt-context` / `system-prompt` / `context-compression` / `context-pollution` / `layered-session` / `tool-calling`。
+- Wave 4A 验证：`npm run validate:content`、`npm run typecheck`、`npm run lint`、`npm run build` 均 PASS；见 `reports/mvp-0.3-wave4a-summary.md` 与 `reports/e2e-verification-mvp-0.3-wave4a.md`。
+- 下一轮建议：启动 **MVP 0.3 Wave 4B**，补齐 `agents-md` / `repo-context` / `spec-driven-development` / `subagent` / `memory` / `human-in-the-loop`；`multi-agent` 留作 M4 收口。
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。
