@@ -4061,5 +4061,582 @@ export const demoConcepts: KnowledgePoint[] = [
     "permission-governance",
     "trace"
   ]
+},
+{
+  "id": "agents-md",
+  "title": "AGENTS.md",
+  "slug": "agents-md",
+  "moduleId": "m4",
+  "order": 7,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "AGENTS.md",
+    "协作约束",
+    "仓库说明",
+    "Agent"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "AGENTS.md 是写给后续开发 Agent 和工程师的仓库级操作说明，用来固定项目边界、文件所有权、验证命令、内容流水线和不可破坏的工程约定。",
+  "whyItMatters": "Agent 不会自动知道一个仓库里的隐性协作规则。没有 AGENTS.md，后续执行者可能读错权威文档、改错目录、绕过审核流程，甚至把写作模板字段直接写进生产数据。",
+  "mentalModel": "把 AGENTS.md 看成进入工地前必须看的施工牌：它不替代图纸，但告诉每个角色能进哪片区域、先读哪份图纸、完工前必须验收什么。",
+  "mechanism": [
+    "AGENTS.md 应先声明当前项目状态，让接手者知道哪些模块已封板、哪些范围仍是 stub。",
+    "它要列出文件所有权和角色边界，避免内容 Agent、审核 Agent、动画 Agent 直接改核心代码。",
+    "它要指向权威规格和命令门禁，让实现可追溯到 docs 和可执行验证。",
+    "它要记录首版不做什么，防止后续 Agent 擅自引入后端、登录、真实模型 API 或架构扩张。",
+    "每次封板后必须刷新 AGENTS.md，否则后续 Agent 会基于过期状态继续开发。"
+  ],
+  "enterpriseCase": {
+    "title": "内容 Agent 绕过流水线写入生产数据",
+    "scenario": "一个 AI 学习应用同时有主开发、内容、审核和 E2E 四类 Agent 协作，每轮内容扩展约 6 到 12 讲。",
+    "problem": "早期一次扩展中，内容 Agent 直接修改 src/data，把 oneSentence 和 commonPitfalls 等写作字段混入权威数据，导致 validate:content 失败。",
+    "analysis": "仓库没有把文件所有权、draft -> review -> 入库流程和 schema 映射规则写在开工入口，Agent 只按局部任务理解权限。",
+    "solution": "在 AGENTS.md 中冻结角色权限、目录边界、验证命令和封板刷新规则；每轮开工前先读 AGENTS.md 与 project-board。",
+    "takeaway": "多 Agent 协作中，AGENTS.md 是降低上下文丢失和权限误用的第一道工程防线。"
+  },
+  "pitfalls": [
+    "把 AGENTS.md 写成泛泛介绍，没有明确可写范围和禁止事项。",
+    "封板后不更新当前状态，导致后续 Agent 重做已完成模块。",
+    "只写命令，不写文件所有权和内容流水线。",
+    "让 AGENTS.md 与 docs/project-board.md 互相矛盾。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-agents-md-1",
+    "type": "single",
+    "scenario": "一次内容扩展中，内容 Agent 直接改了 src/data/concepts.ts，并把写作模板字段 oneSentence 写进生产数据。validate:content 失败后发现 AGENTS.md 没写文件所有权，也没有说明 draft -> review -> 入库流程。",
+    "question": "最优先应该补什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "要求所有 Agent 以后自行阅读更多源码"
+      },
+      {
+        "id": "b",
+        "text": "在 AGENTS.md 中明确角色可写范围、内容流水线、schema 映射和封板门禁"
+      },
+      {
+        "id": "c",
+        "text": "删除内容草稿目录，减少混乱"
+      },
+      {
+        "id": "d",
+        "text": "把 validate:content 改成忽略未知字段"
+      }
+    ],
+    "correctOptionIds": [
+      "b"
+    ],
+    "explanation": "B 直接补齐协作入口规则。A 太依赖个人习惯。C 会破坏既定内容流水线。D 是危险绕过，会让 schema 外字段进入生产数据。",
+    "troubleshootingPath": [
+      "复盘失败文件和越权角色",
+      "检查 AGENTS.md 是否声明文件所有权",
+      "补 draft/review/入库流程和验证命令",
+      "同步 project-board 当前状态",
+      "用下一轮内容合入验证规则是否可执行"
+    ],
+    "relatedConceptIds": [
+      "prompt-context",
+      "repo-context",
+      "spec-driven-development",
+      "subagent",
+      "human-in-the-loop"
+    ]
+  },
+  "keyTakeaways": [
+    "AGENTS.md 是多 Agent 协作的开工入口和边界说明。",
+    "它必须包含当前状态、文件所有权、硬边界和验证门禁。",
+    "每次封板后不刷新 AGENTS.md，就会制造下一轮上下文污染。"
+  ],
+  "relatedConceptIds": [
+    "prompt-context",
+    "repo-context",
+    "spec-driven-development",
+    "subagent",
+    "human-in-the-loop"
+  ]
+},
+{
+  "id": "repo-context",
+  "title": "仓库上下文",
+  "slug": "repo-context",
+  "moduleId": "m4",
+  "order": 8,
+  "difficulty": "advanced",
+  "estimatedMinutes": 11,
+  "tags": [
+    "Repo Context",
+    "代码理解",
+    "上下文工程",
+    "开发 Agent"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "仓库上下文是开发 Agent 执行任务前需要读取和整理的项目事实集合，包括架构文档、类型定义、入口文件、测试、验证命令、Git 状态和近期变更。",
+  "whyItMatters": "代码 Agent 的很多错误不是写代码能力不足，而是读错项目事实。仓库越大，越需要有选择地收集上下文：读太少会误判架构，读太多会淹没关键约束。",
+  "mentalModel": "仓库上下文像手术前的病历摘要：医生不需要背完整医院档案，但必须知道病史、禁忌、影像、当前用药和这次手术的目标部位。",
+  "mechanism": [
+    "先读 AGENTS.md、README、project-board 和相关规格，确认当前阶段和不可破坏约定。",
+    "再定位任务相关的类型、数据源、组件、工具函数和测试，而不是全仓库漫游。",
+    "用 Git 状态区分自己的改动、用户已有改动和未跟踪文件，避免误删或覆盖。",
+    "把上下文压缩成可执行判断：该改哪些文件、不能改哪些文件、验收跑哪些命令。",
+    "遇到规格冲突时，以权威文档和现有测试为准，并把冲突显式登记。"
+  ],
+  "enterpriseCase": {
+    "title": "代码助手只读组件导致进度口径改错",
+    "scenario": "一个学习应用请 Agent 修改模块页进度展示，仓库有 docs/content-schema.md、progressStore 和 progress utils 三处相关事实。",
+    "problem": "Agent 只读了 ModulePage，把总进度改成只统计已发布内容，结果和 56 讲地图口径冲突，E2E 发现模块计数不一致。",
+    "analysis": "执行前没有建立仓库上下文包，忽略了 content-schema 中 56 讲权威计数和 progress.ts 的派生计算约定。",
+    "solution": "重新收集 AGENTS.md、content-schema、progress utils 和模块页调用链，确认总进度按 56 讲、主路径按 published 过滤，再做局部修复。",
+    "takeaway": "仓库上下文不是读最多文件，而是读对能决定行为口径的文件。"
+  },
+  "pitfalls": [
+    "只读报错文件，不读调用链和权威规格。",
+    "把搜索结果数量当成理解程度，缺少结构化判断。",
+    "忽略 Git dirty 状态，覆盖用户已有改动。",
+    "不记录上下文来源，后续复盘不知道决策依据。",
+    "把过期报告当成当前状态。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-repo-context-1",
+    "type": "single",
+    "scenario": "Agent 接到“修正模块进度”的任务后只读了页面组件，把总进度改成只统计 published 内容。后来发现 docs/content-schema.md 明确 56 讲地图必须完整保留，progress.ts 也有总进度派生约定。",
+    "question": "下一次最应该如何避免同类问题？",
+    "options": [
+      {
+        "id": "a",
+        "text": "先把全仓库所有文件都塞进上下文"
+      },
+      {
+        "id": "b",
+        "text": "只依赖 TypeScript 报错定位相关文件"
+      },
+      {
+        "id": "c",
+        "text": "让用户口头确认每个字段含义"
+      },
+      {
+        "id": "d",
+        "text": "建立任务相关仓库上下文包：权威规格、数据源、调用链、测试和 Git 状态"
+      }
+    ],
+    "correctOptionIds": [
+      "d"
+    ],
+    "explanation": "D 用最小但关键的事实集合约束实现。A 会造成上下文噪音。B 只能发现类型问题，不能发现产品口径。C 成本高且很多事实可从仓库读取。",
+    "troubleshootingPath": [
+      "确认任务影响的用户行为",
+      "读取 AGENTS.md 和权威规格",
+      "追踪数据源与派生工具",
+      "检查 Git 状态和近期报告",
+      "把验收命令绑定到改动范围"
+    ],
+    "relatedConceptIds": [
+      "agents-md",
+      "context-compression",
+      "spec-driven-development",
+      "issue-fix-agent",
+      "code-review-agent"
+    ]
+  },
+  "keyTakeaways": [
+    "仓库上下文要服务实现判断，不是机械读取更多文件。",
+    "权威规格、数据源、调用链、测试和 Git 状态是开发前核心事实。",
+    "上下文包越清晰，Agent 越不容易越界重构或覆盖用户改动。"
+  ],
+  "relatedConceptIds": [
+    "agents-md",
+    "context-compression",
+    "spec-driven-development",
+    "issue-fix-agent",
+    "code-review-agent"
+  ]
+},
+{
+  "id": "spec-driven-development",
+  "title": "规格驱动开发",
+  "slug": "spec-driven-development",
+  "moduleId": "m4",
+  "order": 9,
+  "difficulty": "advanced",
+  "estimatedMinutes": 11,
+  "tags": [
+    "Spec-driven Development",
+    "规格",
+    "验收标准",
+    "工程流程"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "规格驱动开发是先冻结产品、架构、数据、视觉和验收规则，再让实现、测试和复盘都围绕这些规格闭环，而不是边写边猜需求。",
+  "whyItMatters": "AI 辅助开发速度很快，也更容易把示例、占位文案和临时想法误当权威。规格驱动把“哪个文档说了算、改完怎么验收、哪些边界不能碰”显式化，减少 Agent 自作主张。",
+  "mentalModel": "规格不是写给归档系统看的文档，而是开发时的导航仪。它告诉 Agent 目标、道路限制、禁止驶入区域和到达后如何判定成功。",
+  "mechanism": [
+    "先识别权威规格：产品规格、架构文档、内容 schema、视觉规范和验收清单分别约束不同层面。",
+    "实现前把需求拆成可验证的行为和数据变化，避免只按页面感觉改。",
+    "当原型、示例和 schema 冲突时，必须按预先声明的权威顺序决策。",
+    "代码改动要能追溯到具体规格条目，封板报告要记录验证命令和剩余风险。",
+    "规格变更本身也要走同步更新：类型、校验脚本、文档和测试必须一起改。"
+  ],
+  "enterpriseCase": {
+    "title": "原型占位数字被误当正式计数",
+    "scenario": "一个学习 App 的 design.md 示例中有 50 讲和 0/12 占位数字，content-schema.md 则登记了 56 讲和 10/10/8/16/6/6 模块构成。",
+    "problem": "一次 UI 调整中，Agent 直接复制原型数字，导致首页显示 50 讲，模块页计数和数据层 56 讲冲突。",
+    "analysis": "实现没有先识别权威规格。视觉文档只负责风格，讲数和模块计数应以 content-schema 为准。",
+    "solution": "在 AGENTS.md 和 content-schema 中明确数量权威来源；实现时从数据层派生计数，并用 validate:structure 验证 56 登记。",
+    "takeaway": "规格驱动开发的关键是先判断哪份规格对哪个问题有权威性。"
+  },
+  "pitfalls": [
+    "把高保真原型里的占位数字当成真实数据。",
+    "只按用户一句话改代码，不回查已有规格边界。",
+    "规格改了但类型和校验脚本没同步。",
+    "验收只看页面能跑，不检查权威数据和命令门禁。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-spec-driven-development-1",
+    "type": "single",
+    "scenario": "设计原型中写着 50 讲，但 content-schema.md 登记表写明 56 讲。Agent 实现首页时复制了原型数字，导致 validate:structure 虽通过但 UI 口径错误。",
+    "question": "最优先应该建立什么规则？",
+    "options": [
+      {
+        "id": "a",
+        "text": "明确不同规格的权威边界，讲数一律从 content-schema/数据层派生"
+      },
+      {
+        "id": "b",
+        "text": "让设计稿以后不要出现任何数字"
+      },
+      {
+        "id": "c",
+        "text": "把 validate:structure 改成读取 UI 文案"
+      },
+      {
+        "id": "d",
+        "text": "上线前人工浏览首页即可"
+      }
+    ],
+    "correctOptionIds": [
+      "a"
+    ],
+    "explanation": "A 建立权威来源和实现方式。B 不现实，原型需要占位。C 方向反了，UI 应服从数据权威。D 只能发现部分问题，不能防止口径漂移。",
+    "troubleshootingPath": [
+      "列出冲突规格和涉及字段",
+      "判断每份规格的权威范围",
+      "把 UI 文案改为数据派生",
+      "补文档提示防止复发",
+      "运行结构和构建门禁"
+    ],
+    "relatedConceptIds": [
+      "agents-md",
+      "repo-context",
+      "eval",
+      "trace",
+      "context-pollution"
+    ]
+  },
+  "keyTakeaways": [
+    "规格驱动不是多写文档，而是让实现和验收有明确权威来源。",
+    "不同规格负责不同问题，冲突时要按权威边界决策。",
+    "规格变更必须同步类型、校验、文档和报告。"
+  ],
+  "relatedConceptIds": [
+    "agents-md",
+    "repo-context",
+    "eval",
+    "trace",
+    "context-pollution"
+  ]
+},
+{
+  "id": "subagent",
+  "title": "Subagent",
+  "slug": "subagent",
+  "moduleId": "m4",
+  "order": 13,
+  "difficulty": "advanced",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Subagent",
+    "任务委派",
+    "多 Agent",
+    "协作边界"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "Subagent 是由主 Agent 派生或调用的专门执行者，负责在明确目标、上下文、权限和输出格式下完成一个子任务，再把结果交回主 Agent。",
+  "whyItMatters": "复杂任务常常需要并行调查、内容审核、安全检查或浏览器验证。Subagent 能提高吞吐，但如果边界不清，它也会制造重复修改、权限越界和结论冲突。",
+  "mentalModel": "Subagent 像被派去做专项检查的同事。你不能只说“去看看”，而要说明看什么、不能碰什么、结果按什么格式回来、谁有最终合入权。",
+  "mechanism": [
+    "主 Agent 先把总目标拆成独立子任务，确认子任务之间不会争用同一高风险文件。",
+    "每个 Subagent 只获得必要上下文、可写范围、验收标准和期望输出格式。",
+    "Subagent 的产物应回到主 Agent 汇总，由主 Agent 做冲突消解和最终合入。",
+    "对内容、审核、动画和 E2E 等角色，应明确哪些只能产草稿或报告，不能直接改核心数据。",
+    "当 Subagent 发现范围外问题，应报告而不是擅自扩大任务。"
+  ],
+  "enterpriseCase": {
+    "title": "两个 Subagent 同时改核心数据冲突",
+    "scenario": "一个课程应用让内容 Subagent 写草稿、审核 Subagent 做质量检查，同时主 Agent 准备合入 6 讲内容。",
+    "problem": "内容 Subagent 直接修改 src/data，审核 Subagent 又在同一文件追加审查意见，最终产生冲突并混入 schema 外字段。",
+    "analysis": "任务委派只说明了目标，没有说明可写范围和交付格式；主 Agent 也没有保留唯一合入权。",
+    "solution": "把内容 Subagent 限定到 content/drafts，审核 Subagent 限定到 content/reviewed，主 Agent 负责映射入库和跑门禁。",
+    "takeaway": "Subagent 提升效率的前提是边界清楚，最终集成权必须集中。"
+  },
+  "pitfalls": [
+    "把模糊目标直接丢给 Subagent，导致产物不可合并。",
+    "多个 Subagent 同时写同一核心文件。",
+    "Subagent 只给结论不给证据，主 Agent 无法复核。",
+    "发现新问题后擅自扩大范围。",
+    "把 Subagent 的报告直接当成已验证事实。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-subagent-1",
+    "type": "single",
+    "scenario": "主 Agent 派内容和审核两个 Subagent 处理同一批课程，但没有限制可写范围。两者都改了 src/data/demoConcepts.ts，产生冲突并混入审核备注。",
+    "question": "最优先应该调整什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "以后不再使用 Subagent"
+      },
+      {
+        "id": "b",
+        "text": "让两个 Subagent 先自己协商谁改文件"
+      },
+      {
+        "id": "c",
+        "text": "为每个 Subagent 固定上下文、可写目录、交付格式，并保留主 Agent 唯一合入权"
+      },
+      {
+        "id": "d",
+        "text": "把 src/data 拆成更多文件，降低冲突概率"
+      }
+    ],
+    "correctOptionIds": [
+      "c"
+    ],
+    "explanation": "C 解决委派边界和最终集成问题。A 放弃了并行价值。B 仍缺少主控规则。D 可能有帮助，但不解决权限和交付格式。",
+    "troubleshootingPath": [
+      "确认冲突文件和越权角色",
+      "拆分子任务的输入和输出",
+      "限定每个 Subagent 的可写范围",
+      "要求证据和结论分开提交",
+      "由主 Agent 统一合入并验证"
+    ],
+    "relatedConceptIds": [
+      "agents-md",
+      "repo-context",
+      "human-in-the-loop",
+      "multi-agent",
+      "tool-calling"
+    ]
+  },
+  "keyTakeaways": [
+    "Subagent 适合专门子任务，不适合无边界自由行动。",
+    "委派必须包含目标、上下文、权限、输出格式和验收标准。",
+    "主 Agent 应保留最终合入、冲突消解和验证责任。"
+  ],
+  "relatedConceptIds": [
+    "agents-md",
+    "repo-context",
+    "human-in-the-loop",
+    "multi-agent",
+    "tool-calling"
+  ]
+},
+{
+  "id": "memory",
+  "title": "记忆",
+  "slug": "memory",
+  "moduleId": "m4",
+  "order": 14,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Memory",
+    "长期记忆",
+    "偏好",
+    "状态管理"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "记忆是 AI 应用在单次上下文窗口之外持久保存并在未来可控复用的信息，包括用户偏好、项目决策、任务状态、历史证据和组织规则。",
+  "whyItMatters": "没有记忆，Agent 每次都像第一次工作；记忆失控，又会把过期偏好、敏感信息或错误结论带入新任务。企业应用需要的不是无限保存，而是可授权、可过期、可追溯的记忆。",
+  "mentalModel": "记忆不是聊天记录仓库，而是经过筛选的工作档案。能留下来的信息要说明来源、适用范围、更新时间和失效条件。",
+  "mechanism": [
+    "先区分短期上下文、任务状态、长期偏好和组织规则，避免全部混进同一存储。",
+    "每条记忆应有来源、作用域、更新时间、置信度和删除或过期策略。",
+    "记忆写入需要触发条件，不能把每轮对话自动永久保存。",
+    "记忆读取要受权限、任务相关性和新鲜度约束，不应默认全部回灌给模型。",
+    "记忆效果要用任务连续性、错误复用率、隐私事件和用户纠错成本评估。"
+  ],
+  "enterpriseCase": {
+    "title": "项目助手沿用过期架构决策",
+    "scenario": "研发团队使用项目 Agent 跟踪 18 个服务的重构计划，Agent 会保存架构决策、命名偏好和部署约束。",
+    "problem": "数据库迁移方案变更两周后，Agent 仍在 9 个 PR 建议中沿用旧的双写策略，导致评审反复纠错。",
+    "analysis": "记忆只保存结论，没有版本、生效范围和失效条件；新 ADR 合入后没有触发旧记忆失效。",
+    "solution": "把记忆拆成项目级决策、用户偏好和任务状态三类，为架构决策绑定 ADR 链接、版本和过期规则，并在读取时优先最新 ADR。",
+    "takeaway": "记忆必须可更新、可废弃、可追溯，否则会变成长期上下文污染。"
+  },
+  "pitfalls": [
+    "把所有对话都永久保存成记忆。",
+    "只保存结论，不保存来源和适用范围。",
+    "记忆没有过期机制，旧决策持续影响新任务。",
+    "不同用户或项目共享记忆，造成隐私和串用风险。",
+    "让模型自己决定敏感信息是否该记住。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-memory-1",
+    "type": "single",
+    "scenario": "项目 Agent 一直建议旧的数据库双写方案。检查发现它的长期记忆里保存了两个月前的架构结论，但没有 ADR 链接、版本、作用域或失效规则。",
+    "question": "最优先应该怎么治理记忆？",
+    "options": [
+      {
+        "id": "a",
+        "text": "关闭所有记忆，避免再出错"
+      },
+      {
+        "id": "b",
+        "text": "为记忆增加来源、作用域、版本、过期规则，并让最新 ADR 覆盖旧结论"
+      },
+      {
+        "id": "c",
+        "text": "把旧方案也放进系统提示，提醒模型注意"
+      },
+      {
+        "id": "d",
+        "text": "提高模型温度，让它不要总重复旧结论"
+      }
+    ],
+    "correctOptionIds": [
+      "b"
+    ],
+    "explanation": "B 建立可追溯和可失效的记忆治理。A 会牺牲连续性。C 会继续把旧信息带进上下文。D 与记忆污染无关，还会增加不稳定性。",
+    "troubleshootingPath": [
+      "定位错误建议来自上下文还是长期记忆",
+      "检查记忆来源、作用域和更新时间",
+      "绑定权威文档或 ADR",
+      "设计失效和覆盖策略",
+      "回放历史任务评估错误复用率"
+    ],
+    "relatedConceptIds": [
+      "layered-session",
+      "context-compression",
+      "context-pollution",
+      "repo-context",
+      "trace"
+    ]
+  },
+  "keyTakeaways": [
+    "记忆要保存可复用的状态和偏好，不是保存全部聊天。",
+    "每条记忆都需要来源、作用域、更新时间和失效规则。",
+    "失控记忆会变成长期上下文污染。"
+  ],
+  "relatedConceptIds": [
+    "layered-session",
+    "context-compression",
+    "context-pollution",
+    "repo-context",
+    "trace"
+  ]
+},
+{
+  "id": "human-in-the-loop",
+  "title": "Human-in-the-loop",
+  "slug": "human-in-the-loop",
+  "moduleId": "m4",
+  "order": 15,
+  "difficulty": "intermediate",
+  "estimatedMinutes": 10,
+  "tags": [
+    "Human-in-the-loop",
+    "人工审核",
+    "升级条件",
+    "风险控制"
+  ],
+  "contentStatus": "mvp",
+  "hasAnimation": false,
+  "definition": "Human-in-the-loop 是在 AI 工作流中为高风险、不确定或不可自动判断的步骤设置人工确认、审核、纠错或接管机制。",
+  "whyItMatters": "企业 Agent 不能只追求自动化率。越接近写入系统、对外承诺、合规判断和资金操作，越需要明确什么时候必须停下来让人决策，否则小概率错误会变成真实事故。",
+  "mentalModel": "Human-in-the-loop 不是给 AI 加一个人工客服尾巴，而是在流程里设置刹车、检查点和升级通道。它应该预先定义触发条件，而不是出事后临时找人。",
+  "mechanism": [
+    "先识别哪些动作属于高风险：写入、删除、对外发送、权限变更、法律或财务承诺。",
+    "为高风险动作定义触发条件，如置信度低、金额超阈值、权限不足、证据冲突或用户投诉。",
+    "人工节点应看到模型依据、工具结果、可选动作和风险提示，而不是只看最终答案。",
+    "人工反馈要回写为 trace、评测样本或规则更新，形成质量闭环。",
+    "指标不只看自动化率，还要看升级命中率、误升级率、事故率和处理时延。"
+  ],
+  "enterpriseCase": {
+    "title": "采购 Agent 自动发送高风险报价",
+    "scenario": "采购平台让 Agent 草拟并发送供应商询价邮件，覆盖 120 名采购经理，月均 1.8 万封邮件。",
+    "problem": "一次灰度中，Agent 在未确认币种的情况下发出 23 封报价邮件，其中 4 封涉及超过 50 万美元的采购单。",
+    "analysis": "流程只设置了最终发送权限，没有把金额阈值、币种不确定、合同条款缺失作为人工确认触发条件。",
+    "solution": "为金额、币种、供应商等级和条款缺失设置人工审核规则；审核界面展示证据、工具结果和建议邮件差异。",
+    "takeaway": "人工在环不是降低效率，而是把自动化限制在可承受风险内。"
+  },
+  "pitfalls": [
+    "只在事故后人工介入，没有预设升级条件。",
+    "人工审核只看模型答案，看不到证据和工具结果。",
+    "把所有任务都转人工，自动化价值消失。",
+    "只考核自动化率，忽略事故率和误升级率。",
+    "人工反馈没有回流到评测和规则。"
+  ],
+  "diagnosticQuestion": {
+    "id": "q-human-in-the-loop-1",
+    "type": "single",
+    "scenario": "采购 Agent 在币种不确定时自动发送了 23 封询价邮件，其中 4 封金额超过 50 万美元。当前流程只在发送失败后通知人工，没有发送前审核条件。",
+    "question": "最优先应该补什么？",
+    "options": [
+      {
+        "id": "a",
+        "text": "关闭自动发送，所有邮件都人工处理"
+      },
+      {
+        "id": "b",
+        "text": "把系统提示改成发送前更谨慎"
+      },
+      {
+        "id": "c",
+        "text": "提高模型置信度阈值，但不展示证据"
+      },
+      {
+        "id": "d",
+        "text": "为高金额、币种不确定和条款缺失设置发送前人工确认，并展示证据与工具结果"
+      }
+    ],
+    "correctOptionIds": [
+      "d"
+    ],
+    "explanation": "D 建立风险触发和可判断的人工节点。A 牺牲全部自动化，不是优先修复。B 不能替代流程控制。C 只改阈值且不给证据，人工仍难以判断。",
+    "troubleshootingPath": [
+      "列出自动动作和风险等级",
+      "定义金额、权限、证据冲突等升级条件",
+      "设计人工审核界面所需证据",
+      "记录人工决策和模型依据",
+      "把反馈回流到评测和规则"
+    ],
+    "relatedConceptIds": [
+      "tool-calling",
+      "subagent",
+      "agent-loop",
+      "permission-governance",
+      "eval",
+      "trace"
+    ]
+  },
+  "keyTakeaways": [
+    "人工在环是高风险 Agent 的安全刹车和质量回路。",
+    "升级条件要预先定义，不能只靠模型自觉谨慎。",
+    "人工节点需要看到证据、工具结果和风险，而不是只看最终文本。",
+    "人工反馈应进入 trace、评测和规则更新。"
+  ],
+  "relatedConceptIds": [
+    "tool-calling",
+    "subagent",
+    "agent-loop",
+    "permission-governance",
+    "eval",
+    "trace"
+  ]
 }
 ];

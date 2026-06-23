@@ -1,8 +1,8 @@
 # 44 讲扩展计划 · expansion-plan-44-lessons
 
-> MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 18 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
-> 当前已上线 38 讲：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `9/16`、M5 `1/6`、M6 `0/6`。
-> 剩余 18 stub 见 [content-schema.md](content-schema.md) §4 登记表；本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
+> MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 12 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
+> 当前已上线 44 讲：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `15/16`、M5 `1/6`、M6 `0/6`。
+> 剩余 12 stub 见 [content-schema.md](content-schema.md) §4 登记表；本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---
 
@@ -17,9 +17,9 @@
 | Batch 2 已覆盖部分 | 6 | M2 收尾 | **done：M2 已 10/10** | 推理性能主干闭环，复用 `prefill-decode` / `kv-cache` | 低 | 否 |
 | Wave 3 | 6 | M3 收尾 | **done：M3 已 8/8** | 平台主干收口，补齐 MaaS / 路由 / 缓存 / SLA | 中（复用 model-router） | 否 |
 | MVP 0.3 Wave 4A | 6 | M4 上下文工程 + 工具调用 | **done：M4 已 9/16** | Prompt/Context、系统提示、压缩、污染、分层会话、工具调用 | 低（复用 agent-loop） | 否 |
-| MVP 0.3 Wave 4B | 6 | M4 剩余主体链路 | todo | 仓库上下文、规格驱动、Subagent、Memory、Human-in-the-loop | 低-中 | 否 |
+| MVP 0.3 Wave 4B | 6 | M4 剩余主体链路 | **done：M4 已 15/16** | AGENTS.md、仓库上下文、规格驱动、Subagent、Memory、Human-in-the-loop | 低 | 否 |
 | Final Wave | 12 | M4 收尾(1) + M5 + M6 | todo | 软件工程闭环 + 企业治理收口，可能新增治理类动画 | 中-高（可能新增动画类型） | **是**（动画范围 + 治理口径） |
-| 合计 | 44 | — | 已完成 26，剩余 18 | — | — | — |
+| 合计 | 44 | — | 已完成 32，剩余 12 | — | — | — |
 
 **为什么这个顺序**：先完成已有锚点最密集、动画复用最高、内容风险最低的模块（M1→M2/M3→M4），把高不确定性（M6 治理类内容口径、可能的新动画类型）留到最后一批，并在那之前已用三批验证好整套门禁与流水线。
 
@@ -188,5 +188,5 @@
 | MVP 0.2 Wave 2 | done | 26 / 56 | ✅ | PASS | M1 收口 + M2 收尾 7 讲，`2fd0fb2` |
 | MVP 0.2 Wave 3 | done | 32 / 56 | ✅ | PASS | M3 收尾 6 讲，`be4472e` |
 | MVP 0.3 Wave 4A | done | 38 / 56 | PASS | PASS | M4 上下文工程与工具调用 6 讲 |
-| MVP 0.3 Wave 4B | todo | → 44 / 56 | — | — | M4 剩余主体链路 6 讲，multi-agent 暂留收口 |
+| MVP 0.3 Wave 4B | done | 44 / 56 | PASS | PASS | M4 剩余主体链路 6 讲，multi-agent 暂留收口 |
 | Final Wave | todo | → 56 / 56 | — | — | M4 剩余 + M5 + M6，全量上线；治理类动画需 Owner 确认 |
