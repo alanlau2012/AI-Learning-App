@@ -1,9 +1,47 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const isDev = Boolean(process.env.ELECTRON_DEV_SERVER_URL) && !process.env.ELECTRON_FORCE_PROD;
 const isSmokeTest = process.argv.includes('--smoke-test');
 const appBackground = '#faf9f6';
+let smokeProfileRoot;
+let ownsSmokeProfileRoot = false;
+
+function configureSmokeRuntime() {
+  if (!isSmokeTest) return;
+
+  smokeProfileRoot = process.env.ELECTRON_SMOKE_PROFILE_ROOT;
+  if (!smokeProfileRoot) {
+    smokeProfileRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-learning-app-smoke-'));
+    ownsSmokeProfileRoot = true;
+  }
+  const userDataDir = path.join(smokeProfileRoot, 'userData');
+  const sessionDataDir = path.join(smokeProfileRoot, 'sessionData');
+  fs.mkdirSync(userDataDir, { recursive: true });
+  fs.mkdirSync(sessionDataDir, { recursive: true });
+
+  app.setPath('userData', userDataDir);
+  app.setPath('sessionData', sessionDataDir);
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+  app.commandLine.appendSwitch('disable-http-cache');
+  app.commandLine.appendSwitch('disk-cache-size', '1');
+  app.commandLine.appendSwitch('media-cache-size', '1');
+  app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+}
+
+function cleanupSmokeRuntime() {
+  if (!smokeProfileRoot || !ownsSmokeProfileRoot) return;
+  try {
+    fs.rmSync(smokeProfileRoot, { recursive: true, force: true });
+  } catch {
+    // Best-effort cleanup only; smoke result should not depend on temp deletion.
+  }
+}
 
 function isExternalUrl(url) {
   return /^(https?:|mailto:)/i.test(url);
@@ -71,6 +109,7 @@ function createMainWindow() {
 }
 
 app.setName('AI \u5de5\u7a0b\u5b66\u4e60');
+configureSmokeRuntime();
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
@@ -88,3 +127,5 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+app.on('quit', cleanupSmokeRuntime);

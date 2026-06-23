@@ -17,7 +17,7 @@
     "dev:desktop": "concurrently -k -n VITE,ELECTRON -c blue,green \"vite --mode desktop --host 127.0.0.1 --port 5173 --strictPort\" \"wait-on tcp:127.0.0.1:5173 && cross-env ELECTRON_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
     "build:desktop": "tsc -b && vite build --mode desktop && node scripts/build-desktop.cjs",
     "preview:desktop": "vite build --mode desktop && cross-env ELECTRON_FORCE_PROD=1 electron .",
-    "smoke:desktop": "vite build --mode desktop && cross-env ELECTRON_FORCE_PROD=1 electron . --smoke-test"
+    "smoke:desktop": "node scripts/smoke-desktop.cjs"
   },
   "dependencies": {
     "react": "^19.2.6",
