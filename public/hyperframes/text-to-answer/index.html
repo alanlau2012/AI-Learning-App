@@ -1052,6 +1052,101 @@
       tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.5, ease: "power2.in" }, 44.5);
 
       window.__timelines["text-to-answer"] = tl;
+
+      (function () {
+        var materialId = "text-to-answer";
+        var frameId = null;
+
+        function timeline() {
+          return window.__timelines && window.__timelines[materialId];
+        }
+
+        function postState(eventName) {
+          var activeTimeline = timeline();
+          if (!activeTimeline) return;
+          window.parent.postMessage({
+            source: "hyperframe",
+            type: "hyperframe:event",
+            materialId: materialId,
+            event: eventName,
+            time: activeTimeline.time(),
+            duration: activeTimeline.duration(),
+            paused: activeTimeline.paused(),
+          }, "*");
+        }
+
+        function stopTick() {
+          if (frameId !== null) {
+            window.cancelAnimationFrame(frameId);
+            frameId = null;
+          }
+        }
+
+        function tick() {
+          var activeTimeline = timeline();
+          if (!activeTimeline) return;
+          postState("state");
+          if (!activeTimeline.paused() && activeTimeline.time() < activeTimeline.duration() - 0.05) {
+            frameId = window.requestAnimationFrame(tick);
+            return;
+          }
+          stopTick();
+          postState("state");
+        }
+
+        function startTick() {
+          stopTick();
+          frameId = window.requestAnimationFrame(tick);
+        }
+
+        window.addEventListener("message", function (event) {
+          var message = event.data;
+          if (!message || message.source !== "ai-learning-app") return;
+          if (message.type !== "hyperframe:command" || message.materialId !== materialId) return;
+
+          var activeTimeline = timeline();
+          if (!activeTimeline) return;
+
+          if (message.command === "play") {
+            if (activeTimeline.time() >= activeTimeline.duration() - 0.05) {
+              activeTimeline.seek(0, false);
+            }
+            activeTimeline.play();
+            startTick();
+            return;
+          }
+
+          if (message.command === "pause") {
+            activeTimeline.pause();
+            stopTick();
+            postState("state");
+            return;
+          }
+
+          if (message.command === "restart") {
+            activeTimeline.restart();
+            startTick();
+            return;
+          }
+
+          if (message.command === "seek") {
+            var seconds = Number(message.seconds || 0);
+            activeTimeline.pause();
+            stopTick();
+            activeTimeline.seek(Math.max(0, Math.min(seconds, activeTimeline.duration())), false);
+            postState("state");
+            return;
+          }
+
+          if (message.command === "query") {
+            postState("ready");
+          }
+        });
+
+        tl.pause();
+        tl.seek(0, false);
+        postState("ready");
+      }());
     </script>
   </body>
 </html>

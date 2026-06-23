@@ -2,22 +2,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { HyperframeMaterial } from '../../types';
 import styles from './HyperframePlayer.module.css';
 
-interface HyperframeTimeline {
-  play: () => HyperframeTimeline;
-  pause: () => HyperframeTimeline;
-  restart: () => HyperframeTimeline;
-  seek: (time: number, suppressEvents?: boolean) => HyperframeTimeline;
-  time: () => number;
-  duration: () => number;
-  paused: () => boolean;
-}
-
-interface HyperframeWindow extends Window {
-  __timelines?: Record<string, HyperframeTimeline>;
-}
-
 interface HyperframePlayerProps {
   material: HyperframeMaterial;
+}
+
+type HyperframeCommandName = 'play' | 'pause' | 'restart' | 'seek' | 'query';
+
+interface HyperframeCommandMessage {
+  source: 'ai-learning-app';
+  type: 'hyperframe:command';
+  materialId: string;
+  command: HyperframeCommandName;
+  seconds?: number;
+}
+
+interface HyperframeEventMessage {
+  source: 'hyperframe';
+  type: 'hyperframe:event';
+  materialId: string;
+  event: 'ready' | 'state';
+  time: number;
+  duration: number;
+  paused: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -25,6 +31,20 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(safe / 60);
   const secs = safe % 60;
   return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+function isHyperframeEventMessage(value: unknown): value is HyperframeEventMessage {
+  if (!value || typeof value !== 'object') return false;
+  const message = value as Partial<HyperframeEventMessage>;
+  return (
+    message.source === 'hyperframe' &&
+    message.type === 'hyperframe:event' &&
+    typeof message.materialId === 'string' &&
+    (message.event === 'ready' || message.event === 'state') &&
+    typeof message.time === 'number' &&
+    typeof message.duration === 'number' &&
+    typeof message.paused === 'boolean'
+  );
 }
 
 function useReducedMotion(): boolean {
@@ -47,7 +67,6 @@ function useReducedMotion(): boolean {
 export function HyperframePlayer({ material }: HyperframePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const frameRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -55,22 +74,20 @@ export function HyperframePlayer({ material }: HyperframePlayerProps) {
   const [scale, setScale] = useState(1);
   const reducedMotion = useReducedMotion();
 
-  const getTimeline = useCallback((): HyperframeTimeline | undefined => {
-    try {
-      const contentWindow = iframeRef.current?.contentWindow as HyperframeWindow | null | undefined;
-      return contentWindow?.__timelines?.[material.id];
-    } catch {
-      return undefined;
-    }
+  const postCommand = useCallback((command: HyperframeCommandName, seconds?: number) => {
+    const contentWindow = iframeRef.current?.contentWindow;
+    if (!contentWindow) return;
+
+    const message: HyperframeCommandMessage = {
+      source: 'ai-learning-app',
+      type: 'hyperframe:command',
+      materialId: material.id,
+      command,
+      seconds,
+    };
+    contentWindow.postMessage(message, '*');
   }, [material.id]);
 
-  const syncTime = useCallback(() => {
-    const timeline = getTimeline();
-    if (!timeline) return;
-    const nextTime = timeline.time();
-    setCurrentTime(nextTime);
-    setPlaying(!timeline.paused() && nextTime < duration - 0.05);
-  }, [duration, getTimeline]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -86,90 +103,70 @@ export function HyperframePlayer({ material }: HyperframePlayerProps) {
   }, [material.width]);
 
   useEffect(() => {
-    if (!playing) {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-        frameRef.current = null;
-      }
-      return;
-    }
+    const onMessage = (event: MessageEvent<unknown>) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      if (!isHyperframeEventMessage(event.data)) return;
+      if (event.data.materialId !== material.id) return;
 
-    const tick = () => {
-      syncTime();
-      frameRef.current = window.requestAnimationFrame(tick);
+      const nextDuration = event.data.duration || material.durationSeconds;
+      const nextTime = Math.min(Math.max(0, event.data.time), nextDuration);
+      setDuration(nextDuration);
+      setCurrentTime(nextTime);
+      setPlaying(!event.data.paused && nextTime < nextDuration - 0.05);
+      if (event.data.event === 'ready') setReady(true);
     };
-    frameRef.current = window.requestAnimationFrame(tick);
 
-    return () => {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-        frameRef.current = null;
-      }
-    };
-  }, [playing, syncTime]);
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [material.durationSeconds, material.id]);
 
   useEffect(() => {
     if (reducedMotion && playing) {
-      getTimeline()?.pause();
+      postCommand('pause');
     }
-  }, [getTimeline, playing, reducedMotion]);
+  }, [playing, postCommand, reducedMotion]);
 
   const onLoad = () => {
-    const timeline = getTimeline();
-    if (!timeline) {
-      setReady(false);
-      return;
-    }
-    timeline.pause();
-    timeline.seek(0, false);
-    setDuration(timeline.duration() || material.durationSeconds);
+    setReady(false);
     setCurrentTime(0);
     setPlaying(false);
-    setReady(true);
+    setDuration(material.durationSeconds);
+    postCommand('query');
   };
 
   const playPause = () => {
     if (reducedMotion) return;
-    const timeline = getTimeline();
-    if (!timeline) return;
 
     if (playing) {
-      timeline.pause();
+      postCommand('pause');
       setPlaying(false);
-      syncTime();
       return;
     }
 
     if (currentTime >= duration - 0.05) {
-      timeline.seek(0, false);
+      postCommand('seek', 0);
       setCurrentTime(0);
     }
-    timeline.play();
+    postCommand('play');
     setPlaying(true);
   };
 
   const restart = () => {
-    const timeline = getTimeline();
-    if (!timeline) return;
-
     if (reducedMotion) {
-      timeline.pause();
-      timeline.seek(0, false);
+      postCommand('pause');
+      postCommand('seek', 0);
       setCurrentTime(0);
       setPlaying(false);
       return;
     }
 
-    timeline.restart();
+    postCommand('restart');
     setCurrentTime(0);
     setPlaying(true);
   };
 
   const seekTo = (seconds: number) => {
-    const timeline = getTimeline();
-    if (!timeline) return;
-    timeline.pause();
-    timeline.seek(seconds, false);
+    postCommand('seek', seconds);
     setCurrentTime(seconds);
     setPlaying(false);
   };
@@ -203,6 +200,7 @@ export function HyperframePlayer({ material }: HyperframePlayerProps) {
           src={material.src}
           className={styles.frame}
           loading="lazy"
+          sandbox="allow-scripts"
           onLoad={onLoad}
           style={{
             width: material.width,
