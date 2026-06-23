@@ -3,15 +3,15 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（Electron 桌面版 MVP 封板）
+**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（GitHub P1 内容修复回合封板）
 
 ## 1. 当前里程碑
 
-- **当前阶段**：**Final Wave + backlog polish + Electron 桌面版 MVP 已完成**。56 讲全部 `contentRevision: v2`；已补齐 PWA manifest、字体外链移除、路由切包、M6 治理动画，并新增 Windows Electron 离线桌面壳。
+- **当前阶段**：**Final Wave + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合已完成**。56 讲全部 `contentRevision: v2`；已补齐 PWA manifest、字体外链移除、路由切包、M6 治理动画，新增 Windows Electron 离线桌面壳，并修复 issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径。
 - **当前上线内容**：**56 / 56 讲**；剩余 `stub`：**0**。地图无 stub。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`（全部满额）。
-- **验证**：`validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build`、`build:desktop`、`smoke:desktop` 均 PASS；构建已路由切包且无 500 kB chunk warning。Final Wave 见 `reports/final-wave-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，桌面版见 `reports/desktop-electron-mvp-summary.md`。
-- **已补齐**：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、Electron Windows 桌面发行通道。
+- **验证**：`validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build`、`build:desktop` 均 PASS；`smoke:desktop` 已用独立 temp profile + 禁 GPU/cache 连续两次验证 PASS，且 `%TEMP%\ai-learning-app-smoke-*` 无残留；本轮 GitHub P1 内容修复已复跑 `validate:content` 与 `typecheck` PASS。Final Wave 见 `reports/final-wave-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，桌面版见 `reports/desktop-electron-mvp-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
+- **已补齐**：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径。
 - **下一轮建议（均需 Owner 确认）**：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA 离线能力（二期）、桌面版图标/代码签名/自动更新。
 - 后续内容（如样板回改）仍走流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
@@ -30,6 +30,7 @@
 | Final Wave | multi-agent + M5 剩余 5 讲 + M6 全 6 讲入库 | 主开发 | done | 四命令全绿 + Playwright 抽查 + 诊断配平 | 累计 56/56，见 `reports/final-wave-summary.md` |
 | Backlog Polish | PWA manifest、字体外链移除、路由切包、M6 治理动画 | 主开发 | done | 四命令全绿 + 浏览器抽查 | 见 `reports/backlog-polish-summary.md` |
 | Desktop MVP | Electron Windows 离线桌面壳、hash 路由、相对资源、安装包/portable 打包 | 主开发 | done | `build:desktop` + `smoke:desktop` PASS | 见 `reports/desktop-electron-mvp-summary.md` |
+| GitHub P1 Content Repair | issue #3/#4：Trace/Tool Calling 敏感数据边界、Session 亲和 cache locality 口径、Observability 去 trace-centric | 内容 Agent → 审核 Agent → 主开发 | done | `validate:content` + `typecheck` PASS | 见 `reports/github-p1-content-repair-summary.md` |
 ## 3. 内容生产流水线（draft → review → 入库）
 
 权威字段只能落入 `src/data/*`，但内容**不得**由内容 Agent 直接写入 `src/data/*`。统一走三段式：
