@@ -14,11 +14,13 @@ export function GlossaryPage() {
         <span>Glossary</span>
         <h1>术语索引</h1>
         <p>基础版术语列表，关联到已有知识点。</p>
+        <div className={styles.headerRule} aria-hidden />
       </section>
 
       <section className={styles.list}>
-        {glossary.map((term) => (
+        {glossary.map((term, index) => (
           <article key={term.id} className={styles.term}>
+            <span className={styles.termIdx}>{String(index + 1).padStart(2, '0')}</span>
             <div>
               <span className={styles.module}>{moduleById.get(term.moduleId)?.title}</span>
               <h2>{term.name}</h2>

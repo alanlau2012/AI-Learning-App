@@ -12,6 +12,7 @@
     "validate:structure": "node scripts/validate-content.ts structure",
     "validate:published-content": "node scripts/validate-content.ts published-content",
     "validate:animation": "node scripts/validate-content.ts animation",
+    "validate:terminology": "node scripts/validate-content.ts terminology",
     "validate:content": "node scripts/validate-content.ts all"
   },
   "dependencies": {

@@ -49,6 +49,7 @@ export function ConceptHeader({
           {favorite ? '已收藏' : '收藏'}
         </button>
       </div>
+      <div className={styles.rule} aria-hidden />
     </header>
   );
 }

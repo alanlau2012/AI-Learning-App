@@ -14,6 +14,18 @@ export type Difficulty = 'basic' | 'intermediate' | 'advanced';
 
 export type ContentStatus = 'stub' | 'demo' | 'mvp';
 
+/** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（§7）。 */
+export type ContentRevision = 'legacy' | 'v2';
+
+export interface MechanismGroup {
+  label: string;   // "A" | "B" | "C"
+  title: string;
+  items: string[]; // 支持 **加粗** 轻量标记
+}
+
+/** 迁移期 union：string[] 为 legacy flat；MechanismGroup[] 为 v2 分组。 */
+export type MechanismContent = string[] | MechanismGroup[];
+
 export interface KnowledgePoint {
   id: string;
   title: string;
@@ -28,7 +40,8 @@ export interface KnowledgePoint {
   definition: string;
   whyItMatters: string;
   mentalModel: string;
-  mechanism: string[];
+  mechanism: MechanismContent;
+  contentRevision?: ContentRevision;
   animation?: AnimationConfig;
   enterpriseCase: EnterpriseCase;
   pitfalls: string[];
@@ -139,7 +152,7 @@ export interface GlossaryTerm {
 | `oneSentence` | `definition` | 直接搬运 |
 | `whyItMatters` | `whyItMatters` | 同名 |
 | `mentalModel` | `mentalModel` | 同名 |
-| `mechanism: string[]` | `mechanism: string[]` | 同名 |
+| `mechanism: string[]`（写作期可 flat） | `mechanism: MechanismContent` | 入库时须转为 **2–3 组** `MechanismGroup[]`（§7）；迁移期可暂留 `string[]` 并标 `contentRevision: 'legacy'` |
 | `animationBrief { type, goal, steps[] }` | `animation: AnimationConfig` | `type`→规范化为 `AnimationType`；`goal`→`title`；`steps[]`→`AnimationStep[]`（补 `id`、可选 `durationMs`） |
 | `enterpriseCase { title, scenario, problem, analysis, solution, takeaway }` | `enterpriseCase` | 同结构 |
 | `commonPitfalls` | `pitfalls` | 改名 |
@@ -375,3 +388,48 @@ const kvCache: KnowledgePoint = {
 
 > P1.5 之前 `stub` 应保持 `hasAnimation:false`，§6.3 自然为空集；P3 后随动画组件实现逐步开启。
 > 命令登记见 [AGENTS.md](../AGENTS.md) §6；阶段 P1.5/P3 见 [project-board.md](project-board.md) §2 与 [architecture.md](architecture.md) §6；验收勾选见 [acceptance-checklist.md](acceptance-checklist.md) §5。
+
+## 7. 正文改版规范（v2）
+
+权威样板：[reviews/transformer-改版样板对比.html](../reviews/transformer-改版样板对比.html)。`contentRevision: 'v2'` 的已发布知识点须满足本节。
+
+### 7.1 术语 canonical 写法
+
+术语表数据：`src/data/termCanonical.ts`（与 `glossary.ts` 互补，只管写法不管定义）。
+
+| 术语 | canonical | 规则 |
+|---|---|---|
+| Token | `Token` | 领域专有名词，首字母大写，全册统一 |
+| Prefill | `Prefill` | 阶段名按专有名词处理 |
+| Decode | `Decode` | 同上 |
+| Embedding | `Embedding` | 统一大写，避免与普通词混淆 |
+| KV Cache | `KV Cache` | 保持现状，写入术语表锁定 |
+| 引号 | 中文 `""` | 正文用中文引号；标识符走代码体 |
+
+校验：`validate:terminology` 扫描正文各 string 字段，命中 forbidden 变体即 fail。
+
+### 7.2 字段深度标准
+
+| 字段 | 标准 | 说明 |
+|---|---|---|
+| `definition` | 50–90 字 | 说清「是什么 + 为何要管」 |
+| `whyItMatters` | 90–150 字 | 过长压缩，过短补足 |
+| `mechanism` | 2–3 组 / 组内 1–3 条 | 按逻辑阶段分组，禁止为凑条数而拆句 |
+| `pitfalls` | 固定 4 条 | 统一「现象 → 后果」句式，后果部分 `**加粗**` |
+| `keyTakeaways` | 固定 4 条 | 每条可含 `**加粗**` 骨架词 |
+| `enterpriseCase` | 六段齐全 | 结构已统一，仅做术语对齐 |
+
+### 7.3 机制分组原则
+
+- 每组含 `label`（A/B/C）、`title`（阶段名）、`items`（1–3 条 bullet）。
+- 按逻辑流命名，例如「输入表示 → 逐层加工 → 推理代价」。
+- 禁止把连贯讲解拆成互不相关的平铺编号。
+
+### 7.4 轻量正文标记
+
+- 仅允许 `**...**` 表示加粗；禁止 HTML、markdown 链接、标题语法。
+- 渲染层由 `RichText` 组件解析。
+
+### 7.5 v2 校验门禁
+
+对 `contentRevision === 'v2'` 且 `contentStatus ∈ {demo, mvp}` 的概念，`validate:terminology` 额外校验 §7.1–§7.4。Legacy 概念仍走 §6.2 最低门槛。

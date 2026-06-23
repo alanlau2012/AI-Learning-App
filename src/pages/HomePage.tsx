@@ -74,10 +74,13 @@ export function HomePage() {
             查看我的学习
           </Link>
         </div>
+        <div className={styles.heroRule} aria-hidden />
       </section>
 
-      {/* 简洁进度（不堆统计） */}
+      {/* 简洁进度（ledger 行） */}
       <section className={styles.progressPanel}>
+        <span className={styles.progressIdx}>01</span>
+        <div className={styles.progressBody}>
         <div className={styles.progressBig}>
           <span className={styles.progressNum}>
             {overall.done} / {overall.total}
@@ -89,6 +92,7 @@ export function HomePage() {
           <span>{overall.percent}% 完成度</span>
           <span>{favoriteConceptIds.length} 收藏</span>
           <span>{studyStreakDays} 连续天数</span>
+        </div>
         </div>
       </section>
 

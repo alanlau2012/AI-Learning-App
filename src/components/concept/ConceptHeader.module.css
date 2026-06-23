@@ -1,6 +1,5 @@
 .header {
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 34px;
 }
 
 .module,
@@ -10,10 +9,11 @@
 
 .module {
   display: inline-flex;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   color: var(--color-primary);
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .meta {
@@ -31,9 +31,16 @@
 }
 
 .header h1 {
-  margin-top: 12px;
-  font-size: clamp(34px, 5vw, 56px);
+  margin-top: 0;
+  font-size: clamp(31px, 4.5vw, 40px);
+  line-height: 1.18;
   letter-spacing: -0.01em;
+}
+
+.rule {
+  height: 1px;
+  background: var(--color-title);
+  margin-top: 34px;
 }
 
 .actions {

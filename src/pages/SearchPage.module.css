@@ -33,12 +33,23 @@
 
 .result {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
-  padding: 18px 0;
+  grid-template-columns: 28px 1fr auto;
+  gap: 26px;
+  padding: 30px 0;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
   text-decoration: none;
+}
+
+.result:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.resultIdx {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  color: var(--color-faint);
+  line-height: 1.4;
 }
 
 .result:hover {

@@ -97,6 +97,8 @@ export function ModulePage() {
         <p className={styles.subtitle}>{module.subtitle}</p>
         <p className={styles.description}>{module.description}</p>
         <ProgressBar percent={percent} label={`${progress.done} / ${progress.total}`} />
+        <p className={styles.headSub}>{module.recommendedFor.join(' · ')}</p>
+        <div className={styles.headerRule} aria-hidden />
       </section>
 
       <section className={styles.controls} aria-label="筛选与排序">

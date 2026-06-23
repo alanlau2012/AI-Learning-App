@@ -6,11 +6,13 @@
  *                      contentStatus 合法 / 诊断题结构。不碰动画、不要求 stub 正文。
  * - published-content  (有 demo/mvp 内容后)：字段完整度（docs/content-schema.md §6.2）。
  * - animation          (P3 起)：动画一致性与注册（§6.3）。
+ * - terminology        (v2 正文改版)：术语 / 深度 / 轻量标记（§7）。
  *
  * 用法：
  *   node scripts/validate-content.ts structure
  *   node scripts/validate-content.ts published-content
  *   node scripts/validate-content.ts animation
+ *   node scripts/validate-content.ts terminology
  *   node scripts/validate-content.ts all      （= 当前阶段应启用的子命令聚合）
  *
  * 仅读取 src/data/*；失败即非零退出，作为入库 / 发布门禁。
@@ -18,6 +20,12 @@
 import { concepts } from '../src/data/concepts.ts';
 import { modules } from '../src/data/modules.ts';
 import { glossary } from '../src/data/glossary.ts';
+import {
+  collectConceptTextFields,
+  HALF_WIDTH_QUOTE_PATTERN,
+  TERM_RULES,
+} from '../src/data/termCanonical.ts';
+import { isMechanismGrouped, type MechanismGroup } from '../src/types/index.ts';
 
 const MODULE_IDS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'] as const;
 const EXPECTED_COUNTS: Record<string, number> = {
@@ -48,6 +56,18 @@ const fail = (msg: string): void => {
 };
 
 const nonEmpty = (value: string): boolean => value.trim().length > 0;
+
+const charCount = (s: string): number => s.replace(/\s/g, '').length;
+
+const INVALID_MARKUP = /<(?!\/)[a-z]|\[[^\]]+\]\([^)]+\)|^#{1,6}\s/m;
+
+function mechanismStepCount(mechanism: typeof concepts[0]['mechanism']): number {
+  if (mechanism.length === 0) return 0;
+  if (isMechanismGrouped(mechanism)) {
+    return mechanism.reduce((n, g) => n + g.items.length, 0);
+  }
+  return mechanism.length;
+}
 
 function validateStructure(): void {
   // 1. 总数 + 模块计数
@@ -174,7 +194,7 @@ function validatePublishedContent(): void {
     if (!nonEmpty(c.definition)) fail(`${c.id}: definition 不能为空`);
     if (!nonEmpty(c.whyItMatters)) fail(`${c.id}: whyItMatters 不能为空`);
     if (!nonEmpty(c.mentalModel)) fail(`${c.id}: mentalModel 不能为空`);
-    if (c.mechanism.length < 3) fail(`${c.id}: mechanism 至少需要 3 步`);
+    if (mechanismStepCount(c.mechanism) < 3) fail(`${c.id}: mechanism 至少需要 3 步`);
     if (c.pitfalls.length < 2) fail(`${c.id}: pitfalls 至少需要 2 条`);
     if (c.keyTakeaways.length < 2) fail(`${c.id}: keyTakeaways 至少需要 2 条`);
     const ec = c.enterpriseCase;
@@ -211,11 +231,74 @@ function validateAnimation(): void {
   }
 }
 
+function validateTerminology(): void {
+  const v2Published = concepts.filter(
+    (c) =>
+      c.contentRevision === 'v2' &&
+      (c.contentStatus === 'demo' || c.contentStatus === 'mvp'),
+  );
+
+  if (v2Published.length === 0) {
+    console.log('  [terminology] 当前无 contentRevision=v2 的已发布内容，跳过 §7 校验。');
+    return;
+  }
+
+  for (const c of v2Published) {
+    const texts = collectConceptTextFields(c);
+
+    for (const text of texts) {
+      if (INVALID_MARKUP.test(text)) {
+        fail(`${c.id}: 正文含非法标记（仅允许 **加粗**）`);
+      }
+      for (const rule of TERM_RULES) {
+        rule.forbidden.lastIndex = 0;
+        if (rule.forbidden.test(text)) {
+          fail(`${c.id}: 术语应使用「${rule.canonical}」（命中 forbidden 变体）`);
+        }
+      }
+      if (HALF_WIDTH_QUOTE_PATTERN.test(text)) {
+        fail(`${c.id}: 正文应使用中文引号 ""，勿用半角直引号`);
+      }
+    }
+
+    const defLen = charCount(c.definition);
+    if (defLen < 50 || defLen > 90) {
+      fail(`${c.id}: definition 应为 50–90 字（当前 ${defLen}）`);
+    }
+    const whyLen = charCount(c.whyItMatters);
+    if (whyLen < 90 || whyLen > 150) {
+      fail(`${c.id}: whyItMatters 应为 90–150 字（当前 ${whyLen}）`);
+    }
+    if (!isMechanismGrouped(c.mechanism)) {
+      fail(`${c.id}: v2 知识点 mechanism 须为 MechanismGroup[] 分组结构`);
+    } else {
+      const groups = c.mechanism as MechanismGroup[];
+      if (groups.length < 2 || groups.length > 3) {
+        fail(`${c.id}: mechanism 应为 2–3 组（当前 ${groups.length}）`);
+      }
+      for (const g of groups) {
+        if (g.items.length < 1 || g.items.length > 3) {
+          fail(`${c.id}: mechanism 组「${g.title}」应为 1–3 条（当前 ${g.items.length}）`);
+        }
+      }
+    }
+    if (c.pitfalls.length !== 4) {
+      fail(`${c.id}: pitfalls 应为 4 条（当前 ${c.pitfalls.length}）`);
+    }
+    if (c.keyTakeaways.length !== 4) {
+      fail(`${c.id}: keyTakeaways 应为 4 条（当前 ${c.keyTakeaways.length}）`);
+    }
+  }
+
+  console.log(`  [terminology] 已校验 v2 内容 ${v2Published.length} 个。`);
+}
+
 // ---- 调度 ----
 const cmd = process.argv[2] ?? 'all';
 const runStructure = cmd === 'structure' || cmd === 'all';
 const runPublished = cmd === 'published-content' || cmd === 'all';
 const runAnimation = cmd === 'animation' || cmd === 'all';
+const runTerminology = cmd === 'terminology' || cmd === 'all';
 
 console.log(`validate:content — 子命令：${cmd}`);
 
@@ -234,6 +317,10 @@ if (runPublished) {
 if (runAnimation) {
   validateAnimation();
   console.log('  [animation] 已校验动画一致性、注册类型与步骤合法性。');
+}
+
+if (runTerminology) {
+  validateTerminology();
 }
 
 if (errors.length > 0) {

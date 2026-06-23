@@ -20,8 +20,19 @@
 
 .header {
   max-width: 820px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 34px;
+}
+
+.headerRule {
+  height: 1px;
+  background: var(--color-title);
+  margin-top: 28px;
+}
+
+.headSub {
+  margin: 8px 0 0 32px;
+  color: var(--color-muted);
+  font-size: 14.5px;
 }
 
 .eyebrow {

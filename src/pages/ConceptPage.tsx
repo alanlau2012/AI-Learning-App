@@ -6,6 +6,8 @@ import { ConceptHeader } from '../components/concept/ConceptHeader';
 import { ConceptSection, EmptySectionHint } from '../components/concept/ConceptSection';
 import { RelatedConcepts } from '../components/concept/RelatedConcepts';
 import { TakeawayBox } from '../components/concept/TakeawayBox';
+import { MechanismContent } from '../components/concept/MechanismContent';
+import { RichText } from '../components/concept/RichText';
 import { AnimationPlayer } from '../components/animation/AnimationPlayer';
 import { DiagnosticQuestion } from '../components/quiz/DiagnosticQuestion';
 import { useProgressStore } from '../store/progressStore';
@@ -65,28 +67,33 @@ export function ConceptPage() {
       />
 
       <section className={styles.definition}>
-        <span>一句话定义</span>
-        <p>{concept.definition || '内容草稿待审核入库，当前先保留知识点结构。'}</p>
+        <span className={styles.definitionLabel}>一句话定义</span>
+        {concept.definition ? (
+          <RichText text={concept.definition} className={styles.definitionText} />
+        ) : (
+          <p className={styles.definitionText}>内容草稿待审核入库，当前先保留知识点结构。</p>
+        )}
       </section>
 
       <ConceptSection index={1} title="为什么重要">
-        {concept.whyItMatters ? <p>{concept.whyItMatters}</p> : <EmptySectionHint />}
+        {concept.whyItMatters ? (
+          <RichText text={concept.whyItMatters} />
+        ) : (
+          <EmptySectionHint />
+        )}
       </ConceptSection>
 
       <ConceptSection index={2} title="心智模型" tone="soft">
-        {concept.mentalModel ? <p>{concept.mentalModel}</p> : <EmptySectionHint />}
+        {concept.mentalModel ? (
+          <RichText text={concept.mentalModel} />
+        ) : (
+          <EmptySectionHint />
+        )}
       </ConceptSection>
 
       <ConceptSection index={3} title="机制讲解">
         {concept.mechanism.length > 0 ? (
-          <ol className={styles.mechanism}>
-            {concept.mechanism.map((item, index) => (
-              <li key={item}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                {item}
-              </li>
-            ))}
-          </ol>
+          <MechanismContent mechanism={concept.mechanism} />
         ) : (
           <EmptySectionHint />
         )}
@@ -104,11 +111,21 @@ export function ConceptPage() {
         {hasEnterpriseCase ? (
           <div className={styles.case}>
             {concept.enterpriseCase.title && <h3>{concept.enterpriseCase.title}</h3>}
-            {concept.enterpriseCase.scenario && <p><strong>场景：</strong>{concept.enterpriseCase.scenario}</p>}
-            {concept.enterpriseCase.problem && <p><strong>问题：</strong>{concept.enterpriseCase.problem}</p>}
-            {concept.enterpriseCase.analysis && <p><strong>分析：</strong>{concept.enterpriseCase.analysis}</p>}
-            {concept.enterpriseCase.solution && <p><strong>方案：</strong>{concept.enterpriseCase.solution}</p>}
-            {concept.enterpriseCase.takeaway && <p><strong>结论：</strong>{concept.enterpriseCase.takeaway}</p>}
+            {concept.enterpriseCase.scenario && (
+              <p><strong>场景：</strong><RichText text={concept.enterpriseCase.scenario} as="span" /></p>
+            )}
+            {concept.enterpriseCase.problem && (
+              <p><strong>问题：</strong><RichText text={concept.enterpriseCase.problem} as="span" /></p>
+            )}
+            {concept.enterpriseCase.analysis && (
+              <p><strong>分析：</strong><RichText text={concept.enterpriseCase.analysis} as="span" /></p>
+            )}
+            {concept.enterpriseCase.solution && (
+              <p><strong>方案：</strong><RichText text={concept.enterpriseCase.solution} as="span" /></p>
+            )}
+            {concept.enterpriseCase.takeaway && (
+              <p><strong>结论：</strong><RichText text={concept.enterpriseCase.takeaway} as="span" /></p>
+            )}
           </div>
         ) : (
           <EmptySectionHint />
@@ -117,9 +134,11 @@ export function ConceptPage() {
 
       <ConceptSection index={6} title="常见误区">
         {concept.pitfalls.length > 0 ? (
-          <ul className={styles.list}>
+          <ul className={styles.dashList}>
             {concept.pitfalls.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>
+                <RichText text={item} as="span" />
+              </li>
             ))}
           </ul>
         ) : (

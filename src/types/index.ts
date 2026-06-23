@@ -33,6 +33,24 @@ export type AnimationType =
   | 'observability-trace'
   | 'token-roi-flow';
 
+/** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（docs/content-schema.md §7）。 */
+export type ContentRevision = 'legacy' | 'v2';
+
+export interface MechanismGroup {
+  label: string;
+  title: string;
+  items: string[];
+}
+
+/** 迁移期 union：string[] 为 legacy flat；MechanismGroup[] 为 v2 分组。 */
+export type MechanismContent = string[] | MechanismGroup[];
+
+export function isMechanismGrouped(
+  mechanism: MechanismContent,
+): mechanism is MechanismGroup[] {
+  return mechanism.length > 0 && typeof mechanism[0] === 'object';
+}
+
 export interface AnimationStep {
   id: string;
   title: string;
@@ -87,7 +105,8 @@ export interface KnowledgePoint {
   definition: string;
   whyItMatters: string;
   mentalModel: string;
-  mechanism: string[];
+  mechanism: MechanismContent;
+  contentRevision?: ContentRevision;
   animation?: AnimationConfig;
   enterpriseCase: EnterpriseCase;
   pitfalls: string[];

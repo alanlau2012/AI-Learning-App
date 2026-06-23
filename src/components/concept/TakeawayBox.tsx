@@ -1,3 +1,4 @@
+import { RichText } from './RichText';
 import styles from './TakeawayBox.module.css';
 
 interface TakeawayBoxProps {
@@ -10,9 +11,11 @@ export function TakeawayBox({ items }: TakeawayBoxProps) {
   }
 
   return (
-    <ul className={styles.box}>
+    <ul className={styles.list}>
       {items.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item}>
+          <RichText text={item} as="span" />
+        </li>
       ))}
     </ul>
   );

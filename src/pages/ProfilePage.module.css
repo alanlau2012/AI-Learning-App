@@ -32,10 +32,39 @@
 .panel,
 .danger {
   margin-top: 22px;
-  padding: 18px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  padding: 18px 0;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 22px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stepSn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+.step h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.step p {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.headerRule {
+  height: 1px;
+  background: var(--color-title);
+  margin-top: 28px;
 }
 
 .panel h2,

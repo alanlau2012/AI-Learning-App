@@ -23,9 +23,9 @@ export function ConceptCard({
 }: ConceptCardProps) {
   return (
     <article className={styles.card}>
+      <span className={styles.order}>{String(concept.order).padStart(2, '0')}</span>
       <Link to={`/concepts/${concept.slug}`} className={styles.main}>
         <div className={styles.topline}>
-          <span className={styles.order}>{String(concept.order).padStart(2, '0')}</span>
           <span className={styles.meta}>{DIFFICULTY_LABEL[concept.difficulty]}</span>
           <span className={styles.meta}>{concept.estimatedMinutes} 分钟</span>
           {concept.hasAnimation && <span className={styles.animation}>动画</span>}

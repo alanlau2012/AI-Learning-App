@@ -1,4 +1,5 @@
 import type { KnowledgePoint } from '../types';
+import { isMechanismGrouped } from '../types';
 import { isPublishedConcept } from './progress';
 
 export interface SearchResult {
@@ -11,10 +12,17 @@ function includes(value: string, query: string): boolean {
   return value.toLowerCase().includes(query);
 }
 
+function mechanismTexts(concept: KnowledgePoint): string[] {
+  if (isMechanismGrouped(concept.mechanism)) {
+    return concept.mechanism.flatMap((g) => [g.title, ...g.items]);
+  }
+  return concept.mechanism;
+}
+
 function textFields(concept: KnowledgePoint): string[] {
   return [
     concept.definition,
-    ...concept.mechanism,
+    ...mechanismTexts(concept),
     concept.enterpriseCase.title,
     concept.enterpriseCase.scenario,
     concept.enterpriseCase.problem,

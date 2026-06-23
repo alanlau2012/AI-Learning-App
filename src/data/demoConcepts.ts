@@ -1,10 +1,12 @@
 import type { KnowledgePoint } from '../types';
+import { applyV2Revisions } from '../utils/applyV2Revisions.ts';
 
 /**
  * MVP 样板与扩展内容。
  * 来源：content/drafts/*.json，经 reviews/content-review-12-lessons-round-02.md 复核通过后由主开发入库。
+ * v2 正文改版由 applyV2Revisions 在导出时合并（docs/content-schema.md §7）。
  */
-export const demoConcepts: KnowledgePoint[] = [
+const rawDemoConcepts: KnowledgePoint[] = [
   {
     "id": "token",
     "title": "Token",
@@ -4638,3 +4640,5 @@ export const demoConcepts: KnowledgePoint[] = [
   ]
 }
 ];
+
+export const demoConcepts: KnowledgePoint[] = applyV2Revisions(rawDemoConcepts);

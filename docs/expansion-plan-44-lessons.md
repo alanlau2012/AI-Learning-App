@@ -1,7 +1,8 @@
 # 44 讲扩展计划 · expansion-plan-44-lessons
 
 > MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 12 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
-> 当前已上线 44 讲：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `15/16`、M5 `1/6`、M6 `0/6`。
+> 当前已上线 44 讲（全部 `contentRevision: v2`）：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `15/16`、M5 `1/6`、M6 `0/6`。
+> 正文改版 v2 已完成，见 `reports/content-revision-platform-summary.md`。
 > 剩余 12 stub 见 [content-schema.md](content-schema.md) §4 登记表；本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---

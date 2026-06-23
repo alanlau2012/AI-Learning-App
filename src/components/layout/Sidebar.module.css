@@ -68,7 +68,7 @@
   margin: 20px 10px 8px;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   color: var(--color-faint);
   text-transform: uppercase;
 }

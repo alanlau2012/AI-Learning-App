@@ -32,10 +32,11 @@ export function SearchPage() {
       )}
       {results.length > 0 && (
         <div className={styles.results}>
-          {results.map(({ concept, reason }) => {
+          {results.map(({ concept, reason }, index) => {
             if (!isPublishedConcept(concept)) {
               return (
                 <article key={concept.id} className={`${styles.result} ${styles.unavailable}`}>
+                  <span className={styles.resultIdx}>{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <span className={styles.reason}>{reason}</span>
                     <h2>{concept.title}</h2>
@@ -48,6 +49,7 @@ export function SearchPage() {
 
             return (
               <Link key={concept.id} to={`/concepts/${concept.slug}`} className={styles.result}>
+                <span className={styles.resultIdx}>{String(index + 1).padStart(2, '0')}</span>
                 <div>
                   <span className={styles.reason}>{reason}</span>
                   <h2>{concept.title}</h2>

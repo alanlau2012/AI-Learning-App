@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer · 改版样板对比</title>
+<style>
+  :root {
+    --paper: #faf9f6;
+    --surface: #ffffff;
+    --soft: #f4f2ec;
+    --rule: #e3dfd4;
+    --rule-strong: #d4cfc2;
+    --ink: #1a1916;
+    --text: #38352e;
+    --muted: #8c887e;
+    --faint: #b4b0a6;
+    --accent: #1f40d8;
+    --serif: "IBM Plex Serif", Georgia, "Songti SC", "Noto Serif SC", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    background: var(--paper);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.78;
+    letter-spacing: 0.01em;
+  }
+  ::selection { background: #dfe3fb; }
+
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 76px 40px 120px; }
+
+  .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- masthead ---------- */
+  .mast { margin-bottom: 72px; }
+  .mast .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+  .mast h1 { font-family: var(--serif); font-weight: 600; font-size: 40px; line-height: 1.18; color: var(--ink); margin: 18px 0 0; letter-spacing: -0.01em; }
+  .mast .lede { max-width: 640px; margin-top: 20px; font-size: 16.5px; color: var(--text); line-height: 1.8; }
+  .mast .rule { height: 1px; background: var(--ink); margin-top: 34px; }
+
+  /* ---------- finding ledger ---------- */
+  .ledger { margin-bottom: 92px; }
+  .ledger-row { display: grid; grid-template-columns: 28px 1fr; gap: 26px; padding: 30px 0; border-bottom: 1px solid var(--rule); }
+  .ledger-row:first-child { border-top: 1px solid var(--rule); }
+  .ledger-row .idx { font-family: var(--serif); font-size: 19px; color: var(--faint); line-height: 1.4; }
+  .ledger-row h3 { font-family: var(--serif); font-weight: 600; font-size: 19px; color: var(--ink); margin-bottom: 6px; }
+  .ledger-row p { font-size: 15px; color: var(--text); max-width: 760px; }
+  .ledger-row .stat { font-family: var(--mono); font-size: 13.5px; color: var(--ink); }
+
+  /* ---------- section heading ---------- */
+  .head { display: flex; align-items: baseline; gap: 16px; margin: 0 0 8px; }
+  .head .n { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; padding-top: 4px; }
+  .head h2 { font-family: var(--serif); font-weight: 600; font-size: 27px; color: var(--ink); letter-spacing: -0.01em; }
+  .head-sub { margin: 0 0 40px 32px; color: var(--muted); font-size: 14.5px; }
+
+  .block { margin-bottom: 96px; }
+
+  /* ---------- before / after ---------- */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--rule); background: var(--surface); }
+  .col { padding: 34px 36px 40px; }
+  .col + .col { border-left: 1px solid var(--rule); }
+  .col-tag { display: flex; align-items: center; gap: 10px; padding-bottom: 24px; margin-bottom: 28px; border-bottom: 1px solid var(--rule); }
+  .col-tag .mark { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .col.before .col-tag .mark { color: var(--muted); }
+  .col.after .col-tag .mark { color: var(--accent); }
+  .col-tag .cap { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+
+  /* concept fragment shared */
+  .frag { display: block; }
+  .frag + .frag { margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--rule); }
+  .frag > .ft { display: flex; align-items: baseline; gap: 9px; margin-bottom: 14px; }
+  .frag > .ft .fi { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .frag > .ft h4 { font-family: var(--serif); font-weight: 600; font-size: 17px; color: var(--ink); }
+  .frag p { font-size: 14.5px; line-height: 1.8; color: var(--text); }
+
+  .def { padding-left: 18px; border-left: 2px solid var(--accent); }
+  .def .dl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
+  .def p { font-size: 15.5px; color: var(--ink); line-height: 1.72; }
+
+  .mm { background: var(--soft); padding: 20px 22px; }
+  .mm .ft { margin-bottom: 10px; }
+
+  /* BEFORE — flat list */
+  ol.flat { list-style: none; counter-reset: m; }
+  ol.flat li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 14px; line-height: 1.72; padding: 7px 0; }
+  ol.flat li .s { font-family: var(--mono); font-size: 12.5px; color: var(--faint); }
+
+  /* AFTER — grouped phases */
+  .phase + .phase { margin-top: 22px; }
+  .phase-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .phase-h .pl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
+  .phase-h h5 { font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--ink); }
+  .phase ul { list-style: none; padding-left: 18px; border-left: 1px solid var(--rule-strong); display: grid; gap: 10px; }
+  .phase ul li { font-size: 14px; line-height: 1.72; color: var(--text); }
+  b { font-weight: 600; color: var(--ink); }
+  em.t { font-style: normal; font-weight: 600; color: var(--ink); border-bottom: 1px solid var(--rule-strong); }
+
+  ul.dash { list-style: none; display: grid; gap: 9px; }
+  ul.dash li { font-size: 14px; line-height: 1.7; padding-left: 18px; position: relative; color: var(--text); }
+  ul.dash li::before { content: "—"; position: absolute; left: 0; color: var(--faint); }
+
+  /* change aside */
+  .aside { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--ink); }
+  .aside .al { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .aside ul { list-style: none; display: grid; gap: 11px; }
+  .aside li { font-size: 13.5px; line-height: 1.7; color: var(--text); padding-left: 22px; position: relative; }
+  .aside li .k { font-family: var(--mono); font-size: 11px; color: var(--accent); position: absolute; left: 0; top: 1px; }
+
+  /* ---------- spec tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; text-align: left; padding: 0 18px 12px; border-bottom: 1px solid var(--ink); }
+  tbody td { padding: 16px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; line-height: 1.65; }
+  tbody tr:last-child td { border-bottom: none; }
+  td .term { font-family: var(--serif); font-weight: 600; color: var(--ink); }
+  td code { font-family: var(--mono); font-size: 12.5px; background: var(--soft); padding: 2px 7px; border-radius: 3px; color: var(--ink); }
+  td .was { color: var(--muted); }
+  td .was s { color: var(--faint); }
+  .arrow { color: var(--accent); }
+
+  /* ---------- closing ---------- */
+  .close { margin-top: 28px; padding-top: 40px; border-top: 1px solid var(--ink); }
+  .close h3 { font-family: var(--serif); font-weight: 600; font-size: 20px; color: var(--ink); margin-bottom: 28px; }
+  .steps { display: grid; gap: 0; }
+  .step { display: grid; grid-template-columns: 40px 1fr; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--rule); }
+  .step:first-child { border-top: 1px solid var(--rule); }
+  .step .sn { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .step h4 { font-family: var(--serif); font-weight: 600; font-size: 16px; color: var(--ink); margin-bottom: 4px; }
+  .step p { font-size: 14px; color: var(--text); max-width: 720px; }
+
+  @media (max-width: 900px) {
+    .wrap { padding: 48px 24px 80px; }
+    .mast h1 { font-size: 31px; }
+    .ba { grid-template-columns: 1fr; }
+    .col + .col { border-left: none; border-top: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- masthead -->
+  <header class="mast">
+    <div class="eyebrow">内容审查 · 改版样板</div>
+    <h1>Transformer 这一讲，<br>改前与改后</h1>
+    <p class="lede">以「Transformer」为样本，演示统一规范后的效果，覆盖三件事：术语数据对齐、正文分层组织、字段深度标准。方向确认后按同一套规范推广到全部 44 讲。</p>
+    <div class="rule"></div>
+  </header>
+
+  <!-- findings ledger -->
+  <section class="ledger">
+    <div class="ledger-row">
+      <div class="idx">01</div>
+      <div>
+        <h3>同一术语，大小写各写各的</h3>
+        <p>全册统计：<span class="stat">token 105 次 / Token 134 次</span>，<span class="stat">prefill 33 / Prefill 89</span>，<span class="stat">decode 34 / Decode 80</span>。同一个概念在不同讲里写法不一致，读起来像出自多人之手。</p>
+      </div>
+    </div>
+    <div class="ledger-row">
+      <div class="idx">02</div>
+      <div>
+        <h3>「机制讲解」被切成互不相关的句子</h3>
+        <p>当前把每条机制渲染成独立编号（01–06）平铺，没有分组、没有层级、关键术语不突出。一段本应连贯的讲解，读起来像六句话堆在一起——这是「零碎感」的主要来源。</p>
+      </div>
+    </div>
+    <div class="ledger-row">
+      <div class="idx">03</div>
+      <div>
+        <h3>各讲深度参差，没有统一标尺</h3>
+        <p>「为什么重要」从 <span class="stat">70 字到 206 字</span>不等，核心结论 <span class="stat">3–5 条</span>不定，常见误区 <span class="stat">3–5 条</span>不定。早期几讲明显更厚，后段偏薄，全册节奏不齐。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- A. rendering -->
+  <section class="block">
+    <div class="head"><span class="n">A</span><h2>正文渲染</h2></div>
+    <p class="head-sub">同一份内容 —— 左侧当前的扁平堆叠，右侧改后的分层组织</p>
+
+    <div class="ba">
+      <!-- BEFORE -->
+      <div class="col before">
+        <div class="col-tag"><span class="mark">改前</span><span class="cap">当前线上效果</span></div>
+
+        <div class="frag def">
+          <span class="dl">一句话定义</span>
+          <p>Transformer 是现代大模型的核心神经网络架构，它通过注意力机制和多层表示变换，把上下文中的 token 关系逐层加工成可用于预测下一个 token 的内部状态。</p>
+        </div>
+
+        <div class="frag mm">
+          <div class="ft"><span class="fi">02</span><h4>心智模型</h4></div>
+          <p>把 Transformer 看成一座多层加工厂：原料是 token 序列，每一层都会重新评估哪些位置与当前预测有关，再把局部线索加工成更抽象的表示。工厂可以处理很多任务，但每次加工都受输入长度、位置编码、注意力计算和模型参数的限制。</p>
+        </div>
+
+        <div class="frag">
+          <div class="ft"><span class="fi">03</span><h4>机制讲解</h4></div>
+          <ol class="flat">
+            <li><span class="s">01</span>输入 token 会先变成 embedding，并叠加位置信息，让模型同时知道是什么和在序列哪里。</li>
+            <li><span class="s">02</span>每一层通过自注意力计算 token 之间的关系，使当前位置能够利用历史上下文中的相关信息。</li>
+            <li><span class="s">03</span>前馈网络会对注意力聚合后的表示做非线性变换，提炼更适合预测的特征。</li>
+            <li><span class="s">04</span>多头注意力允许模型从不同关系视角处理上下文，例如指代、格式、约束、证据和语法。</li>
+            <li><span class="s">05</span>层数、隐藏维度、注意力头数和上下文长度共同影响能力、显存、吞吐和延迟。</li>
+            <li><span class="s">06</span>自回归大模型在推理时基于当前上下文表示预测下一个 token，并把新 token 追加回上下文继续计算。</li>
+          </ol>
+        </div>
+
+        <div class="frag">
+          <div class="ft"><span class="fi">06</span><h4>常见误区</h4></div>
+          <ul class="dash">
+            <li>把 Transformer 理解成万能理解器，忽略输入组织和计算预算。</li>
+            <li>认为上下文越长越安全，实际可能让关键证据在注意力竞争中被稀释。</li>
+            <li>只比较模型榜单分数，不比较自己任务上的延迟、引用准确率和失败样本。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="col after">
+        <div class="col-tag"><span class="mark">改后</span><span class="cap">统一规范效果</span></div>
+
+        <div class="frag def">
+          <span class="dl">一句话定义</span>
+          <p>Transformer 是现代大模型的核心神经网络架构，它通过注意力机制和多层表示变换，把上下文中的 Token 关系逐层加工成可用于预测下一个 Token 的内部状态。</p>
+        </div>
+
+        <div class="frag mm">
+          <div class="ft"><span class="fi">02</span><h4>心智模型</h4></div>
+          <p>把 Transformer 看成一座<b>多层加工厂</b>：原料是 Token 序列，每一层都会重新评估哪些位置与当前预测有关，再把局部线索加工成更抽象的表示。工厂能处理很多任务，但每次加工都受<b>输入长度、位置编码、注意力计算和模型参数</b>的限制——给它更多材料不一定更好，组织错误反而会占用加工能力。</p>
+        </div>
+
+        <div class="frag">
+          <div class="ft"><span class="fi">03</span><h4>机制讲解</h4></div>
+          <div class="phase">
+            <div class="phase-h"><span class="pl">A</span><h5>输入变成可计算的表示</h5></div>
+            <ul>
+              <li>输入 Token 先变成 <b>Embedding</b>，叠加<b>位置编码</b>，让模型同时知道"是什么"和"在序列哪里"。</li>
+            </ul>
+          </div>
+          <div class="phase">
+            <div class="phase-h"><span class="pl">B</span><h5>每一层重新组织上下文</h5></div>
+            <ul>
+              <li>每一层通过<b>自注意力</b>计算 Token 之间的关系，使当前位置能利用历史上下文中的相关信息。</li>
+              <li><b>前馈网络</b>对聚合后的表示做非线性变换，提炼更适合预测的特征。</li>
+              <li><b>多头注意力</b>让模型从不同关系视角处理上下文：指代、格式、约束、证据、语法。</li>
+            </ul>
+          </div>
+          <div class="phase">
+            <div class="phase-h"><span class="pl">C</span><h5>自回归生成与工程代价</h5></div>
+            <ul>
+              <li>模型基于当前上下文表示<b>预测下一个 Token</b>，并把新 Token 追加回上下文继续计算。</li>
+              <li><b>层数、隐藏维度、注意力头数、上下文长度</b>共同决定能力、显存、吞吐与延迟。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="frag">
+          <div class="ft"><span class="fi">06</span><h4>常见误区</h4></div>
+          <ul class="dash">
+            <li>把 Transformer 当成万能理解器，<b>忽略输入组织和计算预算</b>。</li>
+            <li>认为上下文越长越安全，实际可能让<b>关键证据在注意力竞争中被稀释</b>。</li>
+            <li>只看模型榜单分数，<b>不看自己任务上的延迟、引用准确率和失败样本</b>。</li>
+          </ul>
+        </div>
+
+        <div class="aside">
+          <div class="al">改动说明</div>
+          <ul>
+            <li><span class="k">01</span>机制六条扁平编号，重组为 A 输入 / B 逐层加工 / C 推理生成 三段，恢复讲解的逻辑流。</li>
+            <li><span class="k">02</span>关键术语加粗，扫读时一眼抓住骨架，而非逐字读完六句。</li>
+            <li><span class="k">03</span>术语统一为 Token、Embedding 等规范写法，与全册一致。</li>
+            <li><span class="k">04</span>误区句式统一为"现象 → 后果"，落点收在加粗的后果上。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B. term spec -->
+  <section class="block">
+    <div class="head"><span class="n">B</span><h2>术语数据对齐</h2></div>
+    <p class="head-sub">建一张术语表，44 讲一次锁定写法</p>
+    <table>
+      <thead>
+        <tr><th style="width:16%">术语</th><th style="width:32%">现状</th><th style="width:20%">统一</th><th>规则</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="term">Token</span></td><td class="was"><s>token</s> 105 · Token 134</td><td><code>Token</code></td><td>领域专有名词，首字母大写，全册统一</td></tr>
+        <tr><td><span class="term">Prefill</span></td><td class="was"><s>prefill</s> 33 · Prefill 89</td><td><code>Prefill</code></td><td>阶段名按专有名词处理</td></tr>
+        <tr><td><span class="term">Decode</span></td><td class="was"><s>decode</s> 34 · Decode 80</td><td><code>Decode</code></td><td>同上</td></tr>
+        <tr><td><span class="term">Embedding</span></td><td class="was">embedding 7 · Embedding 1</td><td><code>Embedding</code></td><td>统一大写，避免与普通词混淆</td></tr>
+        <tr><td><span class="term">KV Cache</span></td><td class="was">KV Cache 43（已较一致）</td><td><code>KV Cache</code></td><td>保持现状，写入术语表锁定</td></tr>
+        <tr><td><span class="term">引号</span></td><td class="was">全角 "" 共 170 处，中英混排不齐</td><td><code>中文 ""</code></td><td>正文用中文引号；标识符走代码体</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- C. field spec -->
+  <section class="block">
+    <div class="head"><span class="n">C</span><h2>字段深度标准</h2></div>
+    <p class="head-sub">给每个字段定长度区间与条目数，消除参差感</p>
+    <table>
+      <thead>
+        <tr><th style="width:18%">字段</th><th style="width:22%">现状</th><th style="width:22%">标准</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="term">一句话定义</span></td><td class="was">40–103 字</td><td><code>50–90 字</code></td><td>说清"是什么 + 为何要管"，过短的补足</td></tr>
+        <tr><td><span class="term">为什么重要</span></td><td class="was">70–206 字</td><td><code>90–150 字</code></td><td>早期几讲偏长需压缩，后段偏短需补</td></tr>
+        <tr><td><span class="term">机制讲解</span></td><td class="was">4–7 条平铺</td><td><code>2–3 组 / 组内 1–3 条</code></td><td>按逻辑阶段分组，而非凑条数</td></tr>
+        <tr><td><span class="term">常见误区</span></td><td class="was">3–5 条</td><td><code>固定 4 条</code></td><td>统一"现象 → 后果"句式</td></tr>
+        <tr><td><span class="term">核心结论</span></td><td class="was">3–5 条</td><td><code>固定 4 条</code></td><td>后段多为 3 条，补到 4 条</td></tr>
+        <tr><td><span class="term">企业案例</span></td><td class="was">六段齐全 ✓</td><td><code>保持六段</code></td><td>结构已统一，仅做术语对齐</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- closing -->
+  <section class="close">
+    <h3>方向认可后，推广到 44 讲的顺序</h3>
+    <div class="steps">
+      <div class="step"><span class="sn">01</span><div><h4>建术语表 + 写校验</h4><p>把术语表锁进 <code style="font-family:var(--mono);font-size:13px">validate:content</code>，自动拦截大小写与引号不一致。一次性，覆盖全册。</p></div></div>
+      <div class="step"><span class="sn">02</span><div><h4>改渲染层</h4><p>机制讲解支持「分组 + 关键词加粗」，改 ConceptPage 与 schema，所有讲同步受益。</p></div></div>
+      <div class="step"><span class="sn">03</span><div><h4>按模块批量校订</h4><p>m1 → m6 逐模块对齐字段长度与条目数，每模块产出一份 diff 供你复核。</p></div></div>
+      <div class="step"><span class="sn">04</span><div><h4>事实复核</h4><p>注意力、KV Cache、量化等技术表述过一遍准确性，再入库。</p></div></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

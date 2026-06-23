@@ -4,18 +4,13 @@
 
 ## 当前状态
 
-当前封板：**MVP 0.3 Wave 4B**（当前工作区基于 `5e75469` 完成，Wave 4B 改动待提交）。
+当前封板：**正文改版 v2**（MVP 0.3 Wave 4B 之上）。
 
 - 56 讲信息架构已登记。
-- **44 / 56 讲**已正式入库并通过内容门禁；剩余 `stub`：12 讲。
-- M1「模型怎么工作」：`10/10` 已上线。
-- M2「模型怎么跑得又快又稳」：`10/10` 已上线。
-- M3「模型怎么变成企业平台」：`8/8` 已上线。
-- M4「模型怎么变成 Agent」：`15/16` 已上线，仅剩 `multi-agent` 收口讲。
-- M5「Agent 怎么改变软件工程」：`1/6` 已上线；M6「企业怎么治理 AI」：`0/6`。
-- 首页、模块页、知识点详情页、动画、诊断题、搜索、术语索引、我的学习页可用于演示。
-- Wave 4B 验证报告见 `reports/mvp-0.3-wave4b-summary.md` 与 `reports/e2e-verification-mvp-0.3-wave4b.md`。
-- 下一轮建议：启动 Final Wave，完成 `multi-agent`、M5 剩余 5 讲和 M6 6 讲。
+- **44 / 56 讲**已正式入库；全部已发布讲均为 `contentRevision: v2`（机制分组、术语对齐、字段深度标准）。
+- M1–M3 完整上线；M4 `15/16`；M5 `1/6`；M6 `0/6`。
+- 改版报告：`reports/content-revision-platform-summary.md`、`reports/content-revision-m1-summary.md` … `m5-summary.md`。
+- 下一轮：Final Wave（`multi-agent` + M5/M6 剩余 12 stub）。
 
 ## 启动
 
@@ -39,7 +34,8 @@ npm run build      # 生产构建
 阶段封板前至少运行：
 
 ```bash
-npm run validate:content    # structure + published-content + animation
+npm run validate:content    # structure + published-content + animation + terminology
+npm run validate:terminology # v2 正文：术语 / 深度 / 轻量标记（§7）
 npm run typecheck           # TypeScript 类型检查
 npm run lint                # ESLint
 npm run build               # 生产构建

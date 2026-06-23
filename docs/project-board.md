@@ -3,21 +3,15 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（MVP 0.3 Wave 4B 封板状态同步）
+**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（正文改版 v2 封板）
 
 ## 1. 当前里程碑
 
-- **当前代码基线**：当前工作区基于 `5e75469`（`Update docs for MVP 0.3 Wave 4A status`）完成 Wave 4B；具体 hash 以后续提交为准。
-- **当前阶段**：**MVP 0.3 Wave 4B 已完成待提交**。M1「模型怎么工作」、M2「模型怎么跑得又快又稳」、M3「模型怎么变成企业平台」均已完整上线；M4 除 `multi-agent` 外已完成主体链路。
+- **当前阶段**：**正文改版 v2 已完成**。44 讲已发布内容全部 `contentRevision: v2`（机制分组、术语表、字段深度、编辑排版语言）。
 - **当前上线内容**：44 / 56 讲；剩余 `stub`：12 讲。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `15/16`，M5 `1/6`，M6 `0/6`。
-- **Wave 1 已完成**：7 讲，详见 `reports/mvp-0.2-wave1-summary.md`。
-- **Wave 2 已完成**：7 讲，详见 `reports/mvp-0.2-wave2-summary.md`。
-- **Wave 3 已完成**：6 讲，详见 `reports/mvp-0.2-wave3-summary.md`。
-- **Wave 4A 已完成**：6 讲，详见 `reports/mvp-0.3-wave4a-summary.md`。
-- **Wave 4B 已完成**：6 讲，`agents-md` / `repo-context` / `spec-driven-development` / `subagent` / `memory` / `human-in-the-loop`；详见 `reports/mvp-0.3-wave4b-summary.md`。
-- **Wave 4B 验证**：`npm run validate:content`、`npm run typecheck`、`npm run lint`、`npm run build` 均 PASS；E2E 等价抽查 PASS，见 `reports/e2e-verification-mvp-0.3-wave4b.md`。
-- **下一轮建议**：启动 **Final Wave**，完成 `multi-agent`、M5 剩余 5 讲和 M6 6 讲；M6 治理类内容口径与可选新动画需 Owner 确认。
+- **改版验证**：`validate:content`（含 terminology）、`typecheck`、`lint`、`build` 均 PASS；见 `reports/content-revision-platform-summary.md`。
+- **下一轮建议**：Final Wave — `multi-agent` + M5 剩余 + M6 全量；新内容直接按 `content-schema.md` §7 入库。
 - 后续推进仍需遵守内容流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
 ## 2. 阶段任务板
@@ -31,7 +25,8 @@
 | MVP 0.2 Wave 3 | M3 收尾 6 讲入库 | 内容 Agent → 审核 Agent → 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | `be4472e`，累计 32/56 |
 | MVP 0.3 Wave 4A | M4 上下文工程与 Agent 基础链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 38/56，M4 9/16 |
 | MVP 0.3 Wave 4B | M4 剩余主体链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 44/56，M4 15/16 |
-| Final Wave | multi-agent + M5 剩余 + M6 全量入库 | 待启动 | todo | draft → review → merge → 四命令全绿 → E2E | M6 治理口径与可选动画需 Owner 确认 |
+| Content Revision v2 | 44 讲正文改版 + 全站编辑排版语言 | 主开发 | done | validate:content（含 terminology）+ 四命令全绿 | 见 `reports/content-revision-*.md` |
+| Final Wave | multi-agent + M5 剩余 + M6 全量入库 | 待启动 | todo | draft → review → merge → 四命令全绿 → E2E | 入库直接按 content-schema §7 |
 ## 3. 内容生产流水线（draft → review → 入库）
 
 权威字段只能落入 `src/data/*`，但内容**不得**由内容 Agent 直接写入 `src/data/*`。统一走三段式：

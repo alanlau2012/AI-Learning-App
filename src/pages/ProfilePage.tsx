@@ -33,6 +33,7 @@ export function ProfilePage() {
         <span>Profile</span>
         <h1>我的学习</h1>
         <p>进度、收藏、错题和复习入口都集中在这里。</p>
+        <div className={styles.headerRule} aria-hidden />
       </section>
 
       <StudyStats
