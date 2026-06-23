@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { concepts } from '../data/concepts';
+import { getHyperframeMaterialsForConcept } from '../data/hyperframes';
 import { modules } from '../data/modules';
 import { ConceptHeader } from '../components/concept/ConceptHeader';
 import { ConceptSection, EmptySectionHint } from '../components/concept/ConceptSection';
@@ -53,6 +54,7 @@ export function ConceptPage() {
   const nextConcept =
     conceptIndex >= 0 ? orderedPublishedConcepts[conceptIndex + 1] : orderedPublishedConcepts[0];
   const hasEnterpriseCase = Object.values(concept.enterpriseCase).some(Boolean);
+  const conceptMaterials = getHyperframeMaterialsForConcept(concept.id);
 
   return (
     <main className={styles.page}>
@@ -79,6 +81,19 @@ export function ConceptPage() {
           <p className={styles.definitionText}>内容草稿待审核入库，当前先保留知识点结构。</p>
         )}
       </section>
+
+      {conceptMaterials.length > 0 && (
+        <section className={styles.materialCallout} aria-label="相关机制短片">
+          <div>
+            <span className={styles.materialLabel}>机制短片</span>
+            <h2>先看完整链路，再拆这一讲</h2>
+            <p>{conceptMaterials[0].subtitle}</p>
+          </div>
+          <Link to={`/modules/${conceptMaterials[0].moduleId}#material-${conceptMaterials[0].id}`}>
+            观看完整链路 →
+          </Link>
+        </section>
+      )}
 
       <ConceptSection index={1} title="为什么重要">
         {concept.whyItMatters ? (

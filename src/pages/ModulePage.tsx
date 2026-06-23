@@ -3,8 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import { modules } from '../data/modules';
 import { concepts } from '../data/concepts';
 import { ConceptCard } from '../components/concept/ConceptCard';
+import { HyperframePlayer } from '../components/hyperframe/HyperframePlayer';
 import { ProgressBar } from '../components/progress/ProgressBar';
 import { useProgressStore } from '../store/progressStore';
+import { getHyperframeMaterialsForModule } from '../data/hyperframes';
 import { isPublishedConcept, moduleProgress } from '../utils/progress';
 import type { Difficulty, KnowledgePoint } from '../types';
 import styles from './ModulePage.module.css';
@@ -85,6 +87,7 @@ export function ModulePage() {
   const progress = moduleProgress(module.id, completedSet);
   const percent =
     progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+  const moduleMaterials = getHyperframeMaterialsForModule(module.id);
 
   return (
     <main className={styles.page}>
@@ -100,6 +103,22 @@ export function ModulePage() {
         <p className={styles.headSub}>{module.recommendedFor.join(' · ')}</p>
         <div className={styles.headerRule} aria-hidden />
       </section>
+
+      {moduleMaterials.map((material) => (
+        <section
+          key={material.id}
+          id={`material-${material.id}`}
+          className={styles.materialSection}
+          aria-labelledby={`material-title-${material.id}`}
+        >
+          <div className={styles.materialIntro}>
+            <span className={styles.materialLabel}>机制短片</span>
+            <h2 id={`material-title-${material.id}`}>{material.title}</h2>
+            <p>{material.subtitle}</p>
+          </div>
+          <HyperframePlayer material={material} />
+        </section>
+      ))}
 
       <section className={styles.controls} aria-label="筛选与排序">
         <label>
