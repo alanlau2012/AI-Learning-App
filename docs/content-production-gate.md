@@ -95,7 +95,7 @@
 - **配置驱动 + 复用优先**：步骤只存在于 `AnimationConfig.steps`；优先复用现有 7 类型 / 8 组件（[animation-spec.md](animation-spec.md) §2），同类型讲共用画布并以 highlightTargets 聚焦。
 - **一致性**：`hasAnimation === (animation != null)`；有动画则 `steps ≥3`（入库完整性）/`≥1`（结构）、`type` 已在 registry 注册、每个 step 有唯一 `id`。
 - **reduced-motion 可读**：静止画面可逐步理解。
-- 走 `GenericMechanismAnimation` 通用画布的类型（token-flow/attention-map/context-window/model-router/issue-fix-flow）允许暂用，但不得泄漏 raw key、fallback 文案须可读；是否升级为专用画布按复用度在扩展中评估。
+- 未注册动画类型由 `AnimationPlayer` 纯文本 fallback 兜底（标题 + 当前步说明 + 计数），不得泄漏 raw key；新类型须先在 registry 注册专用画布后再入库。
 
 ---
 

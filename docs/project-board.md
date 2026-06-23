@@ -3,7 +3,7 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（正文改版 v2 封板）
+**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（冗余文件清理 + v2 封板）
 
 ## 1. 当前里程碑
 
@@ -11,6 +11,7 @@
 - **当前上线内容**：44 / 56 讲；剩余 `stub`：12 讲。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `15/16`，M5 `1/6`，M6 `0/6`。
 - **改版验证**：`validate:content`（含 terminology）、`typecheck`、`lint`、`build` 均 PASS；见 `reports/content-revision-platform-summary.md`。
+- **仓库清理（2026-06-23）**：已合入草稿 → `content/archive/merged/`；历史报告 → `reports/archive/`；MVP 0.1 复盘 → `reviews/archive/`；原始 PDF/zip → `materials/archive/`；过期文档 → `docs/archive/`；删除 src 死代码、`tmp_claude_design_019ee7/`、根目录 dev log；`.cursor/` 脱库。Final Wave 新草稿仍写 `content/drafts/`。
 - **下一轮建议**：Final Wave — `multi-agent` + M5 剩余 + M6 全量；新内容直接按 `content-schema.md` §7 入库。
 - 后续推进仍需遵守内容流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 

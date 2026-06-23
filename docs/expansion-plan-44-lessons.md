@@ -20,7 +20,7 @@
 | MVP 0.3 Wave 4A | 6 | M4 上下文工程 + 工具调用 | **done：M4 已 9/16** | Prompt/Context、系统提示、压缩、污染、分层会话、工具调用 | 低（复用 agent-loop） | 否 |
 | MVP 0.3 Wave 4B | 6 | M4 剩余主体链路 | **done：M4 已 15/16** | AGENTS.md、仓库上下文、规格驱动、Subagent、Memory、Human-in-the-loop | 低 | 否 |
 | Final Wave | 12 | M4 收尾(1) + M5 + M6 | todo | 软件工程闭环 + 企业治理收口，可能新增治理类动画 | 中-高（可能新增动画类型） | **是**（动画范围 + 治理口径） |
-| 合计 | 44 | — | 已完成 32，剩余 12 | — | — | — |
+| 合计 | 44 | — | **已完成 44**，剩余 12 | — | — | — |
 
 **为什么这个顺序**：先完成已有锚点最密集、动画复用最高、内容风险最低的模块（M1→M2/M3→M4），把高不确定性（M6 治理类内容口径、可能的新动画类型）留到最后一批，并在那之前已用三批验证好整套门禁与流水线。
 
@@ -48,7 +48,7 @@
 主开发按 [content-schema.md](content-schema.md) §3 映射，把 8 讲 `contentStatus` 由 `stub` 升为 `mvp`，补齐完整性字段，合入 `src/data/demoConcepts.ts`（或后续正式数据文件），运行 `validate:content`/`typecheck`/`lint`/`build`。内容/审核/动画 Agent 不得直接改 `src/data/*`。
 
 **7. 动画复用或新增需求**
-- 复用：`autoregressive` → `token-flow`（现 `GenericMechanismAnimation` 通用画布）。
+- 复用：`autoregressive` → `token-flow`（专用 `TokenFlowAnimation` 画布）。
 - 新增：无。其余 7 讲无动画。
 
 **8. E2E 验收项**

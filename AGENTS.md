@@ -11,6 +11,7 @@
 - 当前上线内容：**44 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**12 讲**。
 - 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `15/16`，M5 `1/6`，M6 `0/6`。
 - 改版验证：`npm run validate:content`（含 `validate:terminology`）、`typecheck`、`lint`、`build` 均 PASS；见 `reports/content-revision-platform-summary.md` 与各模块 `reports/content-revision-m*.md`。
+- **仓库清理（2026-06-23）**：已入库内容草稿 → `content/archive/merged/`；历史 Wave 报告 → `reports/archive/`；MVP 0.1 复盘 → `reviews/archive/`（保留 `reviews/transformer-改版样板对比.html` v2 金样）；原始 PRD/素材 PDF 与高保真 zip → `materials/archive/`；删除 src 零引用组件、`tmp_claude_design_019ee7/`、根目录 dev `*.log`；`.cursor/` 已脱库；过期文档 → `docs/archive/`。
 - 下一轮建议：启动 **Final Wave**，完成 `multi-agent`、M5 剩余 5 讲和 M6 6 讲（入库时直接按 `docs/content-schema.md` §7 写作）；M6 治理类内容口径与可选新动画需 Owner 确认。
 ## 1. 项目一句话定位
 
@@ -38,7 +39,7 @@ src/
     animation/    AnimationPlayer + 各动画组件（见 docs/animation-spec.md）
     quiz/         DiagnosticQuestion, OptionCard, ExplanationPanel
     progress/     ProgressBar, ModuleProgress, StudyStats
-    search/       SearchBox, SearchResults
+    search/       SearchBox（结果由 SearchPage 内联渲染）
   data/           modules.ts, concepts.ts, glossary.ts   ← 所有知识点/模块/术语内容
   store/          progressStore.ts                       ← 唯一全局状态
   types/          index.ts                               ← 唯一数据 schema 定义

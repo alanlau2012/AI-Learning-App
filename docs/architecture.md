@@ -51,7 +51,7 @@ flowchart TD
 | animation | `AnimationPlayer` + 各动画 | 统一播放器与机制动画，见 [animation-spec.md](animation-spec.md) |
 | quiz | `DiagnosticQuestion` / `OptionCard` / `ExplanationPanel` | 诊断题渲染、选项、解析与排查路径 |
 | progress | `ProgressBar` / `ModuleProgress` / `StudyStats` | 进度条、模块进度、学习统计 |
-| search | `SearchBox` / `SearchResults` | 搜索输入与结果列表 |
+| search | `SearchBox` + `SearchPage` 内联结果 | 搜索输入与结果列表 |
 
 ## 3. 状态管理与持久化
 
