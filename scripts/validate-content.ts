@@ -20,6 +20,7 @@
 import { concepts } from '../src/data/concepts.ts';
 import { modules } from '../src/data/modules.ts';
 import { glossary } from '../src/data/glossary.ts';
+import { hyperframeMaterials } from '../src/data/hyperframes.ts';
 import {
   collectConceptTextFields,
   HALF_WIDTH_QUOTE_PATTERN,
@@ -165,6 +166,42 @@ function validateStructure(): void {
     }
   }
 
+  const moduleIdSet = new Set(modules.map((m) => m.id));
+  for (const material of hyperframeMaterials) {
+    if (!KEBAB.test(material.id)) fail(`短片 ${material.id}: id 不符合 kebab-case`);
+    if (!moduleIdSet.has(material.moduleId)) {
+      fail(`短片 ${material.id}: moduleId 指向不存在的模块：${material.moduleId}`);
+    }
+    if (!material.src.startsWith('/hyperframes/') || !material.src.endsWith('/index.html')) {
+      fail(`短片 ${material.id}: src 必须是站内 /hyperframes/.../index.html 路径`);
+    }
+    if (material.width <= 0 || material.height <= 0) {
+      fail(`短片 ${material.id}: width/height 必须为正数`);
+    }
+    if (material.durationSeconds <= 0) {
+      fail(`短片 ${material.id}: durationSeconds 必须为正数`);
+    }
+    for (const rid of material.relatedConceptIds) {
+      if (!conceptIdSet.has(rid)) fail(`短片 ${material.id} relatedConceptIds 悬空：${rid}`);
+    }
+    let previousStart = -1;
+    const chapterIds = new Set<string>();
+    for (const chapter of material.chapters) {
+      if (!KEBAB.test(chapter.id)) fail(`短片 ${material.id}: chapter id 不符合 kebab-case：${chapter.id}`);
+      if (chapterIds.has(chapter.id)) fail(`短片 ${material.id}: chapter id 重复：${chapter.id}`);
+      chapterIds.add(chapter.id);
+      if (chapter.startSeconds < previousStart) {
+        fail(`短片 ${material.id}: chapters 必须按 startSeconds 升序排列`);
+      }
+      if (chapter.startSeconds < 0 || chapter.startSeconds > material.durationSeconds) {
+        fail(`短片 ${material.id}: chapter ${chapter.id} startSeconds 超出时长`);
+      }
+      if (chapter.relatedConceptId && !conceptIdSet.has(chapter.relatedConceptId)) {
+        fail(`短片 ${material.id}: chapter ${chapter.id} relatedConceptId 悬空：${chapter.relatedConceptId}`);
+      }
+      previousStart = chapter.startSeconds;
+    }
+  }
   // 6. contentStatus 合法
   for (const c of concepts) {
     if (!VALID_STATUS.has(c.contentStatus)) {
