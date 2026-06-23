@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>为什么大模型会慢：首字前与首字后</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-300.woff2") format("woff2");
+        font-weight: 300;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Serif";
+        src: url("fonts/ibm-plex-serif-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Serif";
+        src: url("fonts/ibm-plex-serif-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/ibm-plex-mono-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/ibm-plex-mono-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf9f6;
+        color: #34322c;
+        font-family: "IBM Plex Sans", "Microsoft YaHei", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf9f6;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: #faf9f6;
+      }
+
+      .scene:not(#scene-intro) {
+        opacity: 0;
+      }
+
+      .scene-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        padding: 96px 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 34px;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(circle at 18% 22%, rgba(31, 64, 216, 0.08), rgba(31, 64, 216, 0) 290px),
+          radial-gradient(circle at 82% 78%, rgba(46, 125, 88, 0.08), rgba(46, 125, 88, 0) 330px),
+          linear-gradient(90deg, rgba(231, 227, 217, 0.42) 1px, rgba(250, 249, 246, 0) 1px),
+          linear-gradient(180deg, rgba(231, 227, 217, 0.36) 1px, rgba(250, 249, 246, 0) 1px);
+        background-size: auto, auto, 120px 120px, 120px 120px;
+      }
+
+      .ghost {
+        position: absolute;
+        right: -20px;
+        bottom: 18px;
+        z-index: 1;
+        color: rgba(31, 64, 216, 0.06);
+        font-family: "IBM Plex Serif", serif;
+        font-size: 168px;
+        font-weight: 700;
+        letter-spacing: 0;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .mono,
+      .eyebrow,
+      .progress-line,
+      .chip,
+      .token,
+      .metric-value,
+      .lane-label,
+      .tick {
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 40px;
+      }
+
+      .eyebrow {
+        color: #1f40d8;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .progress-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #6f6b62;
+        font-size: 18px;
+      }
+
+      .progress-line b {
+        color: #34322c;
+      }
+
+      .progress-line span {
+        display: inline-block;
+        width: 54px;
+        height: 4px;
+        border-radius: 2px;
+        background: #dad6cb;
+      }
+
+      .progress-line .done {
+        background: #1f40d8;
+      }
+
+      h1,
+      h2,
+      .closing-title {
+        margin: 0;
+        max-width: 1260px;
+        color: #1a1916;
+        font-family: "IBM Plex Serif", Georgia, serif;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 104px;
+        line-height: 1.05;
+      }
+
+      h2 {
+        font-size: 74px;
+        line-height: 1.08;
+      }
+
+      .lede,
+      .caption,
+      .note {
+        margin: 0;
+        max-width: 940px;
+        color: #34322c;
+        font-size: 28px;
+        line-height: 1.45;
+      }
+
+      .note {
+        color: #5f5b53;
+        font-size: 23px;
+      }
+
+      .intro-main,
+      .closing {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 32px;
+      }
+
+      .route {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        max-width: 1220px;
+      }
+
+      .chip {
+        border: 1px solid #c9d2fb;
+        background: #ebeefe;
+        color: #1f40d8;
+        border-radius: 6px;
+        padding: 12px 18px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .arrow {
+        color: #6f6b62;
+        font-size: 28px;
+      }
+
+      .split {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 0.82fr 1.18fr;
+        gap: 58px;
+        align-items: center;
+      }
+
+      .panel {
+        border: 1px solid #e7e3d9;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 12px 36px rgba(52, 50, 44, 0.07);
+      }
+
+      .request-stack {
+        padding: 36px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .source-row {
+        display: grid;
+        grid-template-columns: 160px 1fr 92px;
+        align-items: center;
+        gap: 18px;
+        min-height: 68px;
+        padding: 16px 18px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #faf9f6;
+      }
+
+      .source-row strong {
+        color: #1a1916;
+        font-size: 24px;
+      }
+
+      .source-row p {
+        margin: 0;
+        color: #5f5b53;
+        font-size: 21px;
+      }
+
+      .metric-value {
+        color: #1f40d8;
+        font-size: 21px;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .token-rail,
+      .output-rail {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .token {
+        height: 54px;
+        min-width: 84px;
+        padding: 0 16px;
+        border-radius: 5px;
+        border: 1px solid #c9d2fb;
+        background: #ebeefe;
+        color: #1f40d8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        font-weight: 700;
+      }
+
+      .token.soft {
+        border-color: #dad6cb;
+        background: #f2efe7;
+        color: #34322c;
+      }
+
+      .token.green {
+        border-color: rgba(46, 125, 88, 0.25);
+        background: #e8f2ec;
+        color: #2e7d58;
+      }
+
+      .factory-board {
+        padding: 38px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 26px;
+        align-items: stretch;
+      }
+
+      .stage-card {
+        padding: 28px;
+        border: 1px solid #c9d2fb;
+        border-radius: 7px;
+        background: #ffffff;
+        display: grid;
+        gap: 18px;
+      }
+
+      .stage-card h3 {
+        margin: 0;
+        color: #1a1916;
+        font-family: "IBM Plex Serif", Georgia, serif;
+        font-size: 34px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .bar-row span:first-child {
+        color: #5f5b53;
+        font-size: 20px;
+      }
+
+      .bar-track {
+        height: 18px;
+        border-radius: 9px;
+        background: #f2efe7;
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        display: block;
+        height: 100%;
+        width: 66%;
+        border-radius: 9px;
+        background: #1f40d8;
+        transform-origin: left center;
+      }
+
+      .cache-grid {
+        padding: 38px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .cache-row {
+        display: grid;
+        grid-template-columns: 140px repeat(5, 1fr);
+        gap: 12px;
+        align-items: center;
+      }
+
+      .lane-label {
+        color: #5f5b53;
+        font-size: 20px;
+      }
+
+      .cache-cell {
+        height: 72px;
+        border: 1px solid #dad6cb;
+        border-radius: 7px;
+        background: #f2efe7;
+      }
+
+      .cache-cell.fill {
+        border-color: rgba(46, 125, 88, 0.28);
+        background: #e8f2ec;
+      }
+
+      .ttft-board {
+        padding: 42px;
+        display: grid;
+        gap: 30px;
+      }
+
+      .latency-line {
+        position: relative;
+        height: 180px;
+        border-bottom: 2px solid #dad6cb;
+      }
+
+      .segment {
+        position: absolute;
+        bottom: -2px;
+        height: 24px;
+        border-radius: 12px;
+      }
+
+      .segment.gateway {
+        left: 0;
+        width: 18%;
+        background: #dad6cb;
+      }
+
+      .segment.prefill {
+        left: 20%;
+        width: 42%;
+        background: #1f40d8;
+      }
+
+      .segment.stream {
+        left: 65%;
+        width: 12%;
+        background: #2e7d58;
+      }
+
+      .first-token {
+        position: absolute;
+        left: 76%;
+        bottom: 32px;
+        padding: 16px 20px;
+        border-radius: 6px;
+        background: #1f40d8;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .tick {
+        position: absolute;
+        bottom: -58px;
+        color: #5f5b53;
+        font-size: 18px;
+      }
+
+      .decode-board,
+      .tpot-board {
+        padding: 40px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .loop {
+        display: grid;
+        grid-template-columns: 1fr 112px;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .loop-arrow {
+        width: 112px;
+        height: 112px;
+        border: 2px solid #1f40d8;
+        border-radius: 50%;
+        color: #1f40d8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+      }
+
+      .intervals {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+        align-items: end;
+        height: 220px;
+      }
+
+      .interval {
+        border-radius: 7px 7px 0 0;
+        background: #1f40d8;
+      }
+
+      .interval.warn {
+        background: #e8943a;
+      }
+
+      .queue {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+
+      .queue-card {
+        min-height: 94px;
+        padding: 18px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #faf9f6;
+        font-size: 22px;
+        color: #34322c;
+      }
+
+      .closing-title {
+        font-size: 80px;
+        line-height: 1.12;
+      }
+
+      .closing-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        max-width: 1180px;
+      }
+
+      .closing-item {
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid #e7e3d9;
+        background: #ffffff;
+        font-size: 24px;
+        color: #34322c;
+      }
+
+      .wipe {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        width: 1920px;
+        height: 1080px;
+        pointer-events: none;
+        transform: translateX(-1920px);
+      }
+
+      #wipe-a {
+        background: #1f40d8;
+      }
+
+      #wipe-b {
+        background: #2e7d58;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="latency-prefill-decode" data-width="1920" data-height="1080" data-start="0" data-duration="46">
+      <section id="scene-intro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">LATENCY</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">AI 应用工程学习 APP</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>00 / 46s</b></div>
+          </div>
+          <main class="intro-main">
+            <h1>为什么大模型会慢</h1>
+            <p class="lede">一次请求先等首字，再看输出速度；两段链路要分开诊断。</p>
+            <div class="route">
+              <span class="chip">输入 Token</span><span class="arrow">-&gt;</span>
+              <span class="chip">Prefill</span><span class="arrow">-&gt;</span>
+              <span class="chip">TTFT</span><span class="arrow">-&gt;</span>
+              <span class="chip">Decode / TPOT</span>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <section id="scene-request" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">INPUT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">01 / 请求组装</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>先变成 Token 序列</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>模型不是直接读业务请求。</h2>
+              <p class="caption">系统提示、历史、RAG 和工具结果会先拼成一段输入上下文。</p>
+            </div>
+            <div class="panel request-stack">
+              <div class="source-row"><strong>Prompt</strong><p>角色、格式、边界</p><span class="metric-value">620</span></div>
+              <div class="source-row"><strong>History</strong><p>多轮会话与约束</p><span class="metric-value">1.8k</span></div>
+              <div class="source-row"><strong>RAG</strong><p>检索片段与引用</p><span class="metric-value">3.4k</span></div>
+              <div class="source-row"><strong>Tool</strong><p>表单字段和结果</p><span class="metric-value">2.1k</span></div>
+              <div class="token-rail">
+                <span class="token">sys</span><span class="token">hist</span><span class="token">rag</span><span class="token">json</span><span class="token">user</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-prefill" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">PREFILL</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">02 / Prefill</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>首字前读完整上下文</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>第一个字出来前，服务正在读卷。</h2>
+              <p class="caption">输入 Token 越多，Prefill 计算和缓存写入越重，TTFT 越容易上升。</p>
+            </div>
+            <div class="panel factory-board">
+              <div class="stage-card">
+                <h3>Input Tokens</h3>
+                <div class="token-rail">
+                  <span class="token soft">001</span><span class="token soft">128</span><span class="token soft">502</span><span class="token soft">890</span><span class="token soft">...</span>
+                </div>
+                <div class="bar-row"><span>长度</span><div class="bar-track"><i class="bar-fill" style="width: 78%"></i></div></div>
+                <div class="bar-row"><span>排队</span><div class="bar-track"><i class="bar-fill" style="width: 34%; background: #dad6cb"></i></div></div>
+              </div>
+              <div class="stage-card">
+                <h3>Prefill Compute</h3>
+                <div class="bar-row"><span>Attention</span><div class="bar-track"><i class="bar-fill" style="width: 82%"></i></div></div>
+                <div class="bar-row"><span>KV 写入</span><div class="bar-track"><i class="bar-fill" style="width: 66%; background: #2e7d58"></i></div></div>
+                <p class="note">首字前主要负载集中在这里。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-cache" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">CACHE</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">03 / KV Cache</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>已读上下文的笔记</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>Prefill 结束后，缓存开始有价值。</h2>
+              <p class="caption">命中缓存可减少重复读全文；路由打散时，首字前计算会重新发生。</p>
+            </div>
+            <div class="panel cache-grid">
+              <div class="cache-row"><span class="lane-label">Layer 01</span><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell"></i><i class="cache-cell"></i></div>
+              <div class="cache-row"><span class="lane-label">Layer 02</span><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell"></i><i class="cache-cell"></i></div>
+              <div class="cache-row"><span class="lane-label">Layer 03</span><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell fill"></i><i class="cache-cell"></i><i class="cache-cell"></i></div>
+              <div class="cache-row"><span class="lane-label">Route</span><span class="token green">hit</span><span class="token soft">same</span><span class="token soft">session</span><span class="token">TTFT</span><span class="token green">lower</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-ttft" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">TTFT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">04 / 首字时延</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>到第一个 Token 为止</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>TTFT 结束在首个 Token 返回那一刻。</h2>
+              <p class="caption">网关、检索、排队、Prefill 和缓存命中都会影响用户等多久才看到响应。</p>
+            </div>
+            <div class="panel ttft-board">
+              <div class="latency-line">
+                <i class="segment gateway"></i>
+                <i class="segment prefill"></i>
+                <i class="segment stream"></i>
+                <span class="first-token">首 Token</span>
+                <span class="tick" style="left: 0">request</span>
+                <span class="tick" style="left: 20%">prefill</span>
+                <span class="tick" style="left: 64%">stream</span>
+                <span class="tick" style="left: 77%">TTFT</span>
+              </div>
+              <p class="note">如果 TPOT 不变但 TTFT 变慢，先看首字前链路。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-decode" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">DECODE</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">05 / Decode</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>首字后逐 Token 输出</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>开始说话后，慢变成另一个问题。</h2>
+              <p class="caption">Decode 每一步生成新 Token，再把它接回上下文继续预测下一步。</p>
+            </div>
+            <div class="panel decode-board">
+              <div class="loop">
+                <div class="output-rail">
+                  <span class="token green">首先</span><span class="token green">检查</span><span class="token green">缓存</span><span class="token green">命中</span><span class="token green">。</span>
+                </div>
+                <div class="loop-arrow">↺</div>
+              </div>
+              <p class="note">输出越长，Decode 循环越多，总等待和费用都会累积。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-tpot" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">TPOT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">06 / TPOT + Batch</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><b>说得快不快</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>首字后卡顿，要看 Token 间隔。</h2>
+              <p class="caption">并发、Batch、显存带宽和 KV 读写压力，会把相邻 Token 间隔拉宽。</p>
+            </div>
+            <div class="panel tpot-board">
+              <div class="intervals">
+                <i class="interval" style="height: 72px"></i>
+                <i class="interval" style="height: 86px"></i>
+                <i class="interval warn" style="height: 148px"></i>
+                <i class="interval warn" style="height: 178px"></i>
+                <i class="interval" style="height: 96px"></i>
+                <i class="interval" style="height: 82px"></i>
+              </div>
+              <div class="queue">
+                <div class="queue-card">短问答</div>
+                <div class="queue-card">长代码</div>
+                <div class="queue-card">批摘要</div>
+                <div class="queue-card">高优 SLA</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-outro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">DIAGNOSE</div>
+        <div class="scene-content closing">
+          <div class="eyebrow">结论</div>
+          <div class="closing-title">慢不是一个指标，要拆成首字前和首字后。</div>
+          <div class="closing-grid">
+            <div class="closing-item">Prefill 看输入</div>
+            <div class="closing-item">TTFT 看首字</div>
+            <div class="closing-item">Decode 看输出</div>
+            <div class="closing-item">TPOT 看间隔</div>
+          </div>
+        </div>
+      </section>
+
+      <div id="wipe-a" class="wipe" data-layout-ignore=""></div>
+      <div id="wipe-b" class="wipe" data-layout-ignore=""></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      var tl = gsap.timeline({
+        paused: true,
+        defaults: { duration: 0.5, ease: "power2.out", overwrite: "auto" },
+      });
+
+      function enter(scene, at) {
+        tl.from(scene + " .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, at + 0.12);
+        tl.from(scene + " h1, " + scene + " h2, " + scene + " .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, at + 0.24);
+        tl.from(scene + " .lede, " + scene + " .caption, " + scene + " .note", { y: 30, opacity: 0, duration: 0.54, ease: "sine.out", stagger: 0.08 }, at + 0.48);
+        tl.from(scene + " .panel, " + scene + " .route, " + scene + " .closing-grid", { scale: 0.96, opacity: 0, duration: 0.6, ease: "back.out(1.35)" }, at + 0.58);
+        tl.from(scene + " .progress-line", { x: 32, opacity: 0, duration: 0.36, ease: "power4.out" }, at + 0.22);
+      }
+
+      function push(oldScene, newScene, at) {
+        tl.set(newScene, { x: 1920, opacity: 1, zIndex: 4 }, at - 0.01);
+        tl.set(oldScene, { zIndex: 3 }, at - 0.01);
+        tl.to(oldScene, { x: -1920, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.fromTo(newScene, { x: 1920, opacity: 1 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.set(oldScene, { opacity: 0 }, at + 0.52);
+      }
+
+      function blockSwap(oldScene, newScene, at) {
+        tl.set("#wipe-a", { x: -1920 }, at - 0.01);
+        tl.set("#wipe-b", { x: -1920 }, at - 0.01);
+        tl.to("#wipe-a", { x: 0, duration: 0.25, ease: "power3.inOut" }, at);
+        tl.to("#wipe-b", { x: 0, duration: 0.25, ease: "power3.inOut" }, at + 0.06);
+        tl.set(oldScene, { opacity: 0 }, at + 0.2);
+        tl.set(newScene, { opacity: 1, x: 0, zIndex: 4 }, at + 0.2);
+        tl.to("#wipe-a", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.28);
+        tl.to("#wipe-b", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.34);
+      }
+
+      function blurSwap(oldScene, newScene, at) {
+        tl.set(newScene, { opacity: 0, x: 0, zIndex: 4 }, at - 0.01);
+        tl.to(oldScene, { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.55, ease: "power2.inOut" }, at);
+        tl.fromTo(newScene, { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.58, ease: "power2.inOut" }, at + 0.1);
+      }
+
+      enter("#scene-intro", 0);
+      tl.from("#scene-intro .chip", { y: 20, opacity: 0, duration: 0.42, ease: "power2.out", stagger: 0.08 }, 1.25);
+      tl.from("#scene-intro .arrow", { opacity: 0, scale: 0.8, duration: 0.28, ease: "power4.out", stagger: 0.08 }, 1.42);
+
+      push("#scene-intro", "#scene-request", 3.2);
+      enter("#scene-request", 3.72);
+      tl.from("#scene-request .source-row", { x: 48, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 4.55);
+      tl.from("#scene-request .token", { y: 22, opacity: 0, duration: 0.34, ease: "back.out(1.4)", stagger: 0.06 }, 5.2);
+
+      push("#scene-request", "#scene-prefill", 8.7);
+      enter("#scene-prefill", 9.22);
+      tl.from("#scene-prefill .token", { scaleX: 0.5, opacity: 0, duration: 0.36, ease: "power4.out", stagger: 0.05 }, 10.0);
+      tl.from("#scene-prefill .bar-fill", { scaleX: 0, duration: 0.6, ease: "expo.out", stagger: 0.1 }, 10.55);
+
+      push("#scene-prefill", "#scene-cache", 14.2);
+      enter("#scene-cache", 14.72);
+      tl.from("#scene-cache .cache-cell.fill", { scale: 0.82, opacity: 0, duration: 0.36, ease: "back.out(1.6)", stagger: 0.06 }, 15.6);
+      tl.from("#scene-cache .cache-row:last-child .token", { y: 24, opacity: 0, duration: 0.36, ease: "power3.out", stagger: 0.08 }, 16.35);
+
+      blockSwap("#scene-cache", "#scene-ttft", 19.7);
+      enter("#scene-ttft", 20.42);
+      tl.from("#scene-ttft .segment", { scaleX: 0, transformOrigin: "left center", duration: 0.6, ease: "expo.out", stagger: 0.12 }, 21.25);
+      tl.from("#scene-ttft .first-token", { y: -24, opacity: 0, duration: 0.44, ease: "back.out(1.45)" }, 22.0);
+      tl.from("#scene-ttft .tick", { opacity: 0, y: 14, duration: 0.3, ease: "sine.out", stagger: 0.06 }, 22.18);
+
+      push("#scene-ttft", "#scene-decode", 25.0);
+      enter("#scene-decode", 25.52);
+      tl.from("#scene-decode .output-rail .token", { y: 28, opacity: 0, duration: 0.38, ease: "power4.out", stagger: 0.14 }, 26.35);
+      tl.from("#scene-decode .loop-arrow", { rotation: -150, scale: 0.8, opacity: 0, duration: 0.62, ease: "back.out(1.3)" }, 27.1);
+
+      push("#scene-decode", "#scene-tpot", 31.0);
+      enter("#scene-tpot", 31.52);
+      tl.from("#scene-tpot .interval", { scaleY: 0, transformOrigin: "bottom center", duration: 0.52, ease: "back.out(1.45)", stagger: 0.08 }, 32.35);
+      tl.from("#scene-tpot .queue-card", { y: 26, opacity: 0, duration: 0.36, ease: "power3.out", stagger: 0.08 }, 33.05);
+
+      blurSwap("#scene-tpot", "#scene-outro", 42.8);
+      tl.from("#scene-outro .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, 43.58);
+      tl.from("#scene-outro .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, 43.72);
+      tl.from("#scene-outro .closing-item", { y: 28, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 44.18);
+      tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.5, ease: "power2.in" }, 45.25);
+
+      window.__timelines["latency-prefill-decode"] = tl;
+    </script>
+  </body>
+</html>

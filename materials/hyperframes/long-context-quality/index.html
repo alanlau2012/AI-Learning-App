@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>长上下文不是越长越好</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-300.woff2") format("woff2");
+        font-weight: 300;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Sans";
+        src: url("fonts/ibm-plex-sans-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Serif";
+        src: url("fonts/ibm-plex-serif-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Serif";
+        src: url("fonts/ibm-plex-serif-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/ibm-plex-mono-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/ibm-plex-mono-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf9f6;
+        color: #34322c;
+        font-family: "IBM Plex Sans", "Microsoft YaHei", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf9f6;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: #faf9f6;
+      }
+
+      .scene:not(#scene-intro) {
+        opacity: 0;
+      }
+
+      .scene-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        padding: 96px 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 34px;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(circle at 18% 22%, rgba(31, 64, 216, 0.08), rgba(31, 64, 216, 0) 290px),
+          radial-gradient(circle at 82% 78%, rgba(46, 125, 88, 0.08), rgba(46, 125, 88, 0) 330px),
+          linear-gradient(90deg, rgba(231, 227, 217, 0.42) 1px, rgba(250, 249, 246, 0) 1px),
+          linear-gradient(180deg, rgba(231, 227, 217, 0.36) 1px, rgba(250, 249, 246, 0) 1px);
+        background-size: auto, auto, 120px 120px, 120px 120px;
+      }
+
+      .ghost {
+        position: absolute;
+        right: -22px;
+        bottom: 18px;
+        z-index: 1;
+        color: rgba(31, 64, 216, 0.06);
+        font-family: "IBM Plex Serif", Georgia, serif;
+        font-size: 168px;
+        font-weight: 700;
+        letter-spacing: 0;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .mono,
+      .eyebrow,
+      .progress-line,
+      .chip,
+      .token,
+      .metric,
+      .axis-label,
+      .score {
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 40px;
+      }
+
+      .eyebrow {
+        color: #1f40d8;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .progress-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #6f6b62;
+        font-size: 18px;
+      }
+
+      .progress-line b {
+        color: #34322c;
+      }
+
+      .progress-line span {
+        display: inline-block;
+        width: 54px;
+        height: 4px;
+        border-radius: 2px;
+        background: #dad6cb;
+      }
+
+      .progress-line .done {
+        background: #1f40d8;
+      }
+
+      h1,
+      h2,
+      .closing-title {
+        margin: 0;
+        max-width: 1260px;
+        color: #1a1916;
+        font-family: "IBM Plex Serif", Georgia, serif;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 104px;
+        line-height: 1.05;
+      }
+
+      h2 {
+        font-size: 74px;
+        line-height: 1.08;
+      }
+
+      .lede,
+      .caption,
+      .note {
+        margin: 0;
+        max-width: 940px;
+        color: #34322c;
+        font-size: 28px;
+        line-height: 1.45;
+      }
+
+      .note {
+        color: #5f5b53;
+        font-size: 23px;
+      }
+
+      .intro-main,
+      .closing {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 32px;
+      }
+
+      .route {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        max-width: 1240px;
+      }
+
+      .chip {
+        border: 1px solid #c9d2fb;
+        background: #ebeefe;
+        color: #1f40d8;
+        border-radius: 6px;
+        padding: 12px 18px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .arrow {
+        color: #6f6b62;
+        font-size: 28px;
+      }
+
+      .split {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 0.82fr 1.18fr;
+        gap: 58px;
+        align-items: center;
+      }
+
+      .panel {
+        border: 1px solid #e7e3d9;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 12px 36px rgba(52, 50, 44, 0.07);
+      }
+
+      .window-board {
+        padding: 34px;
+        display: grid;
+        gap: 20px;
+      }
+
+      .window-frame {
+        min-height: 300px;
+        padding: 26px;
+        border: 2px solid #1f40d8;
+        border-radius: 8px;
+        background: #faf9f6;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+
+      .candidate-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .cardlet {
+        min-height: 84px;
+        padding: 18px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #34322c;
+        font-size: 22px;
+      }
+
+      .cardlet.good {
+        border-color: rgba(46, 125, 88, 0.28);
+        background: #e8f2ec;
+      }
+
+      .cardlet.noise {
+        border-color: rgba(232, 148, 58, 0.32);
+        background: #fff7ec;
+      }
+
+      .token {
+        min-width: 82px;
+        height: 52px;
+        padding: 0 14px;
+        border-radius: 5px;
+        border: 1px solid #c9d2fb;
+        background: #ebeefe;
+        color: #1f40d8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .cost-board,
+      .compress-board,
+      .eval-board {
+        padding: 40px;
+        display: grid;
+        gap: 26px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .metric-card {
+        min-height: 158px;
+        padding: 24px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #faf9f6;
+        display: grid;
+        gap: 12px;
+      }
+
+      .metric {
+        color: #1f40d8;
+        font-size: 38px;
+        font-weight: 700;
+      }
+
+      .metric-card p {
+        margin: 0;
+        color: #5f5b53;
+        font-size: 21px;
+        line-height: 1.35;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 128px 1fr;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .bar-row span:first-child {
+        color: #5f5b53;
+        font-size: 20px;
+      }
+
+      .bar-track {
+        height: 20px;
+        border-radius: 10px;
+        background: #f2efe7;
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        display: block;
+        height: 100%;
+        width: 62%;
+        border-radius: 10px;
+        background: #1f40d8;
+        transform-origin: left center;
+      }
+
+      .attention-board {
+        position: relative;
+        height: 520px;
+        padding: 42px;
+      }
+
+      .att-svg {
+        position: absolute;
+        inset: 34px 28px 124px;
+        width: calc(100% - 56px);
+        height: 360px;
+      }
+
+      .att-token {
+        position: absolute;
+        top: 150px;
+        width: 118px;
+        height: 64px;
+        border-radius: 7px;
+        border: 1px solid #c9d2fb;
+        background: #ebeefe;
+        color: #1f40d8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .att-token.good {
+        border-color: rgba(46, 125, 88, 0.28);
+        background: #e8f2ec;
+        color: #2e7d58;
+      }
+
+      .att-token.noise {
+        border-color: rgba(232, 148, 58, 0.32);
+        background: #fff7ec;
+        color: #7b4f1d;
+      }
+
+      .weight-bars {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        bottom: 44px;
+        display: flex;
+        align-items: end;
+        gap: 20px;
+        height: 104px;
+      }
+
+      .weight {
+        flex: 1;
+        border-radius: 5px 5px 0 0;
+        background: #c9d2fb;
+      }
+
+      .weight.good {
+        background: #2e7d58;
+      }
+
+      .weight.noise {
+        background: #e8943a;
+      }
+
+      .pollution-board {
+        padding: 38px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .source-card {
+        min-height: 134px;
+        padding: 24px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #faf9f6;
+        display: grid;
+        gap: 10px;
+      }
+
+      .source-card strong {
+        color: #1a1916;
+        font-size: 26px;
+      }
+
+      .source-card p {
+        margin: 0;
+        color: #5f5b53;
+        font-size: 21px;
+      }
+
+      .source-card.bad {
+        border-color: rgba(232, 148, 58, 0.36);
+        background: #fff7ec;
+      }
+
+      .state-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      .state-card {
+        min-height: 120px;
+        padding: 22px;
+        border: 1px solid #e7e3d9;
+        border-radius: 7px;
+        background: #faf9f6;
+        font-size: 23px;
+        color: #34322c;
+      }
+
+      .state-card.keep {
+        border-color: rgba(46, 125, 88, 0.28);
+        background: #e8f2ec;
+      }
+
+      .scoreboard {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .score-row {
+        display: grid;
+        grid-template-columns: 150px 1fr 90px;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .score {
+        color: #34322c;
+        font-size: 21px;
+      }
+
+      .closing-title {
+        font-size: 80px;
+        line-height: 1.12;
+      }
+
+      .closing-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        max-width: 1180px;
+      }
+
+      .closing-item {
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid #e7e3d9;
+        background: #ffffff;
+        font-size: 24px;
+        color: #34322c;
+      }
+
+      .wipe {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        width: 1920px;
+        height: 1080px;
+        pointer-events: none;
+        transform: translateX(-1920px);
+      }
+
+      #wipe-a {
+        background: #1f40d8;
+      }
+
+      #wipe-b {
+        background: #2e7d58;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="long-context-quality" data-width="1920" data-height="1080" data-start="0" data-duration="46">
+      <section id="scene-intro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">CONTEXT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">AI 应用工程学习 APP</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>00 / 46s</b></div>
+          </div>
+          <main class="intro-main">
+            <h1>长上下文不是越长越好</h1>
+            <p class="lede">窗口变大只是给了更多材料，质量来自选择、压缩、排序和评测。</p>
+            <div class="route">
+              <span class="chip">窗口</span><span class="arrow">-&gt;</span>
+              <span class="chip">成本</span><span class="arrow">-&gt;</span>
+              <span class="chip">注意力竞争</span><span class="arrow">-&gt;</span>
+              <span class="chip">Eval</span>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <section id="scene-window" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">WINDOW</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">01 / 窗口容量</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>能看见不等于都该放</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>模型只能直接使用窗口内的 Token。</h2>
+              <p class="caption">目标、历史、检索片段和工具结果都会争抢同一块上下文预算。</p>
+            </div>
+            <div class="panel window-board">
+              <div class="window-frame">
+                <div class="cardlet good">当前目标</div>
+                <div class="cardlet good">硬约束</div>
+                <div class="cardlet">历史会话</div>
+                <div class="cardlet">RAG 片段</div>
+                <div class="cardlet">工具结果</div>
+                <div class="cardlet noise">旧页面</div>
+              </div>
+              <div class="candidate-row">
+                <span class="token">12k</span><span class="token">24k</span><span class="token">48k</span><span class="token">128k</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-cost" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">COST</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">02 / 成本与 TTFT</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>窗口越重，首字越贵</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>材料更多，首字前也更重。</h2>
+              <p class="caption">长上下文会增加 Prefill 计算和 KV Cache 占用，不能只看能放多少。</p>
+            </div>
+            <div class="panel cost-board">
+              <div class="metric-grid">
+                <div class="metric-card"><span class="metric">3.2x</span><p>输入 Token 增长</p></div>
+                <div class="metric-card"><span class="metric">+TTFT</span><p>首字前等待上升</p></div>
+                <div class="metric-card"><span class="metric">KV</span><p>显存缓存被占用</p></div>
+              </div>
+              <div class="bar-row"><span>Prefill</span><div class="bar-track"><i class="bar-fill" style="width: 82%"></i></div></div>
+              <div class="bar-row"><span>Cache</span><div class="bar-track"><i class="bar-fill" style="width: 68%; background: #2e7d58"></i></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-attention" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">ATTN</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">03 / 注意力竞争</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>关键证据会被稀释</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>窗口更长，不代表证据更清楚。</h2>
+              <p class="caption">无关片段、强措辞和靠前位置，都可能抢走本该给关键证据的权重。</p>
+            </div>
+            <div class="panel attention-board">
+              <svg class="att-svg" viewBox="0 0 820 360" aria-label="上下文注意力竞争">
+                <path class="att-link" d="M 700 165 Q 610 48 520 165" stroke="#e8943a" stroke-width="13" fill="none" opacity="0.82" />
+                <path class="att-link" d="M 700 165 Q 510 18 320 165" stroke="#2e7d58" stroke-width="8" fill="none" opacity="0.76" />
+                <path class="att-link" d="M 700 165 Q 384 56 68 165" stroke="#c9d2fb" stroke-width="5" fill="none" opacity="0.62" />
+              </svg>
+              <span class="att-token" style="left: 62px">历史</span>
+              <span class="att-token good" style="left: 300px">证据</span>
+              <span class="att-token noise" style="left: 510px">噪音</span>
+              <span class="att-token" style="left: 700px">当前</span>
+              <div class="weight-bars" aria-label="注意力权重">
+                <span class="weight" style="height: 46px"></span>
+                <span class="weight good" style="height: 72px"></span>
+                <span class="weight noise" style="height: 96px"></span>
+                <span class="weight" style="height: 28px"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-pollution" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">POLLUTE</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">04 / 上下文污染</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>看似合法的错误材料</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>污染常来自正常数据源。</h2>
+              <p class="caption">过期、冲突、低可信或恶意信息进入窗口，会把错误包装成合理推理。</p>
+            </div>
+            <div class="panel pollution-board">
+              <div class="source-card"><strong>新版文档</strong><p>生效中，权威来源</p></div>
+              <div class="source-card bad"><strong>旧页面</strong><p>点击高，但已失效</p></div>
+              <div class="source-card bad"><strong>历史工单</strong><p>相似但环境不同</p></div>
+              <div class="source-card"><strong>工具结果</strong><p>需要校验权限</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-compress" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">SELECT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">05 / 压缩与重排</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>保留决策状态</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>压缩不是变短，而是留下可决策的状态。</h2>
+              <p class="caption">目标、硬约束、证据来源和未关闭风险，要比整段聊天更重要。</p>
+            </div>
+            <div class="panel compress-board">
+              <div class="state-grid">
+                <div class="state-card keep">目标：修复支付回调</div>
+                <div class="state-card keep">硬约束：不改公共 API</div>
+                <div class="state-card">已验证：失败码来自网关</div>
+                <div class="state-card">风险：旧 SDK 文档冲突</div>
+              </div>
+              <div class="bar-row"><span>噪音</span><div class="bar-track"><i class="bar-fill" style="width: 32%; background: #e8943a"></i></div></div>
+              <div class="bar-row"><span>证据</span><div class="bar-track"><i class="bar-fill" style="width: 74%; background: #2e7d58"></i></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-eval" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">EVAL</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">06 / Eval 回归</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><b>质量不能靠感觉</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>上下文策略要用回归评测验证。</h2>
+              <p class="caption">更省 Token 只是一个目标，引用准确、任务成功和首字时延也必须一起看。</p>
+            </div>
+            <div class="panel eval-board">
+              <div class="scoreboard">
+                <div>
+                  <div class="score-row"><span class="score">成功率</span><div class="bar-track"><i class="bar-fill" style="width: 86%; background: #2e7d58"></i></div><span class="score">86%</span></div>
+                  <div class="score-row"><span class="score">引用准确</span><div class="bar-track"><i class="bar-fill" style="width: 78%"></i></div><span class="score">78%</span></div>
+                  <div class="score-row"><span class="score">TTFT</span><div class="bar-track"><i class="bar-fill" style="width: 42%; background: #e8943a"></i></div><span class="score">-31%</span></div>
+                </div>
+                <div class="metric-card"><span class="metric">回放</span><p>用线上失败样本持续补充评测集，防止策略退化。</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-outro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">QUALITY</div>
+        <div class="scene-content closing">
+          <div class="eyebrow">结论</div>
+          <div class="closing-title">长窗口的价值，不在长度，而在上下文治理。</div>
+          <div class="closing-grid">
+            <div class="closing-item">选择关键材料</div>
+            <div class="closing-item">压缩决策状态</div>
+            <div class="closing-item">过滤污染来源</div>
+            <div class="closing-item">用 Eval 回归</div>
+          </div>
+        </div>
+      </section>
+
+      <div id="wipe-a" class="wipe" data-layout-ignore=""></div>
+      <div id="wipe-b" class="wipe" data-layout-ignore=""></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      var tl = gsap.timeline({
+        paused: true,
+        defaults: { duration: 0.5, ease: "power2.out", overwrite: "auto" },
+      });
+
+      function enter(scene, at) {
+        tl.from(scene + " .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, at + 0.12);
+        tl.from(scene + " h1, " + scene + " h2, " + scene + " .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, at + 0.24);
+        tl.from(scene + " .lede, " + scene + " .caption, " + scene + " .note", { y: 30, opacity: 0, duration: 0.54, ease: "sine.out", stagger: 0.08 }, at + 0.48);
+        tl.from(scene + " .panel, " + scene + " .route, " + scene + " .closing-grid", { scale: 0.96, opacity: 0, duration: 0.6, ease: "back.out(1.35)" }, at + 0.58);
+        tl.from(scene + " .progress-line", { x: 32, opacity: 0, duration: 0.36, ease: "power4.out" }, at + 0.22);
+      }
+
+      function push(oldScene, newScene, at) {
+        tl.set(newScene, { x: 1920, opacity: 1, zIndex: 4 }, at - 0.01);
+        tl.set(oldScene, { zIndex: 3 }, at - 0.01);
+        tl.to(oldScene, { x: -1920, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.fromTo(newScene, { x: 1920, opacity: 1 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.set(oldScene, { opacity: 0 }, at + 0.52);
+      }
+
+      function blockSwap(oldScene, newScene, at) {
+        tl.set("#wipe-a", { x: -1920 }, at - 0.01);
+        tl.set("#wipe-b", { x: -1920 }, at - 0.01);
+        tl.to("#wipe-a", { x: 0, duration: 0.25, ease: "power3.inOut" }, at);
+        tl.to("#wipe-b", { x: 0, duration: 0.25, ease: "power3.inOut" }, at + 0.06);
+        tl.set(oldScene, { opacity: 0 }, at + 0.2);
+        tl.set(newScene, { opacity: 1, x: 0, zIndex: 4 }, at + 0.2);
+        tl.to("#wipe-a", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.28);
+        tl.to("#wipe-b", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.34);
+      }
+
+      function blurSwap(oldScene, newScene, at) {
+        tl.set(newScene, { opacity: 0, x: 0, zIndex: 4 }, at - 0.01);
+        tl.to(oldScene, { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.55, ease: "power2.inOut" }, at);
+        tl.fromTo(newScene, { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.58, ease: "power2.inOut" }, at + 0.1);
+      }
+
+      enter("#scene-intro", 0);
+      tl.from("#scene-intro .chip", { y: 20, opacity: 0, duration: 0.42, ease: "power2.out", stagger: 0.08 }, 1.25);
+      tl.from("#scene-intro .arrow", { opacity: 0, scale: 0.8, duration: 0.28, ease: "power4.out", stagger: 0.08 }, 1.42);
+
+      push("#scene-intro", "#scene-window", 3.2);
+      enter("#scene-window", 3.72);
+      tl.from("#scene-window .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 4.55);
+      tl.from("#scene-window .token", { scale: 0.86, opacity: 0, duration: 0.34, ease: "back.out(1.45)", stagger: 0.06 }, 5.3);
+
+      push("#scene-window", "#scene-cost", 8.7);
+      enter("#scene-cost", 9.22);
+      tl.from("#scene-cost .metric-card", { y: 26, opacity: 0, duration: 0.4, ease: "power3.out", stagger: 0.08 }, 10.0);
+      tl.from("#scene-cost .bar-fill", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 10.7);
+
+      push("#scene-cost", "#scene-attention", 14.2);
+      enter("#scene-attention", 14.72);
+      tl.from("#scene-attention .att-token", { y: -26, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 15.6);
+      tl.from("#scene-attention .att-link", { opacity: 0, scale: 0.88, transformOrigin: "center center", duration: 0.58, ease: "power2.out", stagger: 0.12 }, 16.1);
+      tl.from("#scene-attention .weight", { scaleY: 0, transformOrigin: "bottom center", duration: 0.5, ease: "back.out(1.45)", stagger: 0.08 }, 16.65);
+
+      blockSwap("#scene-attention", "#scene-pollution", 19.7);
+      enter("#scene-pollution", 20.42);
+      tl.from("#scene-pollution .source-card", { x: 42, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 21.25);
+
+      push("#scene-pollution", "#scene-compress", 25.0);
+      enter("#scene-compress", 25.52);
+      tl.from("#scene-compress .state-card", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.08 }, 26.35);
+      tl.from("#scene-compress .bar-fill", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 27.1);
+
+      push("#scene-compress", "#scene-eval", 31.0);
+      enter("#scene-eval", 31.52);
+      tl.from("#scene-eval .score-row", { x: 34, opacity: 0, duration: 0.36, ease: "power3.out", stagger: 0.09 }, 32.35);
+      tl.from("#scene-eval .bar-fill", { scaleX: 0, duration: 0.52, ease: "expo.out", stagger: 0.08 }, 32.85);
+      tl.from("#scene-eval .metric-card", { scale: 0.95, opacity: 0, duration: 0.46, ease: "back.out(1.4)" }, 33.25);
+
+      blurSwap("#scene-eval", "#scene-outro", 42.8);
+      tl.from("#scene-outro .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, 43.58);
+      tl.from("#scene-outro .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, 43.72);
+      tl.from("#scene-outro .closing-item", { y: 28, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 44.18);
+      tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.5, ease: "power2.in" }, 45.25);
+
+      window.__timelines["long-context-quality"] = tl;
+    </script>
+  </body>
+</html>
