@@ -4,13 +4,14 @@
 
 ## 当前状态
 
-当前封板：**Final Wave 全量上线**（正文改版 v2 之上）。
+当前封板：**Final Wave 全量上线 + backlog polish**（正文改版 v2 之上）。
 
 - 56 讲信息架构已登记。
 - **56 / 56 讲**全部正式入库；全部已发布讲均为 `contentRevision: v2`（机制分组、术语对齐、字段深度标准）。
 - 模块全部满额：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`。地图无 stub。
-- Final Wave 报告：`reports/final-wave-summary.md`；改版报告：`reports/content-revision-platform-summary.md` 等。
-- 下一轮（可选）：治理类新动画（`observability-trace` / `token-roi-flow`）、PWA、搜索/术语打磨等，均需 Owner 确认。
+- Final Wave 报告：`reports/final-wave-summary.md`；backlog polish 报告：`reports/backlog-polish-summary.md`；改版报告：`reports/content-revision-platform-summary.md` 等。
+- 已补齐基础 PWA manifest，移除 Google Fonts 外链，并为 `trace` / `observability` / `token-roi` 补治理动画。
+- 下一轮（可选）：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA 离线能力等，均需 Owner 确认。
 
 ## 启动
 

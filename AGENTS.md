@@ -6,14 +6,14 @@
 
 截至 **2026-06-23**：
 
-- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线**（剩余 12 讲入库，56 讲全部 `contentRevision: v2`）；具体 hash 以 `git log -1` / 后续提交为准。
-- 已封板范围：**Final Wave**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲），56/56 全部上线。
+- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish**（PWA manifest、字体外链移除、路由切包、M6 治理动画补齐）；具体 hash 以 `git log -1` / 后续提交为准。
+- 已封板范围：**Final Wave + backlog polish**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲；并为 `trace`/`observability`/`token-roi` 补真实画布）。
 - 当前上线内容：**56 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**0**。地图无 stub。
 - 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`。
-- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build` 均 PASS；Playwright 浏览器抽查 PASS（`token-roi` 四层闭环 + v2 分组、`/modules/m6` 无 stub 占位）；见 `reports/final-wave-summary.md`。
+- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build` 均 PASS；backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`。
 - 诊断题批级配平：Final Wave 12 题正确答案 A/B/C/D = 3/3/3/3。
-- 本轮不动：可选新动画（`observability-trace`/`token-roi-flow`/`model-router` 升级真实画布）、P1-01 字体网络拦截。
-- 下一轮建议（均需 Owner 确认）：治理类新动画、PWA、搜索/术语/Profile 打磨。
+- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting。
+- 下一轮建议（均需 Owner 确认）：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA（Service Worker / 离线缓存，二期范围）。
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。
@@ -123,7 +123,7 @@ npm run validate:animation          # P3 动画 registry 落地后：hasAnimatio
 - [`docs/product-spec.md`](docs/product-spec.md) — 产品规格：定位、页面、信息架构、路由、MVP Demo/1.0、PWA 范围。
 - [`docs/architecture.md`](docs/architecture.md) — 技术架构：分层、组件、状态与迁移、搜索、响应式、阶段拆分、validate:content。
 - [`docs/content-schema.md`](docs/content-schema.md) — 数据 schema（权威）+ 56 讲登记表 + 写作模板映射 + GlossaryTerm + 校验规则。
-- [`docs/animation-spec.md`](docs/animation-spec.md) — 动画类型枚举、首版 8 组件、Player/Canvas 契约、基准脚本。
+- [`docs/animation-spec.md`](docs/animation-spec.md) — 动画类型枚举、当前 10 组件、Player/Canvas 契约、基准脚本。
 - [`docs/acceptance-checklist.md`](docs/acceptance-checklist.md) — 功能/内容/视觉/工程四类可勾选验收 + 可执行门禁。
 
 ## 8. 工作方式

@@ -3,7 +3,7 @@
 > 来源：PRD（产品需求）+ 56 讲内容开发素材（信息架构）+ design.md（信息密度与视觉）。
 > 三条权威决策见 [content-schema.md](content-schema.md) 与 [AGENTS.md](../AGENTS.md)。
 >
-> **当前里程碑（2026-06-23）**：Final Wave 完成，**56 / 56 讲全部上线**（全部 `contentRevision: v2`），模块计数 `10/10/8/16/6/6` 全部满额，地图无 stub。见 `reports/final-wave-summary.md`。
+> **当前里程碑（2026-06-23）**：Final Wave + backlog polish 完成，**56 / 56 讲全部上线**（全部 `contentRevision: v2`），模块计数 `10/10/8/16/6/6` 全部满额，地图无 stub；基础 PWA manifest 与 M6 治理动画已补齐。见 `reports/final-wave-summary.md`、`reports/backlog-polish-summary.md`。
 
 ## 1. 产品定位
 
@@ -53,9 +53,9 @@
 
 ### 3.5 PWA 范围
 
-- 首版（Demo 与 1.0）只做**静态 Web，预留 PWA**：可提供 `manifest.webmanifest`（名称、图标、主题色）实现基础可安装性（basic installability），**但不做 Service Worker、不做离线缓存策略**。
+- 首版（Demo 与 1.0）只做**静态 Web + basic installability**：已提供 `manifest.webmanifest`（名称、图标、主题色）实现基础可安装性，**但不做 Service Worker、不做离线缓存策略**。
 - 明确不在首版做的：离线可用、后台同步、资源预缓存、安装引导浮层。
-- 即“静态 Web + 可选 manifest”；完整 PWA（离线/缓存）列为二期，避免过早实现 Service Worker。
+- 即“静态 Web + manifest”；完整 PWA（离线/缓存）列为二期，避免过早实现 Service Worker。
 
 ## 4. 页面规格
 

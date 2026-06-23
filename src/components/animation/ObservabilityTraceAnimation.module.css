@@ -1,0 +1,138 @@
+.canvas {
+  display: grid;
+  gap: 14px;
+  min-height: 236px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.traceRail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(82px, 1fr));
+  gap: 8px;
+}
+
+.traceNode {
+  display: grid;
+  gap: 5px;
+  min-height: 70px;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.15);
+  background: rgba(250, 249, 246, 0.04);
+  transition: all 180ms ease;
+}
+
+.traceNode span,
+.metric span,
+.bridgeLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+}
+
+.traceNode strong {
+  font-size: 12px;
+  color: #f7f3ea;
+}
+
+.traceNode.active {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.24);
+}
+
+.bridge {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.bridgeLine {
+  width: 54%;
+  height: 2px;
+  border-radius: 999px;
+  background: #6f6b62;
+  opacity: 0.45;
+  transition: all 180ms ease;
+}
+
+.bridgeLine.show {
+  width: 82%;
+  background: #8fd3b0;
+  opacity: 1;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.metric {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.14);
+  background: rgba(250, 249, 246, 0.04);
+  transition: all 180ms ease;
+}
+
+.metric strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #f7f3ea;
+}
+
+.metric.active.quality {
+  border-color: rgba(46, 125, 88, 0.75);
+  background: rgba(46, 125, 88, 0.18);
+}
+
+.metric.active.latency,
+.metric.active.cost {
+  border-color: rgba(142, 162, 255, 0.72);
+  background: rgba(31, 64, 216, 0.18);
+}
+
+.alertStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  border: 1px dashed rgba(232, 148, 58, 0.45);
+  background: rgba(232, 148, 58, 0.07);
+  color: #ffe1bd;
+  font-size: 11px;
+  opacity: 0.4;
+  transition: opacity 180ms ease;
+}
+
+.alertStrip.show {
+  opacity: 1;
+}
+
+.alertDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e8943a;
+  box-shadow: 0 0 0 4px rgba(232, 148, 58, 0.16);
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 720px) {
+  .traceRail,
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+}

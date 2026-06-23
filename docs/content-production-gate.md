@@ -92,7 +92,7 @@
 - **画面意图**：每个动画草稿必须说明该动画/每一步的画面意图——这一步画面发生什么变化、想让用户看懂什么机制。
 - **highlightTargets 可映射**：每个 `highlightTargets` key 必须能映射为画布上的可视元素（状态/位置/颜色/长度变化），并在草稿中写明映射关系。
 - **key 不上屏**：不允许依赖 raw key 文本解释机制；画布可见文字只能是固定中文短标签，不得渲染 `config.type` 或把 `highlightTargets` 当文本标签。
-- **配置驱动 + 复用优先**：步骤只存在于 `AnimationConfig.steps`；优先复用现有 7 类型 / 8 组件（[animation-spec.md](animation-spec.md) §2），同类型讲共用画布并以 highlightTargets 聚焦。
+- **配置驱动 + 复用优先**：步骤只存在于 `AnimationConfig.steps`；优先复用现有注册组件（[animation-spec.md](animation-spec.md) §2），同类型讲共用画布并以 highlightTargets 聚焦。
 - **一致性**：`hasAnimation === (animation != null)`；有动画则 `steps ≥3`（入库完整性）/`≥1`（结构）、`type` 已在 registry 注册、每个 step 有唯一 `id`。
 - **reduced-motion 可读**：静止画面可逐步理解。
 - 未注册动画类型由 `AnimationPlayer` 纯文本 fallback 兜底（标题 + 当前步说明 + 计数），不得泄漏 raw key；新类型须先在 registry 注册专用画布后再入库。

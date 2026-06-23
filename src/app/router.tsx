@@ -5,26 +5,47 @@
  */
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
-import { HomePage } from '../pages/HomePage';
-import { ModulesPage } from '../pages/ModulesPage';
-import { ModulePage } from '../pages/ModulePage';
-import { ConceptPage } from '../pages/ConceptPage';
-import { SearchPage } from '../pages/SearchPage';
-import { GlossaryPage } from '../pages/GlossaryPage';
-import { ProfilePage } from '../pages/ProfilePage';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'modules', element: <ModulesPage /> },
-      { path: 'modules/:moduleId', element: <ModulePage /> },
-      { path: 'concepts/:slug', element: <ConceptPage /> },
-      { path: 'search', element: <SearchPage /> },
-      { path: 'glossary', element: <GlossaryPage /> },
-      { path: 'profile', element: <ProfilePage /> },
+      {
+        index: true,
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/HomePage').then((m) => ({ Component: m.HomePage })),
+      },
+      {
+        path: 'modules',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/ModulesPage').then((m) => ({ Component: m.ModulesPage })),
+      },
+      {
+        path: 'modules/:moduleId',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/ModulePage').then((m) => ({ Component: m.ModulePage })),
+      },
+      {
+        path: 'concepts/:slug',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/ConceptPage').then((m) => ({ Component: m.ConceptPage })),
+      },
+      {
+        path: 'search',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/SearchPage').then((m) => ({ Component: m.SearchPage })),
+      },
+      {
+        path: 'glossary',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/GlossaryPage').then((m) => ({ Component: m.GlossaryPage })),
+      },
+      {
+        path: 'profile',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/ProfilePage').then((m) => ({ Component: m.ProfilePage })),
+      },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

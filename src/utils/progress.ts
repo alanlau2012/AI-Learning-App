@@ -9,7 +9,6 @@
  * 版本策略见 docs/architecture.md §3.1。
  */
 import type { KnowledgePoint, UserProgress } from '../types';
-import { concepts } from '../data/concepts';
 import { modules } from '../data/modules';
 
 export const PROGRESS_STORAGE_KEY = 'ai-learning-app-progress-v1';
@@ -102,7 +101,7 @@ export interface OverallProgress {
 
 /** 总进度：已完成 / 56。 */
 export function overallProgress(completedConceptIds: string[]): OverallProgress {
-  const total = concepts.length;
+  const total = modules.reduce((sum, module) => sum + module.conceptIds.length, 0);
   const done = completedConceptIds.length;
   return {
     done,
@@ -116,13 +115,7 @@ export interface ModuleProgress {
   total: number;
 }
 
-const conceptById = new Map(concepts.map((c) => [c.id, c]));
-
-const orderedConcepts = modules.flatMap((module) =>
-  module.conceptIds
-    .map((id) => conceptById.get(id))
-    .filter((concept): concept is KnowledgePoint => Boolean(concept)),
-);
+const orderedPublishedConceptIds = modules.flatMap((module) => module.conceptIds);
 
 export function isPublishedConcept(
   concept: Pick<KnowledgePoint, 'contentStatus'> | null | undefined,
@@ -130,12 +123,7 @@ export function isPublishedConcept(
   return concept?.contentStatus !== undefined && concept.contentStatus !== 'stub';
 }
 
-const orderedPublishedConcepts = orderedConcepts.filter(isPublishedConcept);
-const publishedConceptIdSet = new Set(orderedPublishedConcepts.map((concept) => concept.id));
-
-export function getOrderedPublishedConcepts(): KnowledgePoint[] {
-  return orderedPublishedConcepts;
-}
+const publishedConceptIdSet = new Set(orderedPublishedConceptIds);
 
 export function isPublishedConceptId(conceptId: string | undefined): boolean {
   return Boolean(conceptId && publishedConceptIdSet.has(conceptId));
@@ -159,12 +147,12 @@ export function getContinueLearningConceptId(progress: UserProgress): string {
     return progress.lastVisitedConceptId;
   }
   const completed = new Set(progress.completedConceptIds);
-  for (const concept of orderedPublishedConcepts) {
-    if (!completed.has(concept.id)) {
-      return concept.id;
+  for (const id of orderedPublishedConceptIds) {
+    if (!completed.has(id)) {
+      return id;
     }
   }
-  return orderedPublishedConcepts[0]?.id ?? '';
+  return orderedPublishedConceptIds[0] ?? '';
 }
 
 /** 单模块进度：done / 该模块概念数。completed 用 Set 加速查找。 */

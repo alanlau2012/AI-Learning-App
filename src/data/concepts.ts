@@ -2,20 +2,11 @@ import type { Difficulty, KnowledgePoint } from '../types';
 import { demoConcepts } from './demoConcepts.ts';
 
 /**
- * 56 个知识点登记（stub 阶段）。
+ * 56 个知识点登记骨架。
  *
- * 仅登记结构字段（id/slug/moduleId/order/difficulty/estimatedMinutes/tags/contentStatus），
- * 正文留空。待内容 Agent 按 docs/content-schema.md §3 写作模板产出、审核 Agent 通过后，
- * 由主开发按映射表合入正文并翻 contentStatus。
- *
+ * baseConcepts 只保留权威 id/slug/moduleId/order/difficulty/estimatedMinutes 结构，
+ * 正文与动画配置由 demoConcepts 覆盖合入；最终导出的 concepts 已是当前上线版本。
  * 权威清单与模块构成（10/10/8/16/6/6 = 56）以 docs/content-schema.md §4 登记表为准。
- *
- * 注：hasAnimation 当前统一为 false（stub 阶段，避免触发尚未实现的动画校验）。
- * 动画落地阶段（P3）按 §4 将下列 17 个概念翻为 true 并补 animation：
- *   token, attention, autoregressive,
- *   prefill, decode, ttft, tpot, kv-cache, session-affinity,
- *   model-gateway, multi-model-routing, cost-routing, capability-routing,
- *   context-window, agent-loop, tool-calling, issue-fix-agent
  */
 
 interface StubInput {

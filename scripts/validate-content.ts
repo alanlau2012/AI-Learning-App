@@ -48,6 +48,8 @@ const REGISTERED_ANIMATION_TYPES = new Set([
   'agent-loop',
   'skill-lifecycle',
   'issue-fix-flow',
+  'observability-trace',
+  'token-roi-flow',
 ]);
 
 const errors: string[] = [];

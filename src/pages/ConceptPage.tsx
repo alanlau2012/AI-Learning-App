@@ -11,10 +11,15 @@ import { RichText } from '../components/concept/RichText';
 import { AnimationPlayer } from '../components/animation/AnimationPlayer';
 import { DiagnosticQuestion } from '../components/quiz/DiagnosticQuestion';
 import { useProgressStore } from '../store/progressStore';
-import { getOrderedPublishedConcepts, isPublishedConcept } from '../utils/progress';
+import { isPublishedConcept } from '../utils/progress';
 import styles from './ConceptPage.module.css';
 
-const orderedPublishedConcepts = getOrderedPublishedConcepts();
+const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
+const orderedPublishedConcepts = modules
+  .flatMap((module) => module.conceptIds)
+  .map((id) => conceptById.get(id))
+  .filter((concept): concept is (typeof concepts)[number] => Boolean(concept))
+  .filter(isPublishedConcept);
 
 export function ConceptPage() {
   const { slug } = useParams();

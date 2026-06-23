@@ -1,0 +1,176 @@
+.canvas {
+  display: grid;
+  gap: 14px;
+  min-height: 236px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: #1a1916;
+  color: #f7f3ea;
+}
+
+.flow {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.stage {
+  flex: 1 1 104px;
+  display: grid;
+  gap: 5px;
+  padding: 10px 9px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(250, 249, 246, 0.15);
+  background: rgba(250, 249, 246, 0.04);
+  transition: all 180ms ease;
+}
+
+.stage span,
+.decisionPanel span,
+.optimizations span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #b4b0a6;
+}
+
+.stage strong,
+.decisionPanel strong,
+.optimizations strong {
+  font-size: 12px;
+  color: #f7f3ea;
+}
+
+.stage.active {
+  border-color: #8ea2ff;
+  background: rgba(31, 64, 216, 0.22);
+}
+
+.arrow {
+  align-self: center;
+  color: #6f6b62;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.curveArea {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 0.72fr);
+  gap: 12px;
+}
+
+.axis {
+  position: relative;
+  min-height: 112px;
+  border-left: 1px solid rgba(250, 249, 246, 0.18);
+  border-bottom: 1px solid rgba(250, 249, 246, 0.18);
+  border-radius: 0 0 0 var(--radius);
+  background:
+    linear-gradient(135deg, transparent 45%, rgba(46, 125, 88, 0.08) 45% 55%, transparent 55%),
+    rgba(250, 249, 246, 0.03);
+}
+
+.axis.active {
+  border-color: rgba(142, 162, 255, 0.72);
+}
+
+.yLabel,
+.xLabel {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #b4b0a6;
+}
+
+.yLabel {
+  left: 8px;
+  top: 8px;
+}
+
+.xLabel {
+  right: 8px;
+  bottom: 7px;
+}
+
+.curve {
+  position: absolute;
+  left: 20%;
+  top: 58%;
+  width: 58%;
+  height: 34%;
+  border-top: 3px solid #8fd3b0;
+  border-right: 3px solid #8fd3b0;
+  border-radius: 999px 999px 0 0;
+  transform: rotate(-12deg);
+}
+
+.knee {
+  position: absolute;
+  right: 18%;
+  top: 32%;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(46, 125, 88, 0.65);
+  background: rgba(46, 125, 88, 0.16);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #dff1e7;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.knee.show {
+  opacity: 1;
+}
+
+.decisionPanel {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px dashed rgba(250, 249, 246, 0.16);
+  background: rgba(250, 249, 246, 0.04);
+  transition: all 180ms ease;
+}
+
+.decisionPanel.active {
+  border-color: rgba(232, 148, 58, 0.72);
+  background: rgba(232, 148, 58, 0.1);
+}
+
+.optimizations {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(46, 125, 88, 0.38);
+  background: rgba(46, 125, 88, 0.08);
+  opacity: 0.45;
+  transition: opacity 180ms ease;
+}
+
+.optimizations.show {
+  opacity: 1;
+}
+
+.optimizations strong {
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(46, 125, 88, 0.18);
+}
+
+.reduced * {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 720px) {
+  .curveArea {
+    grid-template-columns: 1fr;
+  }
+}

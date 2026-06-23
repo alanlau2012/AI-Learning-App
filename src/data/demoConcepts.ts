@@ -5335,7 +5335,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "AI 治理"
     ],
     "contentStatus": "mvp",
-    "hasAnimation": false,
+    "hasAnimation": true,
     "definition": "Trace 是把一次 AI 请求从输入、提示组装、工具调用到子 Agent 和最终输出的完整链路记录下来的结构。它是排障与归因的原子单位，让概率性系统变得可追溯。",
     "whyItMatters": "AI 系统的失败常发生在中间环节：提示组装错、工具返回脏数据、子 Agent 偏题。没有 trace，你只能看到最终错误答案，无法定位是哪一步出问题；调用链越长、Agent 越多，缺少 trace 的归因成本越高。",
     "mentalModel": "把 trace 看成一次请求的完整病历：每一步（span）记录输入、输出和耗时，排障时顺着病历回看是哪一环异常，而不是只盯着最终症状猜原因。",
@@ -5346,6 +5346,42 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "采样策略平衡成本与覆盖，高风险或异常请求全量采。",
       "trace 关联评测和告警，定位是哪一步导致质量或延迟问题。"
     ],
+    "animation": {
+      "type": "observability-trace",
+      "title": "从 trace id 到失败 span 定位",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "请求获得 trace id",
+          "description": "一次 AI 请求先被分配唯一 trace id，后续每个处理环节都挂在同一条链路下。",
+          "highlightTargets": ["request", "trace-id"]
+        },
+        {
+          "id": "s2",
+          "title": "提示与上下文成为 span",
+          "description": "提示组装、历史上下文和检索片段被记录为独立 span，方便判断错误是否来自输入侧。",
+          "highlightTargets": ["prompt", "context", "span"]
+        },
+        {
+          "id": "s3",
+          "title": "工具和子 Agent 继续挂链",
+          "description": "工具调用、子 Agent 推理和返回结果都作为子 span 保存输入、输出与耗时。",
+          "highlightTargets": ["tool", "agent", "subagent", "span"]
+        },
+        {
+          "id": "s4",
+          "title": "最终输出关联质量信号",
+          "description": "最终回答与评测或用户反馈关联，错误答案可以沿 trace 回看每个中间环节。",
+          "highlightTargets": ["output", "quality", "eval"]
+        },
+        {
+          "id": "s5",
+          "title": "异常请求全量采样并下钻",
+          "description": "当质量或延迟异常时，系统保留完整 trace 并下钻到具体失败 span，而不是只看最终答案。",
+          "highlightTargets": ["alert", "drilldown"]
+        }
+      ]
+    },
     "enterpriseCase": {
       "title": "无 trace 导致归因困难",
       "scenario": "某多步 Agent 系统偶发错误答案，调用链含提示组装、3 个工具和 2 个子 Agent，日均约 8 万次请求。",
@@ -5432,7 +5468,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "AI 治理"
     ],
     "contentStatus": "mvp",
-    "hasAnimation": false,
+    "hasAnimation": true,
     "definition": "Observability 是把 trace 聚合成系统级的质量、延迟和成本视图，让团队持续看见 AI 系统真实运行状态的能力。它比传统 APM 多一个无法回避的维度：输出质量。",
     "whyItMatters": "传统监控盯的是延迟、错误率和资源，但 AI 系统可以全程不报错却持续给出低质量答案。没有质量维度的可观测，劣化会在指标全绿的情况下悄悄发生，等用户流失才被发现。",
     "mentalModel": "把 AI 可观测看成三块仪表盘：质量、延迟、成本，三者要一起看。传统 APM 只有后两块，AI 系统必须补上质量这块，否则你监控的是一个不报错但答错的黑箱。",
@@ -5443,6 +5479,42 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "按应用、模型、版本切分，定位劣化来自哪个变更。",
       "异常会话下钻到 trace，把系统级信号连回单次请求。"
     ],
+    "animation": {
+      "type": "observability-trace",
+      "title": "从单次 trace 到质量可观测",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "trace 提供原始证据",
+          "description": "系统先从每次请求的 trace 中获得提示、工具、子 Agent、输出和耗时证据。",
+          "highlightTargets": ["request", "prompt", "tool", "agent", "output"]
+        },
+        {
+          "id": "s2",
+          "title": "聚合质量指标",
+          "description": "在线评测、用户反馈和事实错误率进入质量维度，补上传统 APM 看不到的答案好坏。",
+          "highlightTargets": ["quality", "eval", "dashboard"]
+        },
+        {
+          "id": "s3",
+          "title": "延迟与成本并列观察",
+          "description": "延迟分布、TTFT、Token 成本和失败率与质量一起看，避免只优化单一指标。",
+          "highlightTargets": ["latency", "cost", "dashboard"]
+        },
+        {
+          "id": "s4",
+          "title": "质量回退触发告警",
+          "description": "当事实错误率或质量评分越过阈值时，告警应像延迟告警一样进入值班和治理流程。",
+          "highlightTargets": ["alert", "quality"]
+        },
+        {
+          "id": "s5",
+          "title": "下钻到异常 trace",
+          "description": "系统级异常最终要能回到单次 trace，定位是知识库版本、工具返回还是提示组装导致劣化。",
+          "highlightTargets": ["drilldown", "trace-id", "span"]
+        }
+      ]
+    },
     "enterpriseCase": {
       "title": "指标全绿但质量在劣化",
       "scenario": "某 RAG 问答系统延迟和错误率监控长期正常，覆盖日均约 10 万次问答。",
@@ -5529,7 +5601,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "AI 治理"
     ],
     "contentStatus": "mvp",
-    "hasAnimation": false,
+    "hasAnimation": true,
     "definition": "Token ROI 是把 Token 成本对齐到业务价值来评估 AI 投入是否划算的方法。它反对两个极端：既不为省 Token 牺牲质量，也不为堆质量无视成本，而是看单位价值的成本。",
     "whyItMatters": "Token 成本会随调用量、上下文长度和多 Agent 线性甚至成倍增长。只看总成本会盲目压缩、伤害质量；只看质量会让成本失控。负责人需要的是成本与价值对齐的判断，决定哪些场景该投入、哪些该收缩或换小模型。",
     "mentalModel": "把 Token ROI 看成 AI 场景的单位经济学：每个场景算清楚一次任务花多少 Token、产出多少可量化价值，再决定加码、维持还是砍掉，而不是用总账单或总质量一刀切。",
@@ -5540,6 +5612,48 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "对高成本低价值场景换小模型、压上下文或下线。",
       "用缓存命中、提示精简和路由把成本压在不伤质量的范围。"
     ],
+    "animation": {
+      "type": "token-roi-flow",
+      "title": "按场景计算 Token ROI",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "先按场景拆账",
+          "description": "不要看总账单，先把客服、研发、分析等场景拆开，分别统计单位任务。",
+          "highlightTargets": ["scenario"]
+        },
+        {
+          "id": "s2",
+          "title": "统计输入与输出 Token 成本",
+          "description": "每个场景记录输入 Token、输出 Token 和模型单价，得到一次任务的真实成本。",
+          "highlightTargets": ["token-cost", "input-token", "output-token"]
+        },
+        {
+          "id": "s3",
+          "title": "对齐业务价值与质量",
+          "description": "把成本和节省工时、转化提升、人力替代以及质量评分放在同一个场景维度里比较。",
+          "highlightTargets": ["business-value", "quality"]
+        },
+        {
+          "id": "s4",
+          "title": "找到成本质量曲线拐点",
+          "description": "当继续增加 Token 带来的质量收益变小，就到了需要路由或压缩的边际收益拐点。",
+          "highlightTargets": ["roi", "curve"]
+        },
+        {
+          "id": "s5",
+          "title": "按 ROI 决定投入与收缩",
+          "description": "高价值场景保质量，低价值或负 ROI 场景才换小模型、压上下文或下线。",
+          "highlightTargets": ["decision", "keep-quality", "compress"]
+        },
+        {
+          "id": "s6",
+          "title": "用工程手段降本不伤质",
+          "description": "缓存命中、能力路由和提示精简用于压低成本，但边界是不能破坏核心场景质量。",
+          "highlightTargets": ["cache", "routing", "prompt-trim"]
+        }
+      ]
+    },
     "enterpriseCase": {
       "title": "为省 Token 反伤质量的伪优化",
       "scenario": "某企业为压成本统一把所有场景换成小模型并截断上下文，覆盖约 20 个业务场景。",

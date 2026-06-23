@@ -1,8 +1,8 @@
 # 44 讲扩展计划 · expansion-plan-44-lessons
 
 > MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 12 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
-> **Final Wave 已完成：56 / 56 讲全部上线（全部 `contentRevision: v2`）**：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`，地图无 stub。
-> 见 `reports/final-wave-summary.md`；正文改版 v2 见 `reports/content-revision-platform-summary.md`。
+> **Final Wave + backlog polish 已完成：56 / 56 讲全部上线（全部 `contentRevision: v2`）**：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`，地图无 stub；`trace` / `observability` / `token-roi` 治理动画已补齐。
+> 见 `reports/final-wave-summary.md`、`reports/backlog-polish-summary.md`；正文改版 v2 见 `reports/content-revision-platform-summary.md`。
 > 本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---
@@ -19,7 +19,7 @@
 | Wave 3 | 6 | M3 收尾 | **done：M3 已 8/8** | 平台主干收口，补齐 MaaS / 路由 / 缓存 / SLA | 中（复用 model-router） | 否 |
 | MVP 0.3 Wave 4A | 6 | M4 上下文工程 + 工具调用 | **done：M4 已 9/16** | Prompt/Context、系统提示、压缩、污染、分层会话、工具调用 | 低（复用 agent-loop） | 否 |
 | MVP 0.3 Wave 4B | 6 | M4 剩余主体链路 | **done：M4 已 15/16** | AGENTS.md、仓库上下文、规格驱动、Subagent、Memory、Human-in-the-loop | 低 | 否 |
-| Final Wave | 12 | M4 收尾(1) + M5 + M6 | **done：56/56 全量上线** | 软件工程闭环 + 企业治理收口；零新动画（按 Owner 决策本轮不动可选动画） | 低（复用现有，本轮无新动画） | 已确认（治理口径 R3：行业参考量级标注为参考） |
+| Final Wave | 12 | M4 收尾(1) + M5 + M6 | **done：56/56 全量上线；backlog polish 已补治理动画** | 软件工程闭环 + 企业治理收口；后续补齐 `observability-trace` / `token-roi-flow` | 中（新增两个真实画布，未改协议） | 已确认（治理口径 R3：行业参考量级标注为参考；Owner 本轮要求完成剩余工作） |
 | 合计 | 44 | — | **已完成 56/56** | — | — | — |
 
 **为什么这个顺序**：先完成已有锚点最密集、动画复用最高、内容风险最低的模块（M1→M2/M3→M4），把高不确定性（M6 治理类内容口径、可能的新动画类型）留到最后一批，并在那之前已用三批验证好整套门禁与流水线。
@@ -146,7 +146,7 @@
 **3. 为什么先做这一批**
 - 这是「应用 → 工程实践 → 企业治理」的收口批，需要前三批的概念铺垫（multi-agent 依赖 subagent/human-in-the-loop；M5/M6 依赖 Agent 与平台知识）。
 - M5 已有 `issue-fix-agent` 锚点；M6 是负责人路径终点（评测/安全/成本/组织），内容口径最需谨慎，放最后能复用前三批沉淀的案例与门禁经验。
-- 治理类讲最可能需要**新动画类型**（如 `observability-trace`、`token-roi-flow`），统一在末批评估，避免前期分散动画投入。
+- 治理类讲最可能需要**新动画类型**（如 `observability-trace`、`token-roi-flow`）。Final Wave 入库时先保持纯文本，backlog polish 阶段已按演示价值补齐这两类真实画布。
 
 **4. 内容 Agent 输入**
 `content/drafts/`（12 个新草稿）、规格三件套、已上线 `issue-fix-agent` 锚点、本轮升级后的 `agent-loop` 企业案例（升级人工条件写法）、M6 治理类需要更强的指标/约束/验证信号。
@@ -159,15 +159,15 @@
 
 **7. 动画复用或新增需求**
 - 复用：`multi-agent`/M5 各讲可复用 `agent-loop`/`issue-fix-flow` 通用画布。
-- 可选新增（**需 Owner 确认范围**）：`trace`/`observability`→`observability-trace`（新真实画布）、`token-roi`→`token-roi-flow`（新真实画布）。这两类是 M6 差异化价值点，但属新动画类型，投入较大，建议按演示需要决定是否本批做或延后。
+- 已新增（backlog polish）：`trace`/`observability`→`observability-trace`（新真实画布）、`token-roi`→`token-roi-flow`（新真实画布）。这两类是 M6 差异化价值点，新增时未改 `AnimationConfig` 协议。
 
 **8. E2E 验收项**
 - 四命令全绿；M4 上线 15→16、M5 上线 1→6、M6 上线 0→6 → **56 讲全部上线**。
 - 全 56 讲主线「下一讲/继续学习」连续闭环，地图已无 stub（或仅余明确延后项）。
-- 若新增 `observability-trace`/`token-roi-flow`：注册一致、`validate:animation` 通过、无 raw key、reduced-motion 可读。
+- `observability-trace`/`token-roi-flow`：注册一致、`validate:animation` 通过、无 raw key、reduced-motion 可读。
 - 全量回归：诊断题总分布、关联无悬空、所有 `hasAnimation` 与 `animation` 一致；建议本批引入一次真实浏览器（Playwright）全站回归，弥补此前纯命令行验证的方法学限制。
 
-**9. 是否需要 Owner 再确认**：**是**。两点：(a) 是否在本批新增 `observability-trace`/`token-roi-flow` 等新动画类型及其投入；(b) M6 治理类内容口径（评测/安全/成本/组织）是否需要 Owner 提供企业真实参照，避免口号化。
+**9. 是否需要 Owner 再确认**：本批内容口径已按 R3 完成；治理动画已在 backlog polish 中补齐。后续仅 `model-router` 真实画布升级、完整 PWA、搜索/术语/Profile 深度打磨需另行确认。
 
 ---
 
@@ -191,3 +191,4 @@
 | MVP 0.3 Wave 4A | done | 38 / 56 | PASS | PASS | M4 上下文工程与工具调用 6 讲 |
 | MVP 0.3 Wave 4B | done | 44 / 56 | PASS | PASS | M4 剩余主体链路 6 讲，multi-agent 暂留收口 |
 | Final Wave | done | 56 / 56 | PASS | PASS | multi-agent + M5×5 + M6×6 全量上线；诊断 A/B/C/D=3/3/3/3；见 `reports/final-wave-summary.md` |
+| Backlog Polish | done | 56 / 56 | PASS | PASS | PWA manifest、字体外链移除、路由切包、M6 治理动画；见 `reports/backlog-polish-summary.md` |

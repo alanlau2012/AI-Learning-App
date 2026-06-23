@@ -22,7 +22,7 @@
 2. **工程判断导向的诊断题**：用企业真实场景训练「第一步排查什么 / 哪个方案优先」，不考概念定义；含 `scenario / question / options / correctOptionIds / explanation / troubleshootingPath / relatedConceptIds`。
 3. **可复盘的企业案例**：`scenario / problem / analysis / solution / takeaway` 五段，且带指标/规模/约束/错误路径/验证结果等工程信号（参照本轮升级后的 `model-gateway` / `multi-model-routing` / `skill` / `agent-loop`）。
 4. **心智模型的「类比+工程判断」写法**：用类比、反例、边界、角色视角解释机制本质，落到工程判断，而非词典释义。
-5. **动画作为详情页的一个章节**：由 `AnimationConfig.steps` 配置驱动，`highlightTargets` 映射为画布元素而非文本标签；复用现有 8 组件 / 7 类型，不为每讲写独立动画。
+5. **动画作为详情页的一个章节**：由 `AnimationConfig.steps` 配置驱动，`highlightTargets` 映射为画布元素而非文本标签；复用当前注册组件，不为每讲写独立动画。
 6. **页面与导航口径**：主路径只进入已上线讲（`isPublishedConcept`），stub 保留在地图但弱化置灰；详情页正文 760–860px 长阅读；首页不 dashboard 化。
 7. **三段式内容流水线**：`content/drafts/ → content/reviewed/ → src/data/*`，主开发是唯一入库角色，入库前跑 `validate:content`。
 
@@ -107,7 +107,7 @@
 样板要求（完整门禁见 [content-production-gate.md](content-production-gate.md) §4）：
 
 1. **配置驱动**：动画步骤只存在于 `AnimationConfig.steps`，不写死在组件；由 `AnimationPlayer` 统一驱动。
-2. **复用优先**：优先复用现有 7 类型 / 8 组件（见 [animation-spec.md](animation-spec.md) §2）。同类型的讲共用画布（如 prefill/decode/ttft/tpot 共用 `prefill-decode`，agent-loop/tool-calling 共用 `agent-loop`），通过 `highlightTargets` 命中不同元素聚焦。
+2. **复用优先**：优先复用当前注册组件（见 [animation-spec.md](animation-spec.md) §2）。同类型的讲共用画布（如 prefill/decode/ttft/tpot 共用 `prefill-decode`，agent-loop/tool-calling 共用 `agent-loop`，trace/observability 共用 `observability-trace`），通过 `highlightTargets` 命中不同元素聚焦。
 3. **画面意图先行**：每个动画草稿要说明「这一步画面发生什么变化、每个 highlightTargets key 对应哪个可视元素」，再交动画工程师实现。
 4. **key 不上屏**：`highlightTargets` 必须映射为画布元素状态，**不得**作为文本标签渲染；画布可见文字只能是固定中文短标签（如「Prefill」「首 Token」「观察」）。
 5. **reduced-motion 可读**：静止画面也能逐步看懂（当前步高亮、命中 vs 未命中差异编码在样式而非位移）。

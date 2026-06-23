@@ -1,6 +1,6 @@
 # 内容草稿目录
 
-本目录供 **内容 Agent** 写入 Final Wave 及后续新讲草稿。草稿**不参与构建**，不得被 `src/` import。
+本目录供 **内容 Agent** 写入后续新讲、样板回改或专题补充草稿。草稿**不参与构建**，不得被 `src/` import。
 
 ## 已归档内容
 
@@ -14,13 +14,9 @@ content/archive/merged/
 
 如需查阅历史写作版本，请读 archive，**勿以 archive 为准写新稿**。
 
-## Final Wave（待写，12 stub）
+## 当前内容状态
 
-剩余 stub 见 [`docs/content-schema.md`](../../docs/content-schema.md) §4 登记表：
-
-- `multi-agent`（M4 收尾）
-- M5：`code-review-agent`、`requirement-decomposition-agent`、`test-generation-agent`、`ops-diagnosis-agent`、`value-review-agent`
-- M6：`eval`、`trace`、`observability`、`token-roi`、`permission-governance`、`ai-native-org`
+Final Wave 已完成，56 / 56 讲全部入库，当前剩余 stub 为 0。后续若新增专题或回改样板，仍从本目录起草，审核通过后由主开发合入 `src/data/*`。
 
 ## 写作规范
 

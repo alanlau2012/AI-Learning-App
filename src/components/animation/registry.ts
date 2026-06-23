@@ -6,8 +6,10 @@ import { ContextWindowAnimation } from './ContextWindowAnimation';
 import { IssueFixFlowAnimation } from './IssueFixFlowAnimation';
 import { KVCacheAnimation } from './KVCacheAnimation';
 import { ModelRoutingAnimation } from './ModelRoutingAnimation';
+import { ObservabilityTraceAnimation } from './ObservabilityTraceAnimation';
 import { PrefillDecodeAnimation } from './PrefillDecodeAnimation';
 import { SkillLifecycleAnimation } from './SkillLifecycleAnimation';
+import { TokenRoiFlowAnimation } from './TokenRoiFlowAnimation';
 import { TokenFlowAnimation } from './TokenFlowAnimation';
 import type { AnimationCanvasProps } from './types';
 
@@ -23,6 +25,8 @@ export const ANIMATION_REGISTRY: Partial<
   'agent-loop': AgentLoopAnimation,
   'skill-lifecycle': SkillLifecycleAnimation,
   'issue-fix-flow': IssueFixFlowAnimation,
+  'observability-trace': ObservabilityTraceAnimation,
+  'token-roi-flow': TokenRoiFlowAnimation,
 };
 
 export const REGISTERED_ANIMATION_TYPES = Object.keys(

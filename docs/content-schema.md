@@ -137,7 +137,7 @@ export interface GlossaryTerm {
   - `demo`：纳入 MVP Demo 的精做知识点，须通过“完整知识点”校验（§6.2）。
   - `mvp`：纳入 MVP 1.0 的完整知识点，校验同 `demo`。
   - 完整性校验只对 `demo` / `mvp` 生效；`stub` 只跑结构校验。
-- `hasAnimation`：与 `animation` 是否存在保持一致；为 `true` 时该概念须被 [animation-spec.md](animation-spec.md) 的首版 8 组件覆盖。`stub` 阶段建议 `hasAnimation:false`、`animation` 缺省，避免在动画组件实现前触发动画校验。
+- `hasAnimation`：与 `animation` 是否存在保持一致；为 `true` 时该概念须被 [animation-spec.md](animation-spec.md) 的当前注册组件覆盖。`stub` 阶段建议 `hasAnimation:false`、`animation` 缺省，避免在动画组件实现前触发动画校验。
 - `relatedConceptIds`：每一项必须指向**已存在的** `KnowledgePoint.id`（构建期应校验，避免悬空引用）。
 - `LearningModule.conceptIds`：与该模块下所有 `KnowledgePoint` 的集合一致，且顺序等于其 `order`。
 - `DiagnosticQuestion.correctOptionIds`：每一项必须是该题 `options[].id` 之一；单选长度为 1，多选 ≥ 1。

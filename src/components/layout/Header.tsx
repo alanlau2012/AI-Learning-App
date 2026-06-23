@@ -5,12 +5,11 @@
  */
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { concepts } from '../../data/concepts';
+import { conceptTitleById } from '../../data/conceptNav';
 import { modules } from '../../data/modules';
 import { useProgressStore } from '../../store/progressStore';
 import styles from './Header.module.css';
 
-const conceptById = new Map(concepts.map((c) => [c.id, c]));
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 
 /** 根据当前路径生成轻量面包屑。 */
@@ -24,8 +23,8 @@ function buildBreadcrumb(pathname: string): string[] {
   }
   const conceptMatch = pathname.match(/^\/concepts\/([^/]+)$/);
   if (conceptMatch) {
-    const c = conceptById.get(conceptMatch[1]);
-    return c ? ['知识点', c.title] : ['知识点'];
+    const title = conceptTitleById[conceptMatch[1]];
+    return title ? ['知识点', title] : ['知识点'];
   }
   if (pathname === '/search') return ['搜索'];
   if (pathname === '/glossary') return ['术语'];
