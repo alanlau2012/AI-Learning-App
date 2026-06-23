@@ -1,8 +1,8 @@
 # 44 讲扩展计划 · expansion-plan-44-lessons
 
 > MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 12 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
-> **Final Wave + backlog polish 已完成：56 / 56 讲全部上线（全部 `contentRevision: v2`）**：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`，地图无 stub；`trace` / `observability` / `token-roi` 治理动画已补齐。
-> 见 `reports/final-wave-summary.md`、`reports/backlog-polish-summary.md`；正文改版 v2 见 `reports/content-revision-platform-summary.md`。
+> **Final Wave + backlog polish + GitHub P1 内容修复已完成：56 / 56 讲全部上线（全部 `contentRevision: v2`）**：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`，地图无 stub；`trace` / `observability` / `token-roi` 治理动画已补齐；issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径已修复。
+> 见 `reports/final-wave-summary.md`、`reports/backlog-polish-summary.md`、`reports/github-p1-content-repair-summary.md`；正文改版 v2 见 `reports/content-revision-platform-summary.md`。
 > 本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---
@@ -192,3 +192,5 @@
 | MVP 0.3 Wave 4B | done | 44 / 56 | PASS | PASS | M4 剩余主体链路 6 讲，multi-agent 暂留收口 |
 | Final Wave | done | 56 / 56 | PASS | PASS | multi-agent + M5×5 + M6×6 全量上线；诊断 A/B/C/D=3/3/3/3；见 `reports/final-wave-summary.md` |
 | Backlog Polish | done | 56 / 56 | PASS | PASS | PWA manifest、字体外链移除、路由切包、M6 治理动画；见 `reports/backlog-polish-summary.md` |
+| Desktop Electron MVP | done | 56 / 56 | PASS | 不涉及内容审核 | 新增 Windows 桌面发行通道；内容清单、schema、模块计数均不变；见 `reports/desktop-electron-mvp-summary.md` |
+| GitHub P1 Content Repair | done | 56 / 56 | PASS | PASS | 修复 issue #3/#4：`trace`/`tool-calling` 敏感数据最小化、`session-affinity` cache locality、`observability` 去 trace-centric；见 `reports/github-p1-content-repair-summary.md` |

@@ -2420,40 +2420,40 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "tags": ["Session 亲和", "KV Cache", "TTFT", "负载均衡", "MaaS"],
     "contentStatus": "mvp",
     "hasAnimation": true,
-    "definition": "Session 亲和是让同一会话的连续请求尽量路由到持有相关上下文和 KV Cache 的实例，以提升缓存命中和上下文连续性。",
-    "whyItMatters": "Session 亲和不是“粘住用户”这么简单，而是为了让多轮对话、Agent 任务和长上下文链路保持性能与状态连续。亲和失效时，用户看到的是首字忽快忽慢、上下文像丢了、限流策略不一致、同一任务重复计算。平台侧要看 KV Cache 命中率、会话迁移率、实例热点、P99 TTFT、故障切换成功率和亲和过期策略。",
-    "mentalModel": "会话像一份正在办理的案卷。每次都回到同一个柜台，柜台有之前读过的材料和处理记录；如果每轮都随机换柜台，就会反复翻案卷，甚至丢掉一些临时状态。但永远只找一个柜台也会造成排队和单点风险。",
+    "definition": "Session 亲和是把同一会话或共享前缀请求尽量路由到可复用缓存域的策略，用来提升服务端缓存与状态局部性，而不是上下文连续性的来源。",
+    "whyItMatters": "Session 亲和不是“粘住用户”这么简单，它主要优化 cache locality：让可复用的 KV Cache、前缀缓存或限流状态更容易命中。真正的上下文连续性仍来自应用层显式消息历史、任务状态、memory 和工具结果管理。平台侧要同时看 KV Cache 命中率、会话迁移率、可复用前缀比例、cache key 一致性、P99 TTFT、故障切换和租户隔离。",
+    "mentalModel": "会话像一份正在办理的案卷。回到同一个柜台能减少重复翻材料，但案卷正文仍要由应用层携带或保存；如果材料本身没有共享前缀或缓存键不一致，只找同一柜台也复用不了笔记。",
     "mechanism": [
-      "首轮请求经过 Prefill 后，会在实例上形成 KV Cache 和会话相关状态。",
-      "后续请求如果路由到同一实例或同一缓存域，可复用前缀缓存，降低重复 Prefill。",
-      "如果请求被打散到不同实例，缓存未命中会导致 TTFT 上升，并可能触发重复上下文处理。",
-      "亲和策略需要与负载均衡、扩缩容、限流、故障转移和租户隔离一起设计。",
-      "过度亲和会造成热点实例、负载不均和容灾困难，因此要设置 TTL、迁移条件和降级路径。"
+      "应用层先负责显式传入消息历史、任务状态、memory 和工具结果，保证语义上的上下文连续。",
+      "推理服务只有在请求共享可缓存前缀、模型与 schema 一致、cache key 命中且缓存未过期时，才可能复用 KV 或前缀缓存。",
+      "Session 亲和把这类请求尽量送回同一实例或缓存域，降低重复 Prefill 和首字等待。",
+      "如果扩容、故障转移或负载均衡打散缓存域，KV 命中率下降会推高 TTFT，但不等于模型“忘记”了上下文。",
+      "亲和策略必须与 TTL、缓存淘汰、cache key、租户隔离、热点迁移和降级路径一起设计。"
     ],
     "animation": {
       "type": "kv-cache",
       "title": "Session 亲和命中与打散重算",
       "steps": [
-        { "id": "s1", "title": "同一会话进入实例", "description": "多轮请求携带 session id，路由层尝试让它回到持有上下文的实例。", "highlightTargets": ["session", "instance"] },
-        { "id": "s2", "title": "首轮写入 KV Cache", "description": "首轮 Prefill 后，实例保存已读上下文的 K/V 笔记。", "highlightTargets": ["prefill", "kv-write"] },
-        { "id": "s3", "title": "亲和命中复用缓存", "description": "后续请求命中同一缓存域，Decode 可以复用已有 KV，TTFT 更低。", "highlightTargets": ["cache-hit", "decode"] },
-        { "id": "s4", "title": "路由打散导致未命中", "description": "扩容或负载均衡把请求打到空缓存实例，需要重新 Prefill。", "highlightTargets": ["route-miss", "cache-miss"] },
-        { "id": "s5", "title": "过度亲和带来热点", "description": "长会话和热门租户会挤占显存，亲和策略还要处理容量、淘汰和容灾。", "highlightTargets": ["memory", "eviction"] }
+        { "id": "s1", "title": "同一会话进入实例", "description": "多轮请求携带 session id 和应用层上下文，路由层尝试回到同一缓存域。", "highlightTargets": ["session", "instance"] },
+        { "id": "s2", "title": "首轮写入 KV Cache", "description": "首轮 Prefill 后，实例保存可缓存前缀的 K/V 笔记；能否复用取决于 shared prefix 与 cache key。", "highlightTargets": ["prefill", "kv-write"] },
+        { "id": "s3", "title": "亲和命中复用缓存", "description": "后续请求命中同一缓存域且前缀匹配时，才可跳过共享部分计算，降低 TTFT。", "highlightTargets": ["cache-hit", "decode"] },
+        { "id": "s4", "title": "路由打散导致未命中", "description": "扩容或负载均衡把请求打到空缓存实例，会重新 Prefill，但上下文是否连续仍由应用层状态决定。", "highlightTargets": ["route-miss", "cache-miss"] },
+        { "id": "s5", "title": "过度亲和带来热点", "description": "长会话和热门租户会挤占显存，亲和策略还要处理容量、淘汰、租户隔离和容灾。", "highlightTargets": ["memory", "eviction"] }
       ]
     },
     "enterpriseCase": {
       "title": "多轮客服会话高峰期首字抖动",
       "scenario": "某 MaaS 平台承载 60 个业务应用，客服助手单日约 35 万轮对话，高峰期自动扩容。",
       "problem": "用户反馈同一会话前几轮很快，后几轮首字突然从 900ms 升到 4.5s；监控显示会话迁移率从 8% 升到 37%，KV 命中率下降到 22%。",
-      "analysis": "扩容后负载均衡只按实例空闲度分配，没有保持会话亲和；部分限流状态也跟着实例变化，导致体验不稳定。",
-      "solution": "引入基于 session id 的一致性路由和缓存域，设置热点迁移阈值与亲和 TTL；扩容时预热热门会话并监控迁移率。",
-      "takeaway": "Session 亲和提升缓存命中，但必须和热点、容灾、限流一起治理。"
+      "analysis": "扩容后负载均衡只按实例空闲度分配，没有识别可复用 shared prefix、session cache 和 cache key；部分限流状态也跟着实例变化，导致缓存收益和体验都不稳定。",
+      "solution": "引入基于 session id、shared prefix 和 cache key 的缓存域路由，设置热点迁移阈值与亲和 TTL；扩容时预热热门前缀并监控迁移率、命中率和租户隔离。",
+      "takeaway": "Session 亲和提升缓存局部性，但必须和应用层上下文、cache key、热点、容灾、限流一起治理。"
     },
     "pitfalls": [
-      "把 Session 亲和理解成用户粘性，而不是缓存和状态连续性。",
+      "把 Session 亲和理解成上下文记忆，而不是缓存和状态局部性。",
       "只追求亲和命中率，忽略热点实例和负载不均。",
       "扩缩容时不迁移或预热缓存，导致高峰期大量重算。",
-      "会话状态、限流和缓存策略分别设计，出了问题难以复盘。"
+      "会话状态、cache key、限流和缓存策略分别设计，出了问题难以复盘。"
     ],
     "diagnosticQuestion": {
       "id": "q-session-affinity-1",
@@ -2462,20 +2462,20 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "question": "最应该优先排查哪项？",
       "options": [
         { "id": "a", "text": "是否需要把所有请求固定到最空闲的实例" },
-        { "id": "b", "text": "扩容后的 session 路由是否打散了持有 KV Cache 的会话" },
+        { "id": "b", "text": "扩容后的 session 路由是否打散了可复用 shared prefix 或 session cache" },
         { "id": "c", "text": "是否应该提高输出 token 上限，让回答更完整" },
         { "id": "d", "text": "是否需要把 temperature 降到 0" }
       ],
       "correctOptionIds": ["b"],
-      "explanation": "B 直接对应会话迁移率上升和 KV 命中下降。A 是强干扰项，按空闲实例分配看似均衡，但会破坏会话缓存。C 影响输出长度和 TPOT，不解决首字抖动。D 影响随机性，不解释缓存命中下降。",
-      "troubleshootingPath": ["按 session id 追踪连续请求落到哪些实例", "对比命中与未命中的 TTFT、Prefill 时长和缓存状态", "检查扩缩容、故障转移和负载均衡策略是否绕过亲和", "识别热点会话与实例负载不均", "设置亲和 TTL、迁移条件、缓存预热和故障降级"],
+      "explanation": "B 直接对应会话迁移率上升和 KV 命中下降，但排查前提是确认这些请求确实存在可复用 shared prefix、session cache 或 cache key。A 是强干扰项，按空闲实例分配看似均衡，却可能破坏缓存域。C 影响输出长度和 TPOT，不解决首字抖动。D 影响随机性，不解释缓存命中下降。",
+      "troubleshootingPath": ["确认应用层是否显式传入消息历史、任务状态和工具结果", "确认是否存在可复用 shared prefix、session cache 或 prompt cache key", "按 session id 与 cache key 追踪连续请求落到哪些实例", "对比命中与未命中的 TTFT、Prefill 时长和缓存状态", "检查扩缩容、故障转移和负载均衡策略是否绕过缓存域", "设置亲和 TTL、迁移条件、缓存预热、租户隔离和故障降级"],
       "relatedConceptIds": ["kv-cache", "prefill", "ttft", "model-gateway", "rate-limit-circuit-break", "sla"]
     },
     "keyTakeaways": [
-      "Session 亲和的核心价值是 KV Cache 命中和上下文连续。",
-      "请求打散会带来重复 Prefill、TTFT 抖动和状态不一致。",
-      "亲和策略必须平衡缓存收益、热点风险和容灾能力。",
-      "平台要把会话迁移率与缓存命中率作为一组指标看。"
+      "Session 亲和的核心价值是缓存和服务端状态局部性，不是替代应用层上下文。",
+      "KV 或前缀缓存复用依赖 shared prefix、cache key、模型配置和服务实现。",
+      "请求打散会带来重复 Prefill 与 TTFT 抖动，但不等于模型自动丢失上下文。",
+      "平台要把会话迁移率、缓存命中率、可复用前缀比例和租户隔离一起看。"
     ],
     "relatedConceptIds": ["kv-cache", "prefill", "ttft", "model-gateway", "rate-limit-circuit-break", "sla"]
   },
@@ -3996,7 +3996,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "scenario": "IT 运维 Agent 每天处理约 1400 个账号和权限工单，可调用查询用户、重置密码、开通权限和创建审批单等工具。",
     "problem": "灰度第 3 天出现 7 起错误开通权限，均来自模型把“查询某系统权限”误判为“开通某系统权限”。",
     "analysis": "工具描述过于相似，参数 schema 缺少操作意图字段，高风险工具没有二次确认和审批校验；trace 只记录最终文本，没有记录工具参数。",
-    "solution": "重命名工具并拆分只读/写入能力，为写工具增加审批单号、影响范围和人工确认校验，所有调用参数进入 trace。",
+    "solution": "重命名工具并拆分只读/写入能力，为写工具增加审批单号、影响范围和人工确认校验；trace 只记录安全字段、参数 schema、工具版本、审批 id、影响范围和脱敏参数摘要。",
     "takeaway": "工具调用的核心不是能调通，而是权限、参数、风险和审计闭环。"
   },
   "pitfalls": [
@@ -4004,17 +4004,17 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "只校验参数类型，不校验业务权限和操作风险。",
     "让写入型工具无需确认直接执行。",
     "工具失败后让模型自由重试，造成重复动作。",
-    "不记录工具调用参数，事故后无法复盘。"
+    "不记录工具版本、审批证据、脱敏参数摘要和错误码，事故后无法复盘。"
   ],
   "diagnosticQuestion": {
     "id": "q-tool-calling-1",
     "type": "single",
-    "scenario": "运维 Agent 把查询权限误执行为开通权限。两个工具描述相似，高风险写工具无需审批单号，trace 里没有保存调用参数。",
+    "scenario": "运维 Agent 把查询权限误执行为开通权限。两个工具描述相似，高风险写工具无需审批单号，trace 里没有保存可审计参数摘要和审批证据。",
     "question": "最优先的修复是什么？",
     "options": [
       {
         "id": "a",
-        "text": "先拆清只读/写入边界，再补审批、权限和 trace"
+        "text": "先拆清只读/写入边界，再补审批、权限和脱敏 trace"
       },
       {
         "id": "b",
@@ -4032,12 +4032,12 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "correctOptionIds": [
       "a"
     ],
-    "explanation": "A 是第一步，先把只读和写入边界拆清，再为写工具补审批、权限和 trace。B 不能替代运行时边界。C 只是提示约束，挡不住写入型误调用。D 会放大错误动作。",
+    "explanation": "A 是第一步，先把只读和写入边界拆清，再为写工具补审批、权限和脱敏 trace。trace 应保留安全字段、参数 schema、审批 id、影响范围、工具版本和脱敏摘要，而不是默认保存原始敏感参数。B 不能替代运行时边界。C 只是提示约束，挡不住写入型误调用。D 会放大错误动作。",
     "troubleshootingPath": [
-      "复盘错误调用的工具名、参数和上下文",
+      "复盘错误调用的工具名、脱敏参数摘要、审批 id 和上下文引用",
       "检查工具描述与 schema 是否区分只读和写入",
       "为高风险工具增加权限、审批和人工确认",
-      "记录调用参数、结果和错误码",
+      "记录安全参数摘要、工具版本、结果摘要和错误码",
       "用历史工单回放评估误调用率"
     ],
     "relatedConceptIds": [
@@ -5336,14 +5336,14 @@ const rawDemoConcepts: KnowledgePoint[] = [
     ],
     "contentStatus": "mvp",
     "hasAnimation": true,
-    "definition": "Trace 是把一次 AI 请求从输入、提示组装、工具调用到子 Agent 和最终输出的完整链路记录下来的结构。它是排障与归因的原子单位，让概率性系统变得可追溯。",
-    "whyItMatters": "AI 系统的失败常发生在中间环节：提示组装错、工具返回脏数据、子 Agent 偏题。没有 trace，你只能看到最终错误答案，无法定位是哪一步出问题；调用链越长、Agent 越多，缺少 trace 的归因成本越高。",
-    "mentalModel": "把 trace 看成一次请求的完整病历：每一步（span）记录输入、输出和耗时，排障时顺着病历回看是哪一环异常，而不是只盯着最终症状猜原因。",
+    "definition": "Trace 是把一次 AI 请求从提示组装、工具调用到子 Agent 和最终输出的链路证据结构化串联起来。它是排障与归因的原子单位，但不是原文日志仓库。",
+    "whyItMatters": "AI 系统的失败常发生在中间环节：提示组装错、工具返回脏数据、子 Agent 偏题。没有 trace，你只能看到最终错误答案，无法定位是哪一步出问题；但 trace 也可能收进 PII、凭证、客户数据、内部代码和模型输出，因此必须把可追溯性与数据最小化一起设计。",
+    "mentalModel": "把 trace 看成一次请求的脱敏病历：每个 span 记录诊断所需的结构化证据、引用 id 和摘要，而不是把病人的所有原始材料无限期塞进档案室。",
     "mechanism": [
       "为一次请求分配唯一 trace id，串联其下所有处理步骤。",
-      "每个步骤记录为一个 span：输入、输出、耗时、所用模型或工具。",
-      "提示组装、工具调用、子 Agent 调用都作为子 span 挂在链路上。",
-      "采样策略平衡成本与覆盖，高风险或异常请求全量采。",
+      "每个步骤记录为一个 span：阶段、耗时、模型或工具版本、错误码、权限上下文、引用 id、hash 和脱敏摘要。",
+      "提示组装、工具调用、子 Agent 调用都作为子 span 挂在链路上，但原文输入输出按敏感级别禁采、脱敏或限权保存。",
+      "采样策略平衡成本、覆盖和合规，高风险或异常请求可高覆盖采样，但必须有保留期、访问控制、租户隔离和敏感字段过滤。",
       "trace 关联评测和告警，定位是哪一步导致质量或延迟问题。"
     ],
     "animation": {
@@ -5359,13 +5359,13 @@ const rawDemoConcepts: KnowledgePoint[] = [
         {
           "id": "s2",
           "title": "提示与上下文成为 span",
-          "description": "提示组装、历史上下文和检索片段被记录为独立 span，方便判断错误是否来自输入侧。",
+          "description": "提示组装、历史上下文和检索片段以引用 id、hash、版本和脱敏摘要进入 span，方便判断错误是否来自输入侧。",
           "highlightTargets": ["prompt", "context", "span"]
         },
         {
           "id": "s3",
           "title": "工具和子 Agent 继续挂链",
-          "description": "工具调用、子 Agent 推理和返回结果都作为子 span 保存输入、输出与耗时。",
+          "description": "工具调用和子 Agent 作为子 span 保存安全参数摘要、工具版本、审批 id、错误码和耗时。",
           "highlightTargets": ["tool", "agent", "subagent", "span"]
         },
         {
@@ -5376,8 +5376,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "s5",
-          "title": "异常请求全量采样并下钻",
-          "description": "当质量或延迟异常时，系统保留完整 trace 并下钻到具体失败 span，而不是只看最终答案。",
+          "title": "异常请求高覆盖采样并下钻",
+          "description": "当质量或延迟异常时，系统保留脱敏 trace 并下钻到失败 span，同时执行访问控制、保留期和租户隔离。",
           "highlightTargets": ["alert", "drilldown"]
         }
       ]
@@ -5386,9 +5386,9 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "title": "无 trace 导致归因困难",
       "scenario": "某多步 Agent 系统偶发错误答案，调用链含提示组装、3 个工具和 2 个子 Agent，日均约 8 万次请求。",
       "problem": "错误率约 4%，但因为只记录最终输出，团队无法定位错误来自哪一步，排查一个 case 平均耗时数小时。",
-      "analysis": "系统没有按 trace 和 span 记录中间环节，最终答案错误时无法回溯是提示、工具还是子 Agent 出问题。",
-      "solution": "引入 trace id 与 span 记录每一步输入输出；异常请求全量采样；trace 关联评测，把高频失败 span 定位出来。",
-      "takeaway": "调用链越长，trace 越是排障的前提，否则只能盲猜。"
+      "analysis": "系统没有按 trace 和 span 记录中间环节，最终答案错误时无法回溯是提示、工具还是子 Agent 出问题；若直接补原文日志，又会引入隐私、凭证和客户数据泄漏风险。",
+      "solution": "引入 trace id 与 span 记录结构化证据、引用 id、hash、耗时、版本和脱敏摘要；异常请求高覆盖采样但受保留期、访问控制、租户隔离和敏感字段过滤约束；trace 关联评测，把高频失败 span 定位出来。",
+      "takeaway": "调用链越长，trace 越是排障的前提；越接近生产客户数据，越要同时设计最小化和脱敏边界。"
     },
     "pitfalls": [
       "只记录最终输出，不记录中间步骤，出错时无法定位是哪一环。",
@@ -5416,19 +5416,19 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "引入 trace id 和 span 记录每一步输入输出，异常请求全量采样"
+          "text": "引入 trace id 和 span 记录结构化证据与脱敏摘要，异常请求高覆盖采样"
         }
       ],
       "correctOptionIds": [
         "d"
       ],
-      "explanation": "D 是第一步：排障困难的根因是中间链路不可见，必须先让每一步可追溯。A 降错误率但定位问题仍靠猜。B 增加工具反而加长链路。C 降采样会让异常更采不到，方向相反。",
+      "explanation": "D 是第一步：排障困难的根因是中间链路不可见，必须先让每一步可追溯。但可追溯不等于原文全量入库，span 应记录结构化证据、脱敏摘要、引用 id、耗时、版本和错误码，并对异常请求做带访问控制、保留期和租户隔离的高覆盖采样。A 降错误率但定位问题仍靠猜。B 增加工具反而加长链路。C 降采样会让异常更采不到，方向相反。",
       "troubleshootingPath": [
         "为请求分配 trace id",
-        "按 span 记录每步输入输出与耗时",
-        "对异常请求全量采样",
+        "按 span 记录结构化证据、脱敏摘要、版本、错误码与耗时",
+        "对异常请求高覆盖采样，并设置保留期、访问控制和租户隔离",
         "trace 关联评测定位失败 span",
-        "按高频失败 span 优化"
+        "按高频失败 span 优化，并定期审查采集字段是否仍有必要"
       ],
       "relatedConceptIds": [
         "observability",
@@ -5441,8 +5441,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "keyTakeaways": [
       "Trace 是排障与归因的原子单位。",
       "span 粒度要细到能区分提示、工具和子 Agent。",
-      "异常和高风险请求应全量采样。",
-      "trace 要关联评测和告警才能定位问题。"
+      "异常和高风险请求可高覆盖采样，但必须先定义脱敏、保留期、访问控制和租户隔离。",
+      "trace 要关联评测和告警，也要遵守敏感数据最小化。"
     ],
     "relatedConceptIds": [
       "observability",
@@ -5469,15 +5469,15 @@ const rawDemoConcepts: KnowledgePoint[] = [
     ],
     "contentStatus": "mvp",
     "hasAnimation": true,
-    "definition": "Observability 是把 trace 聚合成系统级的质量、延迟和成本视图，让团队持续看见 AI 系统真实运行状态的能力。它比传统 APM 多一个无法回避的维度：输出质量。",
+    "definition": "Observability 是把 trace、指标、日志、评测、反馈、版本和成本信号组合成系统级视图，让团队持续看见 AI 系统真实运行状态的能力。",
     "whyItMatters": "传统监控盯的是延迟、错误率和资源，但 AI 系统可以全程不报错却持续给出低质量答案。没有质量维度的可观测，劣化会在指标全绿的情况下悄悄发生，等用户流失才被发现。",
-    "mentalModel": "把 AI 可观测看成三块仪表盘：质量、延迟、成本，三者要一起看。传统 APM 只有后两块，AI 系统必须补上质量这块，否则你监控的是一个不报错但答错的黑箱。",
+    "mentalModel": "把 AI 可观测看成一张控制台：指标看趋势，日志看事件，trace 负责下钻，评测和反馈判断答案质量，版本与成本解释变化从哪里来。",
     "mechanism": [
-      "从 trace 聚合系统级指标：质量评分、延迟分布、Token 成本和失败率。",
+      "汇总 metrics、logs、traces、eval signals、用户反馈、版本和成本，形成质量、延迟、可靠性与成本视图。",
       "质量维度接入在线评测或用户反馈，监控答非所问、拒答和事实错误。",
       "为质量回退、延迟和成本异常设告警，而不只盯资源指标。",
       "按应用、模型、版本切分，定位劣化来自哪个变更。",
-      "异常会话下钻到 trace，把系统级信号连回单次请求。"
+      "异常会话下钻到脱敏 trace，把系统级信号连回单次请求，同时保留数据最小化边界。"
     ],
     "animation": {
       "type": "observability-trace",
@@ -5485,8 +5485,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "steps": [
         {
           "id": "s1",
-          "title": "trace 提供原始证据",
-          "description": "系统先从每次请求的 trace 中获得提示、工具、子 Agent、输出和耗时证据。",
+          "title": "trace 提供链路证据",
+          "description": "系统从 metrics、logs 和脱敏 trace 中获得请求链路、工具、子 Agent、输出质量和耗时证据。",
           "highlightTargets": ["request", "prompt", "tool", "agent", "output"]
         },
         {
@@ -5510,7 +5510,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         {
           "id": "s5",
           "title": "下钻到异常 trace",
-          "description": "系统级异常最终要能回到单次 trace，定位是知识库版本、工具返回还是提示组装导致劣化。",
+          "description": "系统级异常最终要能回到单次脱敏 trace，定位是知识库版本、工具返回还是提示组装导致劣化。",
           "highlightTargets": ["drilldown", "trace-id", "span"]
         }
       ]
@@ -5519,15 +5519,15 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "title": "指标全绿但质量在劣化",
       "scenario": "某 RAG 问答系统延迟和错误率监控长期正常，覆盖日均约 10 万次问答。",
       "problem": "一次知识库更新后事实错误率从约 3% 升到 11%，但传统监控全绿，三周后才因业务方反馈发现。",
-      "analysis": "可观测只有延迟和错误率，没有质量维度；系统不报错地给出错误答案，劣化在指标层面完全不可见。",
-      "solution": "补上质量仪表盘：接入在线评测监控事实错误率；为质量回退设告警；按知识库版本切分定位；异常会话下钻 trace。",
+      "analysis": "可观测只有延迟和错误率，没有质量、评测、反馈和知识库版本维度；系统不报错地给出错误答案，劣化在指标层面完全不可见。",
+      "solution": "补上质量仪表盘：接入在线评测和用户反馈监控事实错误率；为质量回退设告警；按知识库、模型和提示版本切分定位；异常会话下钻脱敏 trace。",
       "takeaway": "AI 可观测必须含质量维度，不报错不等于没问题。"
     },
     "pitfalls": [
       "只监控延迟、错误率和资源，没有质量维度，劣化在指标全绿时悄悄发生。",
       "质量只靠人工抽查，没有持续在线信号，发现总是滞后。",
       "不按应用、模型和版本切分，劣化发生却定位不到来源。",
-      "系统级告警无法下钻到 trace，看见异常却查不到根因。"
+      "系统级告警无法下钻到脱敏 trace，看见异常却查不到根因。"
     ],
     "diagnosticQuestion": {
       "id": "q-observability-1",
@@ -5560,7 +5560,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         "接入在线评测作为质量信号",
         "为事实错误率与质量回退设告警",
         "按应用、模型、版本切分指标",
-        "异常会话下钻到 trace",
+        "异常会话下钻到脱敏 trace",
         "把质量纳入常态仪表盘"
       ],
       "relatedConceptIds": [

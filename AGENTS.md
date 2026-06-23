@@ -6,27 +6,28 @@
 
 截至 **2026-06-23**：
 
-- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish**（PWA manifest、字体外链移除、路由切包、M6 治理动画补齐）；具体 hash 以 `git log -1` / 后续提交为准。
-- 已封板范围：**Final Wave + backlog polish**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲；并为 `trace`/`observability`/`token-roi` 补真实画布）。
+- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合**（PWA manifest、字体外链移除、路由切包、M6 治理动画补齐、Windows 桌面打包通道；修复 issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径）；当前提交前基线 `e350891`，具体 hash 以 `git log -1` / 后续提交为准。
+- 已封板范围：**Final Wave + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲；并为 `trace`/`observability`/`token-roi` 补真实画布；新增 Electron 离线桌面壳；修复 `trace`/`tool-calling`/`observability`/`session-affinity` 关键内容口径）。
 - 当前上线内容：**56 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**0**。地图无 stub。
 - 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`。
-- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build` 均 PASS；backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`。
+- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build`、`build:desktop` 均 PASS；`smoke:desktop` 已用独立 temp profile + 禁 GPU/cache 连续两次验证 PASS，且 `%TEMP%\ai-learning-app-smoke-*` 无残留；本轮 GitHub P1 内容修复已复跑 `validate:content` 与 `typecheck` PASS。桌面版见 `reports/desktop-electron-mvp-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
 - 诊断题批级配平：Final Wave 12 题正确答案 A/B/C/D = 3/3/3/3。
-- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting。
-- 下一轮建议（均需 Owner 确认）：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA（Service Worker / 离线缓存，二期范围）。
+- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径。
+- 下一轮建议（均需 Owner 确认）：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA（Service Worker / 离线缓存，二期范围）、桌面版图标/代码签名/自动更新（二期范围）。
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。
 
-## 2. 技术栈（首版锁定）
+## 2. 技术栈（Web/PWA + 桌面版锁定）
 
-- React 18 + Vite + TypeScript
+- React + Vite + TypeScript
 - 状态管理：Zustand
 - 路由：React Router
 - 样式：CSS Modules / 普通 CSS（设计变量集中在 `src/styles/tokens.css`）
 - 动画：Framer Motion 或自研轻量动画（SVG / CSS / Canvas / React 组件，**不做 3D、不做视频**）
 - 持久化：LocalStorage（首版），预留 IndexedDB
 - 内容：Markdown / JSON 数据驱动
+- 桌面壳：Electron + electron-builder（Windows 优先，复用 Web UI）
 
 ## 3. 目录结构（权威，新增文件须落入对应目录）
 
@@ -55,6 +56,7 @@ docs/             product-spec / architecture / content-schema / animation-spec 
 - 不做登录注册、不做付费系统、不做多人协作、不做内容后台。
 - 不接真实大模型 API、不做真实 AI 问答。
 - 不做原生 iOS / Android、不做复杂视频播放器、不做完整题库系统。
+- 桌面版首版不做云同步、自动更新、代码签名、原生文件导入导出。
 
 ## 5. 不可破坏的约定（违反即视为架构回归）
 
@@ -107,7 +109,10 @@ content/drafts/<id>.md   →   content/reviewed/<id>.md   →   src/data/concept
 ```bash
 npm install            # 安装依赖
 npm run dev            # 本地开发
-npm run build          # 生产构建
+npm run build          # Web 生产构建
+npm run dev:desktop    # Electron 桌面版开发运行
+npm run build:desktop  # Electron Windows 安装包 + portable 打包
+npm run smoke:desktop  # Electron 生产包启动 smoke
 npm run typecheck      # TypeScript 类型检查（须 0 错误）
 npm run lint           # ESLint（须无严重错误）
 npm run validate:content   # 聚合门禁：按当前阶段组合下述子命令（见 docs/content-schema.md §6）
