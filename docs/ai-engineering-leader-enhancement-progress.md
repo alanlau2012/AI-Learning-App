@@ -18,14 +18,14 @@
 
 | 项目 | 当前值 |
 |---|---|
-| 当前阶段 | P1 Phase 1A 输入包 |
-| 当前目标 | 完成首批 12 讲 decisionGuide 草稿与审核稿、56 讲能力域映射草案、4 条角色路径模板 |
+| 当前阶段 | P1 schema 与数据入库完成 |
+| 当前目标 | SCHEMA-01、SCHEMA-02、DEV-01 已完成；后续可启动 DEV-02/03/04 |
 | 总任务数 | 32 |
-| 已完成 | 11 |
+| 已完成 | 14 |
 | review / 进行中 | 3 |
 | 阻塞 | 0 |
 | 最近更新 | 2026-06-24 |
-| 最近更新者 | Codex / Content & Validation + Product Architect |
+| 最近更新者 | Codex / Implementation |
 
 ## 2. 文件锁 / 任务锁
 
@@ -42,8 +42,8 @@
 | SPEC-01 | done | Codex / Product Architect | P0 | PO-01 | `docs/ai-engineering-leader-enhancement-p0-specs.md` §1 | 2026-06-24 | `decisionGuide` 内容标准完成 |
 | SPEC-02 | done | Codex / Product Architect | P0 | PO-01 | `docs/ai-engineering-leader-enhancement-p0-specs.md` §2 | 2026-06-24 | 7 个能力域、计分、角色路径标准完成 |
 | SPEC-03 | done | Codex / Product Architect | P0 | PO-01 | `docs/ai-engineering-leader-enhancement-p0-specs.md` §3 | 2026-06-24 | `model-router` 独立场景规格完成 |
-| SCHEMA-01 | todo | - | P1 | SPEC-01 | `decisionGuide` schema/type/validator | - | Implementation 执行；不得跳过 reviewed 输入 |
-| SCHEMA-02 | todo | - | P1 | SPEC-02 | `capabilityDomains` schema/type/validator | - | Implementation 执行 |
+| SCHEMA-01 | done | Codex / Implementation | P1 | SPEC-01 | `docs/content-schema.md`, `src/types/index.ts`, `scripts/validate-content.ts` | 2026-06-24 | `decisionGuide` schema/type/validator 已实现 |
+| SCHEMA-02 | done | Codex / Implementation | P1 | SPEC-02 | `docs/content-schema.md`, `src/types/index.ts`, `scripts/validate-content.ts`, `src/data/rolePaths.ts` | 2026-06-24 | `capabilityDomains`、Glossary 可选能力域、角色路径 schema/type/validator 已实现 |
 | SCHEMA-03 | todo | - | P2 | SPEC-03 | 场景演练 schema/type/validator | - | Phase 2 执行 |
 | DATA-01 | done | Codex / Content & Validation | P1 | SPEC-01 | `content/drafts/decision-guide-phase1a-first-12.md` | 2026-06-24 | A 批 6 讲草稿完成并已审核通过 |
 | DATA-02 | done | Codex / Content & Validation | P1 | SPEC-01 | `content/drafts/decision-guide-phase1a-first-12.md` | 2026-06-24 | B 批 5 讲草稿完成并已审核通过 |
@@ -54,10 +54,10 @@
 | DATA-04 | review | Codex / Content & Validation | P1 | SPEC-02 | `content/drafts/capability-domain-mapping-56.md` | 2026-06-24 | 56 / 56 覆盖，空映射 0，非法枚举 0 |
 | DATA-05 | review | Codex / Product Architect | P1 | SPEC-02 | `content/drafts/role-paths-phase1a.md` | 2026-06-24 | 4 条角色路径，每条 >= 8 个知识点 |
 | DATA-06 | todo | - | P2 | SPEC-03 | `model-router` 模拟数据草稿 | - | Phase 2 范围 |
-| DEV-01 | todo | - | P1 | SCHEMA-01, SCHEMA-02, REVIEW-01, REVIEW-02, REVIEW-03, DATA-04, DATA-05 | `src/data/*` | - | Implementation 串行合入；本轮未改 `src/data/*` |
-| DEV-02 | todo | - | P1 | DEV-01 | 决策章节 UI | - | Concept detail |
-| DEV-03 | todo | - | P1 | DEV-01, DATA-05 | Profile 能力域概览 | - | Profile |
-| DEV-04 | todo | - | P1 | DEV-01 | 搜索能力域过滤 | - | Search |
+| DEV-01 | done | Codex / Implementation | P1 | SCHEMA-01, SCHEMA-02, REVIEW-01, REVIEW-02, REVIEW-03, DATA-04, DATA-05 | `src/data/concepts.ts`, `src/data/decisionGuides.ts`, `src/data/capabilityDomains.ts`, `src/data/rolePaths.ts` | 2026-06-24 | 12 条 reviewed decisionGuide 入库；56 / 56 能力域映射入库；4 条角色路径入库 |
+| DEV-02 | todo | - | P1 | DEV-01 | 决策章节 UI | - | Concept detail，可启动 |
+| DEV-03 | todo | - | P1 | DEV-01, DATA-05 | Profile 能力域概览 | - | Profile，可启动 |
+| DEV-04 | todo | - | P1 | DEV-01 | 搜索能力域过滤 | - | Search，可启动 |
 | QA-01 | todo | - | P1 | DEV-02, DEV-03, DEV-04 | Phase 1 QA report | - | 等 DEV-02/03/04 |
 | QA-02 | todo | - | P2 | DEV-08 | Phase 2 QA report | - | 场景验收 |
 | QA-03 | todo | - | P3 | DEV-09, DEV-10, DEV-11 | Phase 3 QA report | - | 驾驶舱验收 |
@@ -83,7 +83,7 @@
 
 | 阻塞 ID | 状态 | 关联任务 | 描述 | 负责人 | 下一步 |
 |---|---|---|---|---|---|
-| - | - | - | Phase 1A 输入包无阻塞。`DEV-01` 仍需等待 Implementation Agent 完成 SCHEMA-01/02 后再入库；不得直接把草稿写入 `src/data/*`。 | - | Implementation Agent 可启动 SCHEMA-01、SCHEMA-02，再基于 reviewed / DATA-04 / DATA-05 执行 DEV-01。 |
+| - | - | - | Phase 1 schema 与数据入库无阻塞。SCHEMA-01、SCHEMA-02、DEV-01 已完成并通过 validate/typecheck/lint/build。 | - | 后续可启动 DEV-02、DEV-03、DEV-04；C 批剩余 5 个 decisionGuide 候选仍需另走 DATA-03 / REVIEW-03 后再入库。 |
 
 ## 6. 验证记录
 
@@ -96,6 +96,8 @@
 | 2026-06-24 | REVIEW-01/02/03 | 按 SPEC-01 审核 12 讲草稿；新增 `content/reviewed/decision-guide-phase1a-first-12-reviewed.md` | pass | 12 / 12 pass；退回项 0；C 批剩余 5 讲未在 Phase 1A 范围内 |
 | 2026-06-24 | DATA-04 | 新增 `content/drafts/capability-domain-mapping-56.md`；人工核对 56 讲登记表与 SPEC-02 枚举 | pass | 56 / 56 覆盖；空映射 0；非法枚举 0 |
 | 2026-06-24 | DATA-05 | 新增 `content/drafts/role-paths-phase1a.md`；人工核对每条路径知识点数 | pass | 4 条路径；每条 >= 8 个知识点 |
+
+| 2026-06-24 | SCHEMA-01/02, DEV-01 | `cmd /c npm run validate:content`; `cmd /c npm run typecheck`; `cmd /c npm run lint`; `cmd /c npm run build` | pass | 新增 `decisionGuide`、`capabilityDomains`、`rolePaths` 类型/校验与数据入库；未实现 UI |
 
 ## 7. 产物索引
 
@@ -111,10 +113,16 @@
 | Capability mapping draft | `content/drafts/capability-domain-mapping-56.md` | 56 讲能力域映射草案 |
 | Role paths draft | `content/drafts/role-paths-phase1a.md` | 4 条角色学习路径模板 |
 
+| Phase 1 schema/types | `src/types/index.ts`, `docs/content-schema.md` | `decisionGuide`、`capabilityDomains`、`RolePath` schema/type |
+| Phase 1 validators | `scripts/validate-content.ts` | 校验能力域、决策手册、角色路径结构 |
+| Phase 1 data | `src/data/decisionGuides.ts`, `src/data/capabilityDomains.ts`, `src/data/rolePaths.ts` | reviewed 决策手册、56 讲能力域、4 条角色路径正式数据源 |
+| Phase 1 data merge | `src/data/concepts.ts` | 最终导出的 56 讲合并能力域与 12 条 decisionGuide |
+
 ## 8. 下一步建议
 
-Phase 1A 输入包已满足 SCHEMA-01、SCHEMA-02、DEV-01 的内容侧前置条件。建议后续顺序：
+SCHEMA-01、SCHEMA-02、DEV-01 已完成。建议后续顺序：
 
-1. Implementation Agent 启动 `SCHEMA-01`、`SCHEMA-02`，更新 `docs/content-schema.md`、`src/types/index.ts` 和校验脚本。
-2. Implementation Agent 基于 `content/reviewed/decision-guide-phase1a-first-12-reviewed.md`、`content/drafts/capability-domain-mapping-56.md`、`content/drafts/role-paths-phase1a.md` 执行 `DEV-01`。
-3. `DEV-01` 不得提前合入未审核的 C 批剩余候选；如要补齐 17 个候选，需先追加 DATA-03 / REVIEW-03 的剩余 5 讲。
+1. 启动 `DEV-02`：知识点详情页展示“工程决策”章节，并支持复制评审问题 / 落地清单。
+2. 启动 `DEV-03`：Profile 能力域概览与角色路径完成度。
+3. 启动 `DEV-04`：搜索能力域过滤，并让搜索可命中 decisionGuide 文本。
+4. 如要补齐 17 个候选，需先追加 DATA-03 / REVIEW-03 的剩余 5 讲，再由 Implementation 入库。

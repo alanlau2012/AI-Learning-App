@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 内容结构门禁（分级 validate:*）。
  *
  * - structure          (P1.5 起始终)：56 登记 / 模块计数 10/10/8/16/6/6 / id·slug 唯一 /
@@ -21,6 +21,7 @@ import { concepts } from '../src/data/concepts.ts';
 import { modules } from '../src/data/modules.ts';
 import { glossary } from '../src/data/glossary.ts';
 import { hyperframeMaterials } from '../src/data/hyperframes.ts';
+import { rolePaths } from '../src/data/rolePaths.ts';
 import {
   collectConceptTextFields,
   HALF_WIDTH_QUOTE_PATTERN,
@@ -39,6 +40,25 @@ const EXPECTED_COUNTS: Record<string, number> = {
 };
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const VALID_STATUS = new Set(['stub', 'demo', 'mvp']);
+const VALID_CAPABILITY_DOMAINS = new Set([
+  'modelMechanics',
+  'inferenceCostPerformance',
+  'maasPlatformization',
+  'ragContextEngineering',
+  'agentEngineering',
+  'evaluationObservability',
+  'securityGovernanceOrg',
+]);
+const VALID_TRADEOFF_DIMENSIONS = new Set([
+  'cost',
+  'latency',
+  'quality',
+  'reliability',
+  'observability',
+  'security',
+  'operability',
+]);
+const VALID_CHECKLIST_PHASES = new Set(['beforeBuild', 'beforeLaunch', 'running']);
 const REGISTERED_ANIMATION_TYPES = new Set([
   'token-flow',
   'attention-map',
@@ -64,6 +84,89 @@ const charCount = (s: string): number => s.replace(/\s/g, '').length;
 
 const INVALID_MARKUP = /<(?!\/)[a-z]|\[[^\]]+\]\([^)]+\)|^#{1,6}\s/m;
 
+
+function hasItems<T>(value: T[] | undefined, min: number): value is T[] {
+  return Array.isArray(value) && value.length >= min;
+}
+
+function validateDecisionGuide(conceptId: string, guide: NonNullable<typeof concepts[0]['decisionGuide']>): void {
+  if (!hasItems(guide.applicableScenarios, 2)) fail(`${conceptId}: decisionGuide.applicableScenarios 至少需要 2 条`);
+  if (!hasItems(guide.nonApplicableScenarios, 2)) fail(`${conceptId}: decisionGuide.nonApplicableScenarios 至少需要 2 条`);
+  if (!hasItems(guide.decisionSignals, 3)) fail(`${conceptId}: decisionGuide.decisionSignals 至少需要 3 条`);
+  if (!hasItems(guide.tradeoffs, 3)) fail(`${conceptId}: decisionGuide.tradeoffs 至少需要 3 条`);
+  if (!hasItems(guide.reviewQuestions, 3)) fail(`${conceptId}: decisionGuide.reviewQuestions 至少需要 3 条`);
+  if (!hasItems(guide.implementationChecklist, 3)) fail(`${conceptId}: decisionGuide.implementationChecklist 至少需要 3 条`);
+
+  const ids = new Set<string>();
+  const checkId = (id: string, path: string): void => {
+    if (!nonEmpty(id)) fail(`${conceptId}: ${path}.id 不能为空`);
+    if (ids.has(id)) fail(`${conceptId}: decisionGuide 子项 id 重复：${id}`);
+    ids.add(id);
+  };
+
+  for (const [index, item] of guide.applicableScenarios.entries()) {
+    checkId(item.id, `applicableScenarios[${index}]`);
+    if (!nonEmpty(item.title)) fail(`${conceptId}: applicableScenarios[${index}].title 不能为空`);
+    if (!nonEmpty(item.description)) fail(`${conceptId}: applicableScenarios[${index}].description 不能为空`);
+    if (!hasItems(item.signals, 1) || item.signals.some((signal) => !nonEmpty(signal))) {
+      fail(`${conceptId}: applicableScenarios[${index}].signals 至少需要 1 条非空信号`);
+    }
+  }
+
+  for (const [index, item] of guide.nonApplicableScenarios.entries()) {
+    checkId(item.id, `nonApplicableScenarios[${index}]`);
+    if (!nonEmpty(item.title)) fail(`${conceptId}: nonApplicableScenarios[${index}].title 不能为空`);
+    if (!nonEmpty(item.description)) fail(`${conceptId}: nonApplicableScenarios[${index}].description 不能为空`);
+    if (!hasItems(item.signals, 1) || item.signals.some((signal) => !nonEmpty(signal))) {
+      fail(`${conceptId}: nonApplicableScenarios[${index}].signals 至少需要 1 条非空信号`);
+    }
+  }
+
+  for (const [index, item] of guide.decisionSignals.entries()) {
+    checkId(item.id, `decisionSignals[${index}]`);
+    if (!nonEmpty(item.metricOrFact)) fail(`${conceptId}: decisionSignals[${index}].metricOrFact 不能为空`);
+    if (!nonEmpty(item.interpretation)) fail(`${conceptId}: decisionSignals[${index}].interpretation 不能为空`);
+    if (!nonEmpty(item.evidenceSource)) fail(`${conceptId}: decisionSignals[${index}].evidenceSource 不能为空`);
+  }
+
+  for (const [index, item] of guide.tradeoffs.entries()) {
+    checkId(item.id, `tradeoffs[${index}]`);
+    if (!VALID_TRADEOFF_DIMENSIONS.has(item.dimension)) {
+      fail(`${conceptId}: tradeoffs[${index}].dimension 非法：${item.dimension}`);
+    }
+    if (!nonEmpty(item.gain)) fail(`${conceptId}: tradeoffs[${index}].gain 不能为空`);
+    if (!nonEmpty(item.cost)) fail(`${conceptId}: tradeoffs[${index}].cost 不能为空`);
+    if (!nonEmpty(item.watchOut)) fail(`${conceptId}: tradeoffs[${index}].watchOut 不能为空`);
+  }
+
+  for (const [index, item] of guide.reviewQuestions.entries()) {
+    checkId(item.id, `reviewQuestions[${index}]`);
+    if (!nonEmpty(item.question)) fail(`${conceptId}: reviewQuestions[${index}].question 不能为空`);
+    if (!nonEmpty(item.whyAsk)) fail(`${conceptId}: reviewQuestions[${index}].whyAsk 不能为空`);
+    if (!hasItems(item.goodAnswerSignals, 1) || item.goodAnswerSignals.some((signal) => !nonEmpty(signal))) {
+      fail(`${conceptId}: reviewQuestions[${index}].goodAnswerSignals 至少需要 1 条非空信号`);
+    }
+  }
+
+  for (const [index, item] of guide.implementationChecklist.entries()) {
+    checkId(item.id, `implementationChecklist[${index}]`);
+    if (!VALID_CHECKLIST_PHASES.has(item.phase)) {
+      fail(`${conceptId}: implementationChecklist[${index}].phase 非法：${item.phase}`);
+    }
+    if (!nonEmpty(item.item)) fail(`${conceptId}: implementationChecklist[${index}].item 不能为空`);
+    if (!nonEmpty(item.passSignal)) fail(`${conceptId}: implementationChecklist[${index}].passSignal 不能为空`);
+  }
+
+  const exec = guide.executiveExplanation;
+  if (!exec) {
+    fail(`${conceptId}: executiveExplanation 不能为空`);
+  } else {
+    if (!nonEmpty(exec.summary)) fail(`${conceptId}: executiveExplanation.summary 不能为空`);
+    if (!nonEmpty(exec.businessValue)) fail(`${conceptId}: executiveExplanation.businessValue 不能为空`);
+    if (!nonEmpty(exec.mainRisk)) fail(`${conceptId}: executiveExplanation.mainRisk 不能为空`);
+    if (!nonEmpty(exec.riskControl)) fail(`${conceptId}: executiveExplanation.riskControl 不能为空`);
+  }
+}
 function mechanismStepCount(mechanism: typeof concepts[0]['mechanism']): number {
   if (mechanism.length === 0) return 0;
   if (isMechanismGrouped(mechanism)) {
@@ -200,6 +303,66 @@ function validateStructure(): void {
         fail(`短片 ${material.id}: chapter ${chapter.id} relatedConceptId 悬空：${chapter.relatedConceptId}`);
       }
       previousStart = chapter.startSeconds;
+    }
+  }
+
+  // 8. Phase 1 capabilityDomains / decisionGuide / rolePaths
+  const decisionGuideConcepts = concepts.filter((c) => c.decisionGuide);
+  if (decisionGuideConcepts.length < 12) {
+    fail(`Phase 1 decisionGuide 至少需要 12 个，实际 ${decisionGuideConcepts.length}`);
+  }
+
+  for (const c of concepts) {
+    const mapping = c.capabilityDomains;
+    if (!mapping) {
+      fail(`${c.id}: capabilityDomains.primary 必填`);
+      continue;
+    }
+    if (!VALID_CAPABILITY_DOMAINS.has(mapping.primary)) {
+      fail(`${c.id}: capabilityDomains.primary 非法：${mapping.primary}`);
+    }
+    if (mapping.secondary) {
+      if (!VALID_CAPABILITY_DOMAINS.has(mapping.secondary)) {
+        fail(`${c.id}: capabilityDomains.secondary 非法：${mapping.secondary}`);
+      }
+      if (mapping.secondary === mapping.primary) {
+        fail(`${c.id}: capabilityDomains.secondary 不能等于 primary`);
+      }
+    }
+    if (c.decisionGuide) validateDecisionGuide(c.id, c.decisionGuide);
+  }
+
+  for (const g of glossary) {
+    if (!g.capabilityDomains) continue;
+    if (g.capabilityDomains.length < 1 || g.capabilityDomains.length > 2) {
+      fail(`术语 ${g.id}: capabilityDomains 长度必须为 1 到 2`);
+    }
+    const seenDomains = new Set<string>();
+    for (const domain of g.capabilityDomains) {
+      if (!VALID_CAPABILITY_DOMAINS.has(domain)) fail(`术语 ${g.id}: capabilityDomains 非法：${domain}`);
+      if (seenDomains.has(domain)) fail(`术语 ${g.id}: capabilityDomains 重复：${domain}`);
+      seenDomains.add(domain);
+    }
+  }
+
+  const rolePathIds = new Set<string>();
+  for (const path of rolePaths) {
+    if (rolePathIds.has(path.id)) fail(`rolePath id 重复：${path.id}`);
+    rolePathIds.add(path.id);
+    if (path.recommendedConceptIds.length < 8) {
+      fail(`rolePath ${path.id}: recommendedConceptIds 至少需要 8 个`);
+    }
+    const recommended = new Set(path.recommendedConceptIds);
+    for (const cid of path.recommendedConceptIds) {
+      if (!conceptIdSet.has(cid)) fail(`rolePath ${path.id}: recommendedConceptIds 指向不存在的知识点：${cid}`);
+    }
+    for (const phase of path.phases) {
+      if (!hasItems(phase.conceptIds, 1)) fail(`rolePath ${path.id}: phase ${phase.id} 至少需要 1 个 conceptId`);
+      for (const cid of phase.conceptIds) {
+        if (!recommended.has(cid)) {
+          fail(`rolePath ${path.id}: phase ${phase.id} conceptId 不在 recommendedConceptIds 中：${cid}`);
+        }
+      }
     }
   }
   // 6. contentStatus 合法
@@ -372,3 +535,4 @@ if (runStructure) {
   console.log('\n通过：内容结构校验（56 登记 / 模块计数 10/10/8/16/6/6 / 唯一性 / 关联无悬空 / contentStatus / 诊断题结构）。');
 }
 process.exit(0);
+

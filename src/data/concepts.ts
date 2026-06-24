@@ -1,5 +1,7 @@
-import type { Difficulty, KnowledgePoint } from '../types';
+﻿import type { Difficulty, KnowledgePoint } from '../types';
 import { demoConcepts } from './demoConcepts.ts';
+import { capabilityDomainByConceptId } from './capabilityDomains.ts';
+import { decisionGuideByConceptId } from './decisionGuides.ts';
 
 /**
  * 56 个知识点登记骨架。
@@ -122,6 +124,16 @@ const baseConcepts: KnowledgePoint[] = [
 
 const demoById = new Map(demoConcepts.map((concept) => [concept.id, concept]));
 
-export const concepts: KnowledgePoint[] = baseConcepts.map(
-  (concept) => demoById.get(concept.id) ?? concept,
-);
+export const concepts: KnowledgePoint[] = baseConcepts.map((concept) => {
+  const published = demoById.get(concept.id) ?? concept;
+  return {
+    ...published,
+    capabilityDomains: capabilityDomainByConceptId[published.id],
+    ...(decisionGuideByConceptId[published.id]
+      ? { decisionGuide: decisionGuideByConceptId[published.id] }
+      : {}),
+  };
+});
+
+
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 内容数据 schema 的唯一来源（权威）。
  *
  * 逐字采用 docs/content-schema.md §1 的 TypeScript 接口；AnimationType 枚举
@@ -36,6 +36,84 @@ export type AnimationType =
 /** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（docs/content-schema.md §7）。 */
 export type ContentRevision = 'legacy' | 'v2';
 
+export type CapabilityDomain =
+  | 'modelMechanics'
+  | 'inferenceCostPerformance'
+  | 'maasPlatformization'
+  | 'ragContextEngineering'
+  | 'agentEngineering'
+  | 'evaluationObservability'
+  | 'securityGovernanceOrg';
+
+export interface CapabilityDomainMapping {
+  primary: CapabilityDomain;
+  secondary?: CapabilityDomain;
+}
+
+export interface DecisionScenario {
+  id: string;
+  title: string;
+  description: string;
+  signals: string[];
+}
+
+export interface DecisionSignal {
+  id: string;
+  metricOrFact: string;
+  threshold?: string;
+  interpretation: string;
+  evidenceSource: string;
+}
+
+export type ArchitectureTradeoffDimension =
+  | 'cost'
+  | 'latency'
+  | 'quality'
+  | 'reliability'
+  | 'observability'
+  | 'security'
+  | 'operability';
+
+export interface ArchitectureTradeoff {
+  id: string;
+  dimension: ArchitectureTradeoffDimension;
+  gain: string;
+  cost: string;
+  watchOut: string;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  question: string;
+  whyAsk: string;
+  goodAnswerSignals: string[];
+}
+
+export type ChecklistPhase = 'beforeBuild' | 'beforeLaunch' | 'running';
+
+export interface ChecklistItem {
+  id: string;
+  phase: ChecklistPhase;
+  item: string;
+  passSignal: string;
+}
+
+export interface ExecutiveExplanation {
+  summary: string;
+  businessValue: string;
+  mainRisk: string;
+  riskControl: string;
+}
+
+export interface DecisionGuide {
+  applicableScenarios: DecisionScenario[];
+  nonApplicableScenarios: DecisionScenario[];
+  decisionSignals: DecisionSignal[];
+  tradeoffs: ArchitectureTradeoff[];
+  reviewQuestions: ReviewQuestion[];
+  implementationChecklist: ChecklistItem[];
+  executiveExplanation: ExecutiveExplanation;
+}
 export interface MechanismGroup {
   label: string;
   title: string;
@@ -113,6 +191,8 @@ export interface KnowledgePoint {
   diagnosticQuestion?: DiagnosticQuestion;
   keyTakeaways: string[];
   relatedConceptIds: string[];
+  decisionGuide?: DecisionGuide;
+  capabilityDomains?: CapabilityDomainMapping;
 }
 
 export interface LearningModule {
@@ -142,6 +222,7 @@ export interface GlossaryTerm {
   moduleId: string; // 所属模块 m1–m6
   relatedConceptIds: string[]; // 指向已存在的 KnowledgePoint.id
   tags?: string[];
+  capabilityDomains?: CapabilityDomain[];
 }
 export interface HyperframeChapter {
   id: string;
@@ -162,3 +243,18 @@ export interface HyperframeMaterial {
   relatedConceptIds: string[];
   chapters: HyperframeChapter[];
 }
+export interface RolePathPhase {
+  id: string;
+  title: string;
+  conceptIds: string[];
+  outcome: string;
+}
+
+export interface RolePath {
+  id: 'aiEngineeringLeader' | 'platformEngineer' | 'applicationArchitect' | 'governanceOwner';
+  title: string;
+  goal: string;
+  recommendedConceptIds: string[];
+  phases: RolePathPhase[];
+}
+

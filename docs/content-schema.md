@@ -1,4 +1,4 @@
-# 内容数据 Schema · content-schema（权威）
+﻿# 内容数据 Schema · content-schema（权威）
 
 > 这是数据 schema 的唯一权威来源。`src/types/index.ts` 必须与本文件一致。
 > 字段命名采用 **PRD 的 TypeScript 接口**；56 讲写作模板字段仅用于写作，落库时按 §3 映射转换。
@@ -16,6 +16,74 @@ export type ContentStatus = 'stub' | 'demo' | 'mvp';
 
 /** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（§7）。 */
 export type ContentRevision = 'legacy' | 'v2';
+
+export type CapabilityDomain =
+  | 'modelMechanics'
+  | 'inferenceCostPerformance'
+  | 'maasPlatformization'
+  | 'ragContextEngineering'
+  | 'agentEngineering'
+  | 'evaluationObservability'
+  | 'securityGovernanceOrg';
+
+export interface CapabilityDomainMapping {
+  primary: CapabilityDomain;
+  secondary?: CapabilityDomain;
+}
+
+export interface DecisionGuide {
+  applicableScenarios: DecisionScenario[];
+  nonApplicableScenarios: DecisionScenario[];
+  decisionSignals: DecisionSignal[];
+  tradeoffs: ArchitectureTradeoff[];
+  reviewQuestions: ReviewQuestion[];
+  implementationChecklist: ChecklistItem[];
+  executiveExplanation: ExecutiveExplanation;
+}
+
+export interface DecisionScenario {
+  id: string;
+  title: string;
+  description: string;
+  signals: string[];
+}
+
+export interface DecisionSignal {
+  id: string;
+  metricOrFact: string;
+  threshold?: string;
+  interpretation: string;
+  evidenceSource: string;
+}
+
+export interface ArchitectureTradeoff {
+  id: string;
+  dimension: 'cost' | 'latency' | 'quality' | 'reliability' | 'observability' | 'security' | 'operability';
+  gain: string;
+  cost: string;
+  watchOut: string;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  question: string;
+  whyAsk: string;
+  goodAnswerSignals: string[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  phase: 'beforeBuild' | 'beforeLaunch' | 'running';
+  item: string;
+  passSignal: string;
+}
+
+export interface ExecutiveExplanation {
+  summary: string;
+  businessValue: string;
+  mainRisk: string;
+  riskControl: string;
+}
 
 export interface MechanismGroup {
   label: string;   // "A" | "B" | "C"
@@ -48,6 +116,8 @@ export interface KnowledgePoint {
   diagnosticQuestion?: DiagnosticQuestion;
   keyTakeaways: string[];
   relatedConceptIds: string[];
+  decisionGuide?: DecisionGuide;
+  capabilityDomains?: CapabilityDomainMapping;
 }
 
 export interface LearningModule {
@@ -117,6 +187,23 @@ export interface GlossaryTerm {
   moduleId: string;           // 所属模块 m1–m6
   relatedConceptIds: string[];// 指向已存在的 KnowledgePoint.id
   tags?: string[];
+  capabilityDomains?: CapabilityDomain[];
+}
+
+
+export interface RolePath {
+  id: 'aiEngineeringLeader' | 'platformEngineer' | 'applicationArchitect' | 'governanceOwner';
+  title: string;
+  goal: string;
+  recommendedConceptIds: string[];
+  phases: RolePathPhase[];
+}
+
+export interface RolePathPhase {
+  id: string;
+  title: string;
+  conceptIds: string[];
+  outcome: string;
 }
 ```
 
@@ -143,6 +230,18 @@ export interface GlossaryTerm {
 - `DiagnosticQuestion.correctOptionIds`：每一项必须是该题 `options[].id` 之一；单选长度为 1，多选 ≥ 1。
 - 内容正文（`definition`/`whyItMatters`/… 等）由后续按写作模板填充；登记阶段可先留空字符串/空数组，但**结构字段（id/slug/moduleId/order/difficulty/estimatedMinutes/hasAnimation）必须先行登记**。
 
+
+### 2.1 Phase 1 负责人增强字段约束
+
+- `KnowledgePoint.capabilityDomains`：Phase 1 起正式导出的 56 个 Concept 均必填；`primary` 必须来自 `CapabilityDomain` 枚举；`secondary` 可选，存在时也必须来自枚举且不得等于 `primary`；每讲最多 2 个能力域。
+- `GlossaryTerm.capabilityDomains`：可选；存在时长度为 1–2，值必须来自同一 `CapabilityDomain` 枚举且不得重复。
+- `KnowledgePoint.decisionGuide`：可选；Phase 1 MVP 至少 12 个通过审核的知识点必须具备。存在时内部字段均必填，最低长度如下：`applicableScenarios >= 2`、`nonApplicableScenarios >= 2`、`decisionSignals >= 3`、`tradeoffs >= 3`、`reviewQuestions >= 3`、`implementationChecklist >= 3`。
+- `DecisionScenario.signals`、`ReviewQuestion.goodAnswerSignals` 均至少 1 条非空字符串。
+- `ArchitectureTradeoff.dimension` 只能是 `cost / latency / quality / reliability / observability / security / operability`。
+- `ChecklistItem.phase` 只能是 `beforeBuild / beforeLaunch / running`。
+- `ExecutiveExplanation.summary / businessValue / mainRisk / riskControl` 均必填。
+- 每个 `decisionGuide` 内所有子项 `id` 必须唯一。
+- `rolePaths` 放在独立数据源 `src/data/rolePaths.ts`，不得硬编码在组件内；每条路径 `recommendedConceptIds >= 8`，且全部引用存在的 Concept id；`phases[].conceptIds` 必须是该路径推荐列表的子集。
 ## 3. 56 讲写作模板 → 权威 schema 映射
 
 56 讲 PDF 的写作字段需转换为权威 schema：
@@ -433,3 +532,4 @@ const kvCache: KnowledgePoint = {
 ### 7.5 v2 校验门禁
 
 对 `contentRevision === 'v2'` 且 `contentStatus ∈ {demo, mvp}` 的概念，`validate:terminology` 额外校验 §7.1–§7.4。Legacy 概念仍走 §6.2 最低门槛。
+
