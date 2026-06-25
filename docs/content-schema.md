@@ -17,6 +17,74 @@ export type ContentStatus = 'stub' | 'demo' | 'mvp';
 /** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（§7）。 */
 export type ContentRevision = 'legacy' | 'v2';
 
+export type CapabilityDomain =
+  | 'modelMechanics'
+  | 'inferenceCostPerformance'
+  | 'maasPlatformization'
+  | 'ragContextEngineering'
+  | 'agentEngineering'
+  | 'evaluationObservability'
+  | 'securityGovernanceOrg';
+
+export interface CapabilityDomainMapping {
+  primary: CapabilityDomain;
+  secondary?: CapabilityDomain;
+}
+
+export interface DecisionGuide {
+  applicableScenarios: DecisionScenario[];
+  nonApplicableScenarios: DecisionScenario[];
+  decisionSignals: DecisionSignal[];
+  tradeoffs: ArchitectureTradeoff[];
+  reviewQuestions: ReviewQuestion[];
+  implementationChecklist: ChecklistItem[];
+  executiveExplanation: ExecutiveExplanation;
+}
+
+export interface DecisionScenario {
+  id: string;
+  title: string;
+  description: string;
+  signals: string[];
+}
+
+export interface DecisionSignal {
+  id: string;
+  metricOrFact: string;
+  threshold?: string;
+  interpretation: string;
+  evidenceSource: string;
+}
+
+export interface ArchitectureTradeoff {
+  id: string;
+  dimension: 'cost' | 'latency' | 'quality' | 'reliability' | 'observability' | 'security' | 'operability';
+  gain: string;
+  cost: string;
+  watchOut: string;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  question: string;
+  whyAsk: string;
+  goodAnswerSignals: string[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  phase: 'beforeBuild' | 'beforeLaunch' | 'running';
+  item: string;
+  passSignal: string;
+}
+
+export interface ExecutiveExplanation {
+  summary: string;
+  businessValue: string;
+  mainRisk: string;
+  riskControl: string;
+}
+
 export interface MechanismGroup {
   label: string;   // "A" | "B" | "C"
   title: string;
@@ -48,6 +116,8 @@ export interface KnowledgePoint {
   diagnosticQuestion?: DiagnosticQuestion;
   keyTakeaways: string[];
   relatedConceptIds: string[];
+  decisionGuide?: DecisionGuide;
+  capabilityDomains?: CapabilityDomainMapping;
 }
 
 export interface LearningModule {
@@ -104,6 +174,7 @@ export interface UserProgress {
   completedConceptIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
+  reviewConceptIds: string[];
   lastVisitedConceptId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
@@ -117,11 +188,143 @@ export interface GlossaryTerm {
   moduleId: string;           // 所属模块 m1–m6
   relatedConceptIds: string[];// 指向已存在的 KnowledgePoint.id
   tags?: string[];
+  capabilityDomains?: CapabilityDomain[];
+  confusedWith?: string[];  // 常被混淆概念 / 易混点
+}
+
+
+export interface RolePath {
+  id: 'aiEngineeringLeader' | 'platformEngineer' | 'applicationArchitect' | 'governanceOwner';
+  title: string;
+  goal: string;
+  recommendedConceptIds: string[];
+  phases: RolePathPhase[];
+}
+
+export interface RolePathPhase {
+  id: string;
+  title: string;
+  conceptIds: string[];
+  outcome: string;
+}
+export type ScenarioRiskLevel = 'low' | 'medium' | 'high';
+export type ScenarioQualityNeed = 'low' | 'medium' | 'high';
+export type ScenarioModelType = 'fast' | 'strong' | 'lowCost' | 'restricted';
+export type ScenarioContextCondition = 'short' | 'medium' | 'long';
+export type ScenarioSlaCondition = 'strict' | 'normal';
+
+export type ScenarioMetricId =
+  | 'costPer1kRequests'
+  | 'p95LatencyMs'
+  | 'successRate'
+  | 'escalationRate'
+  | 'riskInterceptRate'
+  | 'qualityComplaintRate';
+
+export interface ScenarioExercise {
+  id: string;
+  title: string;
+  relatedConceptIds: string[];
+  entryConceptIds: string[];
+  background: string;
+  baseline: ScenarioState;
+  requestTypes: ScenarioRequestType[];
+  modelPool: ScenarioModel[];
+  strategyControls: StrategyControl[];
+  events: ScenarioEvent[];
+  reviewRubric: ScenarioReviewRubric;
+}
+
+export interface ScenarioState {
+  selectedStrategies: Record<string, string>;
+  metrics: ScenarioMetric[];
+  explanation: string;
+}
+
+export interface ScenarioRequestType {
+  id: string;
+  label: string;
+  description: string;
+  volumeShare: number;
+  avgInputTokens: number;
+  riskLevel: ScenarioRiskLevel;
+  qualityNeed: ScenarioQualityNeed;
+  slaMs: number;
+}
+
+export interface ScenarioModel {
+  id: string;
+  label: string;
+  type: ScenarioModelType;
+  costPer1kTokens: number;
+  medianLatencyMs: number;
+  qualityScore: number;
+  riskHandlingScore: number;
+  contextLimitTokens: number;
+  availability: string;
+}
+
+export interface StrategyControl {
+  id: string;
+  label: string;
+  options: StrategyOption[];
+}
+
+export interface StrategyOption {
+  id: string;
+  label: string;
+  description: string;
+  routingRules: RoutingRule[];
+  metricEffects: MetricEffect[];
+}
+
+export interface RoutingRule {
+  requestTypeId?: string;
+  riskLevel?: ScenarioRiskLevel;
+  contextCondition?: ScenarioContextCondition;
+  slaCondition?: ScenarioSlaCondition;
+  targetModelId: string;
+  fallbackModelId?: string;
+}
+
+export interface MetricEffect {
+  metricId: ScenarioMetricId;
+  direction: 'up' | 'down' | 'mixed';
+  magnitude: 'small' | 'medium' | 'large';
+  explanation: string;
+}
+
+export interface ScenarioMetric {
+  id: ScenarioMetricId;
+  label: string;
+  value: number;
+  unit: string;
+  trend: 'better' | 'worse' | 'neutral';
+  explanation: string;
+}
+
+export interface ScenarioEvent {
+  id: string;
+  title: string;
+  symptom: string;
+  triggerStrategyOptionIds: string[];
+  correctDiagnosis: string;
+  investigationOrder: string[];
+  missedRisks: string[];
+  relatedConceptIds: string[];
+  nextStepRecommendations: string[];
+}
+
+export interface ScenarioReviewRubric {
+  prompt: string;
+  requiredFindings: string[];
+  acceptableActions: string[];
+  nextStepRecommendations: string[];
 }
 ```
 
 `AnimationType` 的枚举值定义在 [animation-spec.md](animation-spec.md) §1，由 `types/index.ts` 统一导出。
-`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。
+`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。`UserProgress.reviewConceptIds` 用于本周复盘清单，旧本地进度缺省时由 `loadProgress()` 归一化为空数组。
 
 ## 2. 字段级约束
 
@@ -143,6 +346,31 @@ export interface GlossaryTerm {
 - `DiagnosticQuestion.correctOptionIds`：每一项必须是该题 `options[].id` 之一；单选长度为 1，多选 ≥ 1。
 - 内容正文（`definition`/`whyItMatters`/… 等）由后续按写作模板填充；登记阶段可先留空字符串/空数组，但**结构字段（id/slug/moduleId/order/difficulty/estimatedMinutes/hasAnimation）必须先行登记**。
 
+
+### 2.1 Phase 1 负责人增强字段约束
+
+- `KnowledgePoint.capabilityDomains`：Phase 1 起正式导出的 56 个 Concept 均必填；`primary` 必须来自 `CapabilityDomain` 枚举；`secondary` 可选，存在时也必须来自枚举且不得等于 `primary`；每讲最多 2 个能力域。
+- `GlossaryTerm.capabilityDomains`：可选；存在时长度为 1–2，值必须来自同一 `CapabilityDomain` 枚举且不得重复。`/glossary` 展示能力域时必须从该字段读取，不得在页面硬编码。
+- `GlossaryTerm.confusedWith`：可选；用于“常被混淆概念 / 易混点”，存在时必须为非空字符串数组。Phase 3 DEV-11 起，至少 10 个核心术语应具备该字段。
+- `KnowledgePoint.decisionGuide`：可选；Phase 1 MVP 至少 12 个通过审核的知识点必须具备。存在时内部字段均必填，最低长度如下：`applicableScenarios >= 2`、`nonApplicableScenarios >= 2`、`decisionSignals >= 3`、`tradeoffs >= 3`、`reviewQuestions >= 3`、`implementationChecklist >= 3`。
+- `DecisionScenario.signals`、`ReviewQuestion.goodAnswerSignals` 均至少 1 条非空字符串。
+- `ArchitectureTradeoff.dimension` 只能是 `cost / latency / quality / reliability / observability / security / operability`。
+- `ChecklistItem.phase` 只能是 `beforeBuild / beforeLaunch / running`。
+- `ExecutiveExplanation.summary / businessValue / mainRisk / riskControl` 均必填。
+- 每个 `decisionGuide` 内所有子项 `id` 必须唯一。
+- `rolePaths` 放在独立数据源 `src/data/rolePaths.ts`，不得硬编码在组件内；每条路径 `recommendedConceptIds >= 8`，且全部引用存在的 Concept id；`phases[].conceptIds` 必须是该路径推荐列表的子集。
+
+### 2.2 Phase 2 场景演练字段约束
+
+- `scenarioExercises` 放在独立数据源 `src/data/scenarioExercises.ts`，不得塞进 `animation.type`，不得写死在 UI 组件内；首个场景 id 为 `model-router`。
+- `ScenarioExercise.relatedConceptIds` 与 `entryConceptIds` 均必须引用已存在的 `KnowledgePoint.id`；`model-router` 必须关联 `multi-model-routing`、`cost-routing`、`capability-routing`。
+- `requestTypes.length >= 4`，每项必须包含非空 `id / label / description`，`volumeShare` 必须为 0–1 且全场景合计为 1，`avgInputTokens` 与 `slaMs` 必须为正数。
+- `modelPool.length >= 4`，每项必须包含非空 `id / label / availability`，`type` 只能是 `fast / strong / lowCost / restricted`，成本、延迟、上下文上限必须为正数，`qualityScore` 与 `riskHandlingScore` 必须在 0–1。
+- `strategyControls.length >= 3`，每个策略项至少 2 个 `options`；每个 `StrategyOption` 必须有非空 `label / description`，`routingRules` 中的请求和模型引用不得悬空，`metricEffects` 至少 1 条且只能引用合法 `ScenarioMetricId`。
+- `baseline.selectedStrategies` 必须覆盖全部 `strategyControls`，且每个值必须指向对应策略项下存在的 option；`baseline.metrics` 至少 5 个，并必须覆盖 `costPer1kRequests / p95LatencyMs / successRate / escalationRate / riskInterceptRate`。
+- `events.length >= 3`；每个事件必须有非空 `title / symptom / correctDiagnosis`，`triggerStrategyOptionIds` 必须引用存在的策略 option，`investigationOrder >= 3`，`missedRisks >= 2`，`relatedConceptIds >= 2`，`nextStepRecommendations >= 2`。
+- `reviewRubric.prompt` 必填；`requiredFindings >= 3`、`acceptableActions >= 3`、`nextStepRecommendations >= 2`，所有字符串均不能为空。
+- 场景数据只能使用本地模拟请求、模型、策略、指标和事件；不得调用真实模型 API，不得包含真实客户、真实成本或真实供应商敏感数据。
 ## 3. 56 讲写作模板 → 权威 schema 映射
 
 56 讲 PDF 的写作字段需转换为权威 schema：
@@ -363,7 +591,7 @@ const kvCache: KnowledgePoint = {
 2. **id / slug 唯一**：全局唯一、kebab-case；首版 `slug === id`。
 3. **moduleId 合法**：∈ `{m1..m6}`；`LearningModule.conceptIds` 与该模块概念集合及 `order` 完全一致。
 4. **order 连续**：每个模块内 `order` 从 1 起连续、唯一。
-5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。
+5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。Glossary 能力域必须引用合法 `CapabilityDomain`；`confusedWith` 存在时必须是非空字符串数组。
 6. **contentStatus 合法**：∈ `{stub, demo, mvp}`。
 7. **诊断题结构**（当存在 `diagnosticQuestion` 时）：`correctOptionIds` ⊆ `options[].id`；`single` 长度为 1、`multiple` ≥ 1；`options.length >= 2`。
 
@@ -433,3 +661,4 @@ const kvCache: KnowledgePoint = {
 ### 7.5 v2 校验门禁
 
 对 `contentRevision === 'v2'` 且 `contentStatus ∈ {demo, mvp}` 的概念，`validate:terminology` 额外校验 §7.1–§7.4。Legacy 概念仍走 §6.2 最低门槛。
+

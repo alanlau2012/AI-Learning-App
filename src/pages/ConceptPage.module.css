@@ -39,7 +39,8 @@
 }
 
 
-.materialCallout {
+.materialCallout,
+.scenarioCallout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -51,19 +52,22 @@
   background: var(--color-primary-soft);
 }
 
-.materialCallout h2 {
+.materialCallout h2,
+.scenarioCallout h2 {
   margin: 4px 0 3px;
   font-size: 18px;
 }
 
-.materialCallout p {
+.materialCallout p,
+.scenarioCallout p {
   margin: 0;
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.6;
 }
 
-.materialCallout a {
+.materialCallout a,
+.scenarioCallout a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -77,11 +81,13 @@
   font-size: 13px;
 }
 
-.materialCallout a:hover {
+.materialCallout a:hover,
+.scenarioCallout a:hover {
   text-decoration: none;
 }
 
-.materialLabel {
+.materialLabel,
+.scenarioLabel {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.08em;
@@ -168,6 +174,12 @@
   color: var(--color-text);
 }
 
+.reviewActive {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
 .next {
   margin-left: auto;
   border: 1px solid var(--color-primary-border);
@@ -184,11 +196,13 @@
     padding: 32px 20px 54px;
   }
 
-  .materialCallout {
+  .materialCallout,
+.scenarioCallout {
     grid-template-columns: 1fr;
   }
 
-  .materialCallout a {
+  .materialCallout a,
+.scenarioCallout a {
     width: 100%;
   }
 

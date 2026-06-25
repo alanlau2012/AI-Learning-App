@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import { concepts } from '../data/concepts';
 import { getHyperframeMaterialsForConcept } from '../data/hyperframes';
 import { modules } from '../data/modules';
+import { scenarioExercises } from '../data/scenarioExercises';
 import { ConceptHeader } from '../components/concept/ConceptHeader';
 import { ConceptSection, EmptySectionHint } from '../components/concept/ConceptSection';
 import { RelatedConcepts } from '../components/concept/RelatedConcepts';
 import { TakeawayBox } from '../components/concept/TakeawayBox';
 import { MechanismContent } from '../components/concept/MechanismContent';
 import { RichText } from '../components/concept/RichText';
+import { DecisionGuideSection } from '../components/concept/DecisionGuideSection';
 import { AnimationPlayer } from '../components/animation/AnimationPlayer';
 import { DiagnosticQuestion } from '../components/quiz/DiagnosticQuestion';
 import { useProgressStore } from '../store/progressStore';
@@ -22,14 +24,24 @@ const orderedPublishedConcepts = modules
   .filter((concept): concept is (typeof concepts)[number] => Boolean(concept))
   .filter(isPublishedConcept);
 
+const scenarioEntriesByConceptId = new Map<string, typeof scenarioExercises>();
+scenarioExercises.forEach((scenario) => {
+  scenario.entryConceptIds.forEach((conceptId) => {
+    const existing = scenarioEntriesByConceptId.get(conceptId) ?? [];
+    scenarioEntriesByConceptId.set(conceptId, [...existing, scenario]);
+  });
+});
+
 export function ConceptPage() {
   const { slug } = useParams();
   const concept = concepts.find((x) => x.slug === slug);
   const module = concept ? modules.find((x) => x.id === concept.moduleId) : undefined;
   const completedConceptIds = useProgressStore((s) => s.completedConceptIds);
   const favoriteConceptIds = useProgressStore((s) => s.favoriteConceptIds);
+  const reviewConceptIds = useProgressStore((s) => s.reviewConceptIds);
   const toggleComplete = useProgressStore((s) => s.toggleComplete);
   const toggleFavorite = useProgressStore((s) => s.toggleFavorite);
+  const toggleReviewConcept = useProgressStore((s) => s.toggleReviewConcept);
   const recordVisit = useProgressStore((s) => s.recordVisit);
 
   useEffect(() => {
@@ -50,11 +62,15 @@ export function ConceptPage() {
 
   const completed = completedConceptIds.includes(concept.id);
   const favorite = favoriteConceptIds.includes(concept.id);
+  const inReviewList = reviewConceptIds.includes(concept.id);
   const conceptIndex = orderedPublishedConcepts.findIndex((item) => item.id === concept.id);
   const nextConcept =
     conceptIndex >= 0 ? orderedPublishedConcepts[conceptIndex + 1] : orderedPublishedConcepts[0];
   const hasEnterpriseCase = Object.values(concept.enterpriseCase).some(Boolean);
+  const hasDecisionGuide = Boolean(concept.decisionGuide);
+  const sectionOffset = hasDecisionGuide ? 1 : 0;
   const conceptMaterials = getHyperframeMaterialsForConcept(concept.id);
+  const conceptScenarios = scenarioEntriesByConceptId.get(concept.id) ?? [];
 
   return (
     <main className={styles.page}>
@@ -95,6 +111,18 @@ export function ConceptPage() {
         </section>
       )}
 
+      {conceptScenarios.length > 0 && (
+        <section className={styles.scenarioCallout} aria-label="场景演练">
+          <div>
+            <span className={styles.scenarioLabel}>场景演练</span>
+            <h2>{conceptScenarios[0].title}</h2>
+            <p>把这一讲放进模型路由策略画布，观察成本、P95、成功率、升级率和风险拦截率的取舍。</p>
+          </div>
+          <Link to={`/scenarios/${conceptScenarios[0].id}`}>
+            进入演练
+          </Link>
+        </section>
+      )}
       <ConceptSection index={1} title="为什么重要">
         {concept.whyItMatters ? (
           <RichText text={concept.whyItMatters} />
@@ -152,7 +180,13 @@ export function ConceptPage() {
         )}
       </ConceptSection>
 
-      <ConceptSection index={6} title="常见误区">
+      {concept.decisionGuide && (
+        <ConceptSection index={6} title="工程决策">
+          <DecisionGuideSection guide={concept.decisionGuide} conceptTitle={concept.title} />
+        </ConceptSection>
+      )}
+
+      <ConceptSection index={6 + sectionOffset} title="常见误区">
         {concept.pitfalls.length > 0 ? (
           <ul className={styles.dashList}>
             {concept.pitfalls.map((item) => (
@@ -166,7 +200,7 @@ export function ConceptPage() {
         )}
       </ConceptSection>
 
-      <ConceptSection index={7} title="诊断题">
+      <ConceptSection index={7 + sectionOffset} title="诊断题">
         {concept.diagnosticQuestion ? (
           <DiagnosticQuestion question={concept.diagnosticQuestion} />
         ) : (
@@ -174,11 +208,11 @@ export function ConceptPage() {
         )}
       </ConceptSection>
 
-      <ConceptSection index={8} title="核心结论">
+      <ConceptSection index={8 + sectionOffset} title="核心结论">
         <TakeawayBox items={concept.keyTakeaways} />
       </ConceptSection>
 
-      <ConceptSection index={9} title="关联知识点">
+      <ConceptSection index={9 + sectionOffset} title="关联知识点">
         <RelatedConcepts conceptIds={concept.relatedConceptIds} concepts={concepts} />
       </ConceptSection>
 
@@ -197,7 +231,13 @@ export function ConceptPage() {
         >
           {favorite ? '取消收藏' : '收藏'}
         </button>
-        {nextConcept && (
+        <button
+          type="button"
+          className={inReviewList ? `${styles.secondary} ${styles.reviewActive}` : styles.secondary}
+          onClick={() => toggleReviewConcept(concept.id)}
+        >
+          {inReviewList ? '移出本周复盘' : '加入本周复盘'}
+        </button>        {nextConcept && (
           <Link to={`/concepts/${nextConcept.slug}`} className={styles.next}>
             下一个 · {nextConcept.title} →
           </Link>

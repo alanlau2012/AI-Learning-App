@@ -3,16 +3,15 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-23 · 维护人：主开发 Agent（GitHub P1 内容修复回合封板）
+**最后更新时间**：2026-06-25 · 维护人：主开发 Agent（AI 工程负责人增强 Phase 1 MVP 封板）
 
 ## 1. 当前里程碑
 
-- **当前阶段**：**Final Wave + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合已完成**。56 讲全部 `contentRevision: v2`；已补齐 PWA manifest、字体外链移除、路由切包、M6 治理动画，新增 Windows Electron 离线桌面壳，并修复 issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径。
+- **当前阶段**：**AI 工程负责人增强 Phase 1 MVP 已完成**。56 讲全部 `contentRevision: v2`；已完成 12 条决策手册、56 讲能力域映射、4 条角色路径、ConceptPage 工程决策章节、Profile 能力概览与 Search 能力域过滤。
 - **当前上线内容**：**56 / 56 讲**；剩余 `stub`：**0**。地图无 stub。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`（全部满额）。
-- **验证**：`validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build`、`build:desktop` 均 PASS；`smoke:desktop` 已用独立 temp profile + 禁 GPU/cache 连续两次验证 PASS，且 `%TEMP%\ai-learning-app-smoke-*` 无残留；本轮 GitHub P1 内容修复已复跑 `validate:content` 与 `typecheck` PASS。Final Wave 见 `reports/final-wave-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，桌面版见 `reports/desktop-electron-mvp-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
-- **已补齐**：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径。
-- **下一轮建议（均需 Owner 确认）**：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA 离线能力（二期）、桌面版图标/代码签名/自动更新。
+- **验证**：`validate:content`、`typecheck`、`lint`、`build` PASS；Chromium 抽查 ConceptPage / Profile / Search 桌面与移动端 PASS，见 `reports/phase1-qa-report.md`。
+- **下一轮建议（均需 Owner 确认）**：Phase 2 `model-router` 独立场景演练、Phase 1B 剩余 5 条 `decisionGuide`、Glossary 能力域增强、完整 PWA 离线能力、桌面版图标/代码签名/自动更新。
 - 后续内容（如样板回改）仍走流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
 ## 2. 阶段任务板
@@ -20,17 +19,13 @@
 | 阶段 | 任务 | Owner | 状态 | 验收命令 / 标准 | 备注 |
 |---|---|---|---|---|---|
 | P0-P6 | MVP 0.1 应用骨架、页面、状态、动画、诊断题、搜索、术语、我的学习 | 主开发 | done | `typecheck` / `validate:content` / `lint` / `build` / E2E | 12 讲样板封板，见 `reports/mvp-0.1-fix-round1-owner-acceptance.md` |
-| Animation Fix | `PrefillDecodeAnimation` 窄屏页面级横滚收敛至画布内 | 主开发 | done | 动画浏览器验收 + 后续 Wave 复用 | `561b6ad` |
-| MVP 0.2 Wave 1 | M1 前 7 讲入库 | 内容 Agent → 审核 Agent → 主开发 | done | 四命令全绿 + E2E PASS | `09bfc13`，累计 19/56 |
-| MVP 0.2 Wave 2 | M1 收口 + M2 收尾 7 讲入库 | 内容 Agent → 审核 Agent → 主开发 | done | 四命令全绿 + E2E PASS | `2fd0fb2`，累计 26/56 |
-| MVP 0.2 Wave 3 | M3 收尾 6 讲入库 | 内容 Agent → 审核 Agent → 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | `be4472e`，累计 32/56 |
-| MVP 0.3 Wave 4A | M4 上下文工程与 Agent 基础链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 38/56，M4 9/16 |
-| MVP 0.3 Wave 4B | M4 剩余主体链路 6 讲入库 | 主开发 | done | 四命令全绿 + E2E 等价抽查 PASS | 累计 44/56，M4 15/16 |
-| Content Revision v2 | 44 讲正文改版 + 全站编辑排版语言 | 主开发 | done | validate:content（含 terminology）+ 四命令全绿 | 见 `reports/content-revision-*.md` |
-| Final Wave | multi-agent + M5 剩余 5 讲 + M6 全 6 讲入库 | 主开发 | done | 四命令全绿 + Playwright 抽查 + 诊断配平 | 累计 56/56，见 `reports/final-wave-summary.md` |
+| Content Waves | Wave 1 / 2 / 3 / 4 / Final Wave 全量 56 讲入库 | 主开发 | done | 四命令全绿 + E2E/抽查 | 见 `reports/final-wave-summary.md` |
 | Backlog Polish | PWA manifest、字体外链移除、路由切包、M6 治理动画 | 主开发 | done | 四命令全绿 + 浏览器抽查 | 见 `reports/backlog-polish-summary.md` |
 | Desktop MVP | Electron Windows 离线桌面壳、hash 路由、相对资源、安装包/portable 打包 | 主开发 | done | `build:desktop` + `smoke:desktop` PASS | 见 `reports/desktop-electron-mvp-summary.md` |
-| GitHub P1 Content Repair | issue #3/#4：Trace/Tool Calling 敏感数据边界、Session 亲和 cache locality 口径、Observability 去 trace-centric | 内容 Agent → 审核 Agent → 主开发 | done | `validate:content` + `typecheck` PASS | 见 `reports/github-p1-content-repair-summary.md` |
+| GitHub P1 Content Repair | issue #3/#4：Trace/Tool Calling 敏感数据边界、Session 亲和 cache locality 口径 | 内容 Agent → 审核 Agent → 主开发 | done | `validate:content` + `typecheck` PASS | 见 `reports/github-p1-content-repair-summary.md` |
+| AI Leader P2-P3 | Phase 1B decisionGuide、model-router 场景演练、Profile/Glossary/Search 深化 | Product Architect -> Content & Validation -> Implementation | done | `validate:content` / `typecheck` / `lint` / `build` + browser smoke PASS | 见 `reports/phase2-phase3-qa-summary.md` |
+| AI Leader P0-P1 | PO/SPEC、12 条 `decisionGuide`、56 讲能力域、4 条角色路径、Concept/Profile/Search | Product Architect → Content & Validation → Implementation | done | `validate:content` / `typecheck` / `lint` / `build` + Chromium 抽查 PASS | 见 `reports/phase1-qa-report.md` |
+
 ## 3. 内容生产流水线（draft → review → 入库）
 
 权威字段只能落入 `src/data/*`，但内容**不得**由内容 Agent 直接写入 `src/data/*`。统一走三段式：

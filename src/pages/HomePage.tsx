@@ -39,6 +39,7 @@ export function HomePage() {
     completedConceptIds,
     favoriteConceptIds,
     wrongQuestionIds: [],
+      reviewConceptIds: [],
     lastVisitedConceptId,
     studyStreakDays,
   });

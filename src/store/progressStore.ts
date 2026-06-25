@@ -1,33 +1,22 @@
 /**
  * 唯一全局状态：用户学习进度（Zustand）。
  *
- * 状态结构 = content-schema.md §1 的 UserProgress（架构见 docs/architecture.md §3）。
- * 持久化与迁移集中在 utils/progress.ts：初始态来自 loadProgress()，每次动作后 saveProgress() 回写。
- * 派生值（完成度/模块进度/连续天数展示）不在此存储，由 utils/progress.ts 计算。
- *
- * 动作：
- * - toggleComplete / toggleFavorite：切换成员（去重）
- * - recordWrongQuestion：记录错题（去重，不重复入队）
- * - recordVisit：进详情页时更新 lastVisitedConceptId，并按跨日规则更新 lastStudyDate/studyStreakDays
- * - clearAll：清空学习记录（回退 defaultProgress）
+ * 持久化与迁移集中在 utils/progress.ts；这里只暴露页面动作。
  */
 import { create } from 'zustand';
 import type { UserProgress } from '../types';
-import {
-  defaultProgress,
-  loadProgress,
-  saveProgress,
-} from '../utils/progress';
+import { defaultProgress, loadProgress, saveProgress } from '../utils/progress';
 
 interface ProgressState extends UserProgress {
   toggleComplete: (conceptId: string) => void;
   toggleFavorite: (conceptId: string) => void;
+  toggleReviewConcept: (conceptId: string) => void;
+  removeReviewConcept: (conceptId: string) => void;
   recordWrongQuestion: (questionId: string) => void;
   recordVisit: (conceptId: string) => void;
   clearAll: () => void;
 }
 
-/** 本地日期 YYYY-MM-DD（基于浏览器本地时区）。 */
 function todayISO(): string {
   const d = new Date();
   const y = d.getFullYear();
@@ -36,7 +25,6 @@ function todayISO(): string {
   return `${y}-${m}-${day}`;
 }
 
-/** 昨天的 ISO 日期，用于判断「连续」。 */
 function yesterdayISO(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
@@ -46,12 +34,12 @@ function yesterdayISO(): string {
   return `${y}-${m}-${day}`;
 }
 
-/** 仅持久化 UserProgress 数据字段（不含动作）。 */
 function persist(state: UserProgress): void {
   saveProgress({
     completedConceptIds: state.completedConceptIds,
     favoriteConceptIds: state.favoriteConceptIds,
     wrongQuestionIds: state.wrongQuestionIds,
+    reviewConceptIds: state.reviewConceptIds,
     lastVisitedConceptId: state.lastVisitedConceptId,
     lastStudyDate: state.lastStudyDate,
     studyStreakDays: state.studyStreakDays,
@@ -60,6 +48,10 @@ function persist(state: UserProgress): void {
 
 function toggleMember(list: string[], id: string): string[] {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+}
+
+function removeMember(list: string[], id: string): string[] {
+  return list.filter((x) => x !== id);
 }
 
 export const useProgressStore = create<ProgressState>()((set, get) => ({
@@ -79,6 +71,20 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     set({ favoriteConceptIds });
   },
 
+  toggleReviewConcept: (conceptId) => {
+    const reviewConceptIds = toggleMember(get().reviewConceptIds, conceptId);
+    const next: UserProgress = { ...get(), reviewConceptIds };
+    persist(next);
+    set({ reviewConceptIds });
+  },
+
+  removeReviewConcept: (conceptId) => {
+    const reviewConceptIds = removeMember(get().reviewConceptIds, conceptId);
+    const next: UserProgress = { ...get(), reviewConceptIds };
+    persist(next);
+    set({ reviewConceptIds });
+  },
+
   recordWrongQuestion: (questionId) => {
     if (get().wrongQuestionIds.includes(questionId)) return;
     const wrongQuestionIds = [...get().wrongQuestionIds, questionId];
@@ -90,7 +96,6 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
   recordVisit: (conceptId) => {
     const cur = get();
     const today = todayISO();
-    // 跨日连续判断：同日不变；次日 +1；间隔 >1 天（或首次）重置为 1。
     let studyStreakDays = cur.studyStreakDays;
     if (cur.lastStudyDate !== today) {
       studyStreakDays = cur.lastStudyDate === yesterdayISO() ? cur.studyStreakDays + 1 : 1;
@@ -102,11 +107,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
       studyStreakDays,
     };
     persist(next);
-    set({
-      lastVisitedConceptId: conceptId,
-      lastStudyDate: today,
-      studyStreakDays,
-    });
+    set({ lastVisitedConceptId: conceptId, lastStudyDate: today, studyStreakDays });
   },
 
   clearAll: () => {

@@ -36,6 +36,84 @@ export type AnimationType =
 /** 正文改版版本：`legacy` 为 flat mechanism；`v2` 为分组机制 + 深度标准（docs/content-schema.md §7）。 */
 export type ContentRevision = 'legacy' | 'v2';
 
+export type CapabilityDomain =
+  | 'modelMechanics'
+  | 'inferenceCostPerformance'
+  | 'maasPlatformization'
+  | 'ragContextEngineering'
+  | 'agentEngineering'
+  | 'evaluationObservability'
+  | 'securityGovernanceOrg';
+
+export interface CapabilityDomainMapping {
+  primary: CapabilityDomain;
+  secondary?: CapabilityDomain;
+}
+
+export interface DecisionScenario {
+  id: string;
+  title: string;
+  description: string;
+  signals: string[];
+}
+
+export interface DecisionSignal {
+  id: string;
+  metricOrFact: string;
+  threshold?: string;
+  interpretation: string;
+  evidenceSource: string;
+}
+
+export type ArchitectureTradeoffDimension =
+  | 'cost'
+  | 'latency'
+  | 'quality'
+  | 'reliability'
+  | 'observability'
+  | 'security'
+  | 'operability';
+
+export interface ArchitectureTradeoff {
+  id: string;
+  dimension: ArchitectureTradeoffDimension;
+  gain: string;
+  cost: string;
+  watchOut: string;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  question: string;
+  whyAsk: string;
+  goodAnswerSignals: string[];
+}
+
+export type ChecklistPhase = 'beforeBuild' | 'beforeLaunch' | 'running';
+
+export interface ChecklistItem {
+  id: string;
+  phase: ChecklistPhase;
+  item: string;
+  passSignal: string;
+}
+
+export interface ExecutiveExplanation {
+  summary: string;
+  businessValue: string;
+  mainRisk: string;
+  riskControl: string;
+}
+
+export interface DecisionGuide {
+  applicableScenarios: DecisionScenario[];
+  nonApplicableScenarios: DecisionScenario[];
+  decisionSignals: DecisionSignal[];
+  tradeoffs: ArchitectureTradeoff[];
+  reviewQuestions: ReviewQuestion[];
+  implementationChecklist: ChecklistItem[];
+  executiveExplanation: ExecutiveExplanation;
+}
 export interface MechanismGroup {
   label: string;
   title: string;
@@ -113,6 +191,8 @@ export interface KnowledgePoint {
   diagnosticQuestion?: DiagnosticQuestion;
   keyTakeaways: string[];
   relatedConceptIds: string[];
+  decisionGuide?: DecisionGuide;
+  capabilityDomains?: CapabilityDomainMapping;
 }
 
 export interface LearningModule {
@@ -129,6 +209,7 @@ export interface UserProgress {
   completedConceptIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
+  reviewConceptIds: string[];
   lastVisitedConceptId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
@@ -142,6 +223,8 @@ export interface GlossaryTerm {
   moduleId: string; // 所属模块 m1–m6
   relatedConceptIds: string[]; // 指向已存在的 KnowledgePoint.id
   tags?: string[];
+  capabilityDomains?: CapabilityDomain[];
+  confusedWith?: string[]; // 常被混淆概念 / 易混点
 }
 export interface HyperframeChapter {
   id: string;
@@ -162,3 +245,142 @@ export interface HyperframeMaterial {
   relatedConceptIds: string[];
   chapters: HyperframeChapter[];
 }
+export interface RolePathPhase {
+  id: string;
+  title: string;
+  conceptIds: string[];
+  outcome: string;
+}
+
+export interface RolePath {
+  id: 'aiEngineeringLeader' | 'platformEngineer' | 'applicationArchitect' | 'governanceOwner';
+  title: string;
+  goal: string;
+  recommendedConceptIds: string[];
+  phases: RolePathPhase[];
+}
+export type ScenarioRiskLevel = 'low' | 'medium' | 'high';
+
+export type ScenarioQualityNeed = 'low' | 'medium' | 'high';
+
+export type ScenarioModelType = 'fast' | 'strong' | 'lowCost' | 'restricted';
+
+export type ScenarioContextCondition = 'short' | 'medium' | 'long';
+
+export type ScenarioSlaCondition = 'strict' | 'normal';
+
+export type ScenarioMetricId =
+  | 'costPer1kRequests'
+  | 'p95LatencyMs'
+  | 'successRate'
+  | 'escalationRate'
+  | 'riskInterceptRate'
+  | 'qualityComplaintRate';
+
+export type ScenarioMetricTrend = 'better' | 'worse' | 'neutral';
+
+export type MetricEffectDirection = 'up' | 'down' | 'mixed';
+
+export type MetricEffectMagnitude = 'small' | 'medium' | 'large';
+
+export interface ScenarioMetric {
+  id: ScenarioMetricId;
+  label: string;
+  value: number;
+  unit: string;
+  trend: ScenarioMetricTrend;
+  explanation: string;
+}
+
+export interface ScenarioState {
+  selectedStrategies: Record<string, string>;
+  metrics: ScenarioMetric[];
+  explanation: string;
+}
+
+export interface ScenarioRequestType {
+  id: string;
+  label: string;
+  description: string;
+  volumeShare: number;
+  avgInputTokens: number;
+  riskLevel: ScenarioRiskLevel;
+  qualityNeed: ScenarioQualityNeed;
+  slaMs: number;
+}
+
+export interface ScenarioModel {
+  id: string;
+  label: string;
+  type: ScenarioModelType;
+  costPer1kTokens: number;
+  medianLatencyMs: number;
+  qualityScore: number;
+  riskHandlingScore: number;
+  contextLimitTokens: number;
+  availability: string;
+}
+
+export interface RoutingRule {
+  requestTypeId?: string;
+  riskLevel?: ScenarioRiskLevel;
+  contextCondition?: ScenarioContextCondition;
+  slaCondition?: ScenarioSlaCondition;
+  targetModelId: string;
+  fallbackModelId?: string;
+}
+
+export interface MetricEffect {
+  metricId: ScenarioMetricId;
+  direction: MetricEffectDirection;
+  magnitude: MetricEffectMagnitude;
+  explanation: string;
+}
+
+export interface StrategyOption {
+  id: string;
+  label: string;
+  description: string;
+  routingRules: RoutingRule[];
+  metricEffects: MetricEffect[];
+}
+
+export interface StrategyControl {
+  id: string;
+  label: string;
+  options: StrategyOption[];
+}
+
+export interface ScenarioEvent {
+  id: string;
+  title: string;
+  symptom: string;
+  triggerStrategyOptionIds: string[];
+  correctDiagnosis: string;
+  investigationOrder: string[];
+  missedRisks: string[];
+  relatedConceptIds: string[];
+  nextStepRecommendations: string[];
+}
+
+export interface ScenarioReviewRubric {
+  prompt: string;
+  requiredFindings: string[];
+  acceptableActions: string[];
+  nextStepRecommendations: string[];
+}
+
+export interface ScenarioExercise {
+  id: string;
+  title: string;
+  relatedConceptIds: string[];
+  entryConceptIds: string[];
+  background: string;
+  baseline: ScenarioState;
+  requestTypes: ScenarioRequestType[];
+  modelPool: ScenarioModel[];
+  strategyControls: StrategyControl[];
+  events: ScenarioEvent[];
+  reviewRubric: ScenarioReviewRubric;
+}
+
