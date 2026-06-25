@@ -9,7 +9,12 @@
 }
 
 .header span,
-.empty {
+.empty,
+.actionMeta,
+.rowMeta,
+.panelHeading span,
+.phaseHint,
+.completeText {
   font-family: var(--font-mono);
 }
 
@@ -29,6 +34,12 @@
   color: var(--color-muted);
 }
 
+.headerRule {
+  height: 1px;
+  background: var(--color-title);
+  margin-top: 28px;
+}
+
 .panel,
 .danger {
   margin-top: 22px;
@@ -37,40 +48,252 @@
   background: transparent;
 }
 
-.step {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  gap: 22px;
-  padding: 22px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.stepSn {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-primary);
-}
-
-.step h3 {
-  margin: 0 0 4px;
-  font-size: 16px;
-}
-
-.step p {
-  font-size: 14px;
-  color: var(--color-text);
-}
-
-.headerRule {
-  height: 1px;
-  background: var(--color-title);
-  margin-top: 28px;
-}
-
 .panel h2,
 .danger h2 {
   margin: 0 0 12px;
   font-size: 20px;
+}
+
+.panelHeading,
+.rowTopline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelHeading h2,
+.rowTopline h3 {
+  margin: 0;
+}
+
+.panelHeading span,
+.rowTopline span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.panelIntro {
+  max-width: 720px;
+  margin: 4px 0 16px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.actionPanel {
+  border-top-color: var(--color-primary);
+}
+
+.actionContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+}
+
+.actionContent h3 {
+  margin: 4px 0 6px;
+  font-size: 22px;
+}
+
+.actionContent p {
+  color: var(--color-text);
+}
+
+.actionMeta {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.primaryLink:hover,
+.inlineLink:hover,
+.linkCard:hover,
+.rowMeta a:hover {
+  color: var(--color-primary);
+}
+
+.domainList {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.domainRow {
+  display: grid;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rowTopline strong,
+.rolePathCard h3 {
+  font-size: 16px;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.rowMeta a,
+.inlineLink {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.recommendationList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 24px;
+}
+
+.recommendationCard {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.recommendationCard h3,
+.recommendationCard p,
+.biasRow p {
+  margin: 0;
+}
+
+.recommendationCard h3 {
+  font-size: 17px;
+}
+
+.recommendationCard p,
+.biasRow p {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.scenarioLabel,
+.note,
+.biasEvidence {
+  font-family: var(--font-mono);
+}
+
+.scenarioLabel {
+  color: var(--color-primary) !important;
+  font-size: 12px !important;
+}
+
+.note,
+.biasEvidence {
+  font-size: 12px !important;
+}
+
+
+.reviewList {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.reviewItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reviewItem strong {
+  color: var(--color-title);
+}
+
+.reviewItem p {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.reviewActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.reviewActions button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.biasList {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.biasRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+  min-width: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.biasRow > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.rolePathList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+}
+
+.rolePathCard {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rolePathCard p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.phaseHint,
+.completeText {
+  color: var(--color-muted);
+  font-size: 12px;
 }
 
 .moduleList {
@@ -92,10 +315,6 @@
   padding: 10px 0;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
-}
-
-.linkCard:hover {
-  color: var(--color-primary);
 }
 
 .empty {
@@ -129,12 +348,24 @@
     padding: 32px 20px 48px;
   }
 
-  .grid {
+  .actionContent,
+  .grid,
+  .rolePathList {
     grid-template-columns: 1fr;
   }
 
+  .actionContent {
+    align-items: start;
+  }
+
+  .panelHeading,
+  .rowTopline,
   .danger {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .danger {
+    gap: 12px;
   }
 }

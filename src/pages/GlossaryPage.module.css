@@ -45,7 +45,7 @@
 
 .term {
   display: grid;
-  grid-template-columns: 28px 1fr 260px;
+  grid-template-columns: 28px minmax(0, 1fr) 260px;
   gap: 26px;
   padding: 30px 0;
   border-bottom: 1px solid var(--color-border);
@@ -60,6 +60,10 @@
   font-size: 19px;
   color: var(--color-faint);
   line-height: 1.4;
+}
+
+.termBody {
+  min-width: 0;
 }
 
 .module,
@@ -79,6 +83,48 @@
   margin-top: 8px;
   font-size: 14.5px;
   line-height: 1.72;
+}
+
+.domainBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.domainBadges span {
+  padding: 4px 8px;
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.confusion {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.confusion h3 {
+  margin: 0 0 8px;
+  color: var(--color-title);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confusion ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.confusion li {
+  color: var(--color-muted);
+  font-size: 13.5px;
+  line-height: 1.65;
 }
 
 .related {

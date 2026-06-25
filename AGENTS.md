@@ -4,16 +4,17 @@
 
 ## 0. 当前状态快照（交接必读）
 
-截至 **2026-06-23**：
+截至 **2026-06-25**：
 
-- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合**（PWA manifest、字体外链移除、路由切包、M6 治理动画补齐、Windows 桌面打包通道；修复 issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径）；当前提交前基线 `e350891`，具体 hash 以 `git log -1` / 后续提交为准。
-- 已封板范围：**Final Wave + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合**（`multi-agent` + M5 剩余 5 讲 + M6 全 6 讲；并为 `trace`/`observability`/`token-roi` 补真实画布；新增 Electron 离线桌面壳；修复 `trace`/`tool-calling`/`observability`/`session-affinity` 关键内容口径）。
+- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合 + AI 工程负责人增强 Phase 1 MVP**；当前提交前基线以 `git log -1` / 后续提交为准。
+- 已封板范围：**AI 工程负责人增强 Phase 1 MVP** 已完成：12 条 `decisionGuide` 入库并在 ConceptPage 展示；56 讲 `capabilityDomains` 入库并驱动 Profile / Search；4 条 `rolePaths` 入库；Profile 显示能力域、角色路径和下一步行动；Search 支持能力域过滤与 `decisionGuide` 命中。
 - 当前上线内容：**56 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**0**。地图无 stub。
 - 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`。
-- 验证：`npm run validate:content`（published 56 / terminology 56）、`typecheck`、`lint`、`build`、`build:desktop` 均 PASS；`smoke:desktop` 已用独立 temp profile + 禁 GPU/cache 连续两次验证 PASS，且 `%TEMP%\ai-learning-app-smoke-*` 无残留；本轮 GitHub P1 内容修复已复跑 `validate:content` 与 `typecheck` PASS。桌面版见 `reports/desktop-electron-mvp-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
+- 验证：Phase 1 MVP 已运行 `cmd /c npm run validate:content`、`typecheck`、`lint`、`build` 全部 PASS；Chromium 抽查 ConceptPage / Profile / Search 桌面与移动端 PASS，见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md` 与 `output/qa/phase1-*.png`。此前桌面版见 `reports/desktop-electron-mvp-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
 - 诊断题批级配平：Final Wave 12 题正确答案 A/B/C/D = 3/3/3/3。
-- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径。
-- 下一轮建议（均需 Owner 确认）：`model-router` 真实画布升级、搜索/术语/Profile 深度打磨、完整 PWA（Service Worker / 离线缓存，二期范围）、桌面版图标/代码签名/自动更新（二期范围）。
+- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径；AI 工程负责人 Phase 1 的决策手册、能力域、角色路径、Profile 与 Search。
+- 下一轮建议（均需 Owner 确认）：Phase 2 `model-router` 独立场景演练（`SCHEMA-03` / `DATA-06` / `DEV-05` 起步）、Phase 1B 剩余 5 条 `decisionGuide`（`multi-agent` / `eval` / `observability` / `trace` / `permission-governance`）、Glossary 能力域增强、完整 PWA（Service Worker / 离线缓存）、桌面版图标/代码签名/自动更新。
+
 ## 1. 项目一句话定位
 
 一个面向企业 AI 应用负责人、平台负责人与高级工程师的**交互式学习 Web 应用**，把 56 个 AI 应用工程知识点从“听过概念”带到“能解释机制、判断方案、诊断问题、指导落地”。首版为纯前端、内容数据驱动的 Web/PWA。

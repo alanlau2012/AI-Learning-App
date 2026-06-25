@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 内容数据 schema 的唯一来源（权威）。
  *
  * 逐字采用 docs/content-schema.md §1 的 TypeScript 接口；AnimationType 枚举
@@ -209,6 +209,7 @@ export interface UserProgress {
   completedConceptIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
+  reviewConceptIds: string[];
   lastVisitedConceptId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
@@ -223,6 +224,7 @@ export interface GlossaryTerm {
   relatedConceptIds: string[]; // 指向已存在的 KnowledgePoint.id
   tags?: string[];
   capabilityDomains?: CapabilityDomain[];
+  confusedWith?: string[]; // 常被混淆概念 / 易混点
 }
 export interface HyperframeChapter {
   id: string;
@@ -256,5 +258,129 @@ export interface RolePath {
   goal: string;
   recommendedConceptIds: string[];
   phases: RolePathPhase[];
+}
+export type ScenarioRiskLevel = 'low' | 'medium' | 'high';
+
+export type ScenarioQualityNeed = 'low' | 'medium' | 'high';
+
+export type ScenarioModelType = 'fast' | 'strong' | 'lowCost' | 'restricted';
+
+export type ScenarioContextCondition = 'short' | 'medium' | 'long';
+
+export type ScenarioSlaCondition = 'strict' | 'normal';
+
+export type ScenarioMetricId =
+  | 'costPer1kRequests'
+  | 'p95LatencyMs'
+  | 'successRate'
+  | 'escalationRate'
+  | 'riskInterceptRate'
+  | 'qualityComplaintRate';
+
+export type ScenarioMetricTrend = 'better' | 'worse' | 'neutral';
+
+export type MetricEffectDirection = 'up' | 'down' | 'mixed';
+
+export type MetricEffectMagnitude = 'small' | 'medium' | 'large';
+
+export interface ScenarioMetric {
+  id: ScenarioMetricId;
+  label: string;
+  value: number;
+  unit: string;
+  trend: ScenarioMetricTrend;
+  explanation: string;
+}
+
+export interface ScenarioState {
+  selectedStrategies: Record<string, string>;
+  metrics: ScenarioMetric[];
+  explanation: string;
+}
+
+export interface ScenarioRequestType {
+  id: string;
+  label: string;
+  description: string;
+  volumeShare: number;
+  avgInputTokens: number;
+  riskLevel: ScenarioRiskLevel;
+  qualityNeed: ScenarioQualityNeed;
+  slaMs: number;
+}
+
+export interface ScenarioModel {
+  id: string;
+  label: string;
+  type: ScenarioModelType;
+  costPer1kTokens: number;
+  medianLatencyMs: number;
+  qualityScore: number;
+  riskHandlingScore: number;
+  contextLimitTokens: number;
+  availability: string;
+}
+
+export interface RoutingRule {
+  requestTypeId?: string;
+  riskLevel?: ScenarioRiskLevel;
+  contextCondition?: ScenarioContextCondition;
+  slaCondition?: ScenarioSlaCondition;
+  targetModelId: string;
+  fallbackModelId?: string;
+}
+
+export interface MetricEffect {
+  metricId: ScenarioMetricId;
+  direction: MetricEffectDirection;
+  magnitude: MetricEffectMagnitude;
+  explanation: string;
+}
+
+export interface StrategyOption {
+  id: string;
+  label: string;
+  description: string;
+  routingRules: RoutingRule[];
+  metricEffects: MetricEffect[];
+}
+
+export interface StrategyControl {
+  id: string;
+  label: string;
+  options: StrategyOption[];
+}
+
+export interface ScenarioEvent {
+  id: string;
+  title: string;
+  symptom: string;
+  triggerStrategyOptionIds: string[];
+  correctDiagnosis: string;
+  investigationOrder: string[];
+  missedRisks: string[];
+  relatedConceptIds: string[];
+  nextStepRecommendations: string[];
+}
+
+export interface ScenarioReviewRubric {
+  prompt: string;
+  requiredFindings: string[];
+  acceptableActions: string[];
+  nextStepRecommendations: string[];
+}
+
+export interface ScenarioExercise {
+  id: string;
+  title: string;
+  relatedConceptIds: string[];
+  entryConceptIds: string[];
+  background: string;
+  baseline: ScenarioState;
+  requestTypes: ScenarioRequestType[];
+  modelPool: ScenarioModel[];
+  strategyControls: StrategyControl[];
+  events: ScenarioEvent[];
+  reviewRubric: ScenarioReviewRubric;
 }
 

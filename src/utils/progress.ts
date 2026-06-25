@@ -1,30 +1,26 @@
 /**
- * 学习进度的持久化、版本迁移与派生计算。
- *
- * - 持久化 key 固定 `ai-learning-app-progress-v1`，写入结构 `{ version, progress }`。
- * - loadProgress：解析 → 校验 version → migrateProgress 逐级迁移 → 失败/未知版本回退
- *   defaultProgress（不抛错、不清空 localStorage 原始备份、UI 不白屏）。
- * - 派生值（完成度百分比、模块 done/total）只在这里计算，不冗余存储。
- *
- * 版本策略见 docs/architecture.md §3.1。
+ * Progress persistence, migration, and derived Profile calculations.
+ * Content and UI state stay in the store; this file computes read-only derived views.
  */
-import type { KnowledgePoint, UserProgress } from '../types';
+import type { CapabilityDomain, KnowledgePoint, RolePath, UserProgress } from '../types';
+import { capabilityDomainLabels } from '../data/capabilityDomains';
+import { concepts } from '../data/concepts';
 import { modules } from '../data/modules';
+import { rolePaths } from '../data/rolePaths';
 
 export const PROGRESS_STORAGE_KEY = 'ai-learning-app-progress-v1';
 export const CURRENT_PROGRESS_VERSION = 1;
 
-/** 空进度（未学习）。迁移/解析失败时统一回退到此，保证 UI 不崩溃。 */
 export function defaultProgress(): UserProgress {
   return {
     completedConceptIds: [],
     favoriteConceptIds: [],
     wrongQuestionIds: [],
+    reviewConceptIds: [],
     studyStreakDays: 0,
   };
 }
 
-/** 运行时形状校验：足够像 UserProgress 才接受，否则视为损坏回退默认值。 */
 function isUserProgressShape(data: unknown): data is UserProgress {
   if (typeof data !== 'object' || data === null) return false;
   const o = data as Record<string, unknown>;
@@ -32,36 +28,29 @@ function isUserProgressShape(data: unknown): data is UserProgress {
     Array.isArray(o.completedConceptIds) &&
     Array.isArray(o.favoriteConceptIds) &&
     Array.isArray(o.wrongQuestionIds) &&
+    (o.reviewConceptIds === undefined || Array.isArray(o.reviewConceptIds)) &&
     typeof o.studyStreakDays === 'number' &&
     (o.lastVisitedConceptId === undefined || typeof o.lastVisitedConceptId === 'string') &&
     (o.lastStudyDate === undefined || typeof o.lastStudyDate === 'string')
   );
 }
 
-/**
- * 按 version 逐级迁移到 CURRENT_PROGRESS_VERSION。
- * 当前仅 v1；版本高于当前或数据结构异常时回退 defaultProgress()
- * （不抛错、不清空 localStorage 原始备份）。
- */
 export function migrateProgress(fromVersion: number, data: unknown): UserProgress {
   if (fromVersion === CURRENT_PROGRESS_VERSION && isUserProgressShape(data)) {
-    return data;
+    return {
+      ...data,
+      reviewConceptIds: Array.isArray(data.reviewConceptIds) ? data.reviewConceptIds : [],
+    };
   }
-  // 无法识别的版本（含未来更高版本）：兜底默认值，不抛错。
   return defaultProgress();
 }
 
-/**
- * 读取并迁移进度。任何异常都回退 defaultProgress()，绝不抛错、绝不白屏。
- * SSR / 非浏览器环境（无 localStorage）同样安全回退。
- */
 export function loadProgress(): UserProgress {
   if (typeof localStorage === 'undefined') return defaultProgress();
   const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
   if (!raw) return defaultProgress();
   try {
     const parsed = JSON.parse(raw) as unknown;
-    // 推荐结构：{ version, progress }
     if (
       parsed &&
       typeof parsed === 'object' &&
@@ -71,14 +60,12 @@ export function loadProgress(): UserProgress {
       const wrapped = parsed as { version: number; progress: unknown };
       return migrateProgress(wrapped.version, wrapped.progress);
     }
-    // 兼容历史裸结构（无 wrapper）：当作 v0 迁移。
     return migrateProgress(0, parsed);
   } catch {
     return defaultProgress();
   }
 }
 
-/** 回写进度（带 version）。存储不可用/满时静默吞错，UI 继续。 */
 export function saveProgress(progress: UserProgress): void {
   if (typeof localStorage === 'undefined') return;
   try {
@@ -87,11 +74,9 @@ export function saveProgress(progress: UserProgress): void {
       JSON.stringify({ version: CURRENT_PROGRESS_VERSION, progress }),
     );
   } catch {
-    // 配额满 / 隐私模式禁用：静默忽略，UI 不受影响。
+    // Storage quota or private-mode failures should not break the UI.
   }
 }
-
-// ---- 派生计算（不冗余存储） ----
 
 export interface OverallProgress {
   done: number;
@@ -99,7 +84,15 @@ export interface OverallProgress {
   percent: number;
 }
 
-/** 总进度：已完成 / 56。 */
+export interface ModuleProgress {
+  done: number;
+  total: number;
+}
+
+const orderedPublishedConceptIds = modules.flatMap((module) => module.conceptIds);
+const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
+const publishedConceptIdSet = new Set(orderedPublishedConceptIds);
+
 export function overallProgress(completedConceptIds: string[]): OverallProgress {
   const total = modules.reduce((sum, module) => sum + module.conceptIds.length, 0);
   const done = completedConceptIds.length;
@@ -110,20 +103,11 @@ export function overallProgress(completedConceptIds: string[]): OverallProgress 
   };
 }
 
-export interface ModuleProgress {
-  done: number;
-  total: number;
-}
-
-const orderedPublishedConceptIds = modules.flatMap((module) => module.conceptIds);
-
 export function isPublishedConcept(
   concept: Pick<KnowledgePoint, 'contentStatus'> | null | undefined,
 ): boolean {
   return concept?.contentStatus !== undefined && concept.contentStatus !== 'stub';
 }
-
-const publishedConceptIdSet = new Set(orderedPublishedConceptIds);
 
 export function isPublishedConceptId(conceptId: string | undefined): boolean {
   return Boolean(conceptId && publishedConceptIdSet.has(conceptId));
@@ -134,11 +118,6 @@ export function getFirstPublishedConceptIdByModule(moduleId: string): string | u
   return module?.conceptIds.find((id) => publishedConceptIdSet.has(id));
 }
 
-/**
- * 「继续学习」目标（驱动首页核心动作）：
- * lastVisitedConceptId 仍存在且已上线 → 回到它；否则按模块顺序找第一个未完成的已上线内容；
- * 全部完成 → 第一个概念。返回 concept id（=== slug，可直接用于 /concepts/:slug）。
- */
 export function getContinueLearningConceptId(progress: UserProgress): string {
   if (
     progress.lastVisitedConceptId &&
@@ -155,7 +134,6 @@ export function getContinueLearningConceptId(progress: UserProgress): string {
   return orderedPublishedConceptIds[0] ?? '';
 }
 
-/** 单模块进度：done / 该模块概念数。completed 用 Set 加速查找。 */
 export function moduleProgress(
   moduleId: string,
   completed: ReadonlySet<string>,
@@ -167,4 +145,544 @@ export function moduleProgress(
     if (completed.has(id)) done += 1;
   }
   return { done, total: m.conceptIds.length };
+}
+
+export type CapabilityConfidence = 'low' | 'medium' | 'high';
+
+export interface CapabilityDomainScore {
+  domain: CapabilityDomain;
+  label: string;
+  completionScore: number;
+  diagnosticScore?: number;
+  finalScore: number;
+  confidence: CapabilityConfidence;
+  completedWeightedCount: number;
+  totalWeightedCount: number;
+  diagnosticWeightedCount: number;
+  wrongWeightedCount: number;
+  nextConceptId?: string;
+}
+
+export interface RolePathPhaseProgress {
+  id: string;
+  title: string;
+  outcome: string;
+  done: number;
+  total: number;
+  percent: number;
+  nextConceptId?: string;
+}
+
+export interface RolePathProgress {
+  id: RolePath['id'];
+  title: string;
+  goal: string;
+  done: number;
+  total: number;
+  percent: number;
+  nextConceptId?: string;
+  phases: RolePathPhaseProgress[];
+}
+
+export type ProfileActionKind =
+  | 'wrongQuestion'
+  | 'capabilityGap'
+  | 'rolePath'
+  | 'review';
+
+export interface ProfileNextAction {
+  kind: ProfileActionKind;
+  title: string;
+  reason: string;
+  conceptId: string;
+  conceptTitle: string;
+  contextLabel?: string;
+}
+
+export type WeeklyProfileRecommendationKind =
+  | 'nextLesson'
+  | 'nextQuestion'
+  | 'scenarioExercise'
+  | 'reviewFavorite';
+
+export interface WeeklyProfileRecommendation {
+  id: string;
+  kind: WeeklyProfileRecommendationKind;
+  title: string;
+  actionLabel: string;
+  reason: string;
+  conceptId?: string;
+  conceptTitle?: string;
+  contextLabel?: string;
+  scenarioId?: string;
+  scenarioTitle?: string;
+  scenarioNote?: string;
+}
+
+export interface ProfileJudgmentBias {
+  id: string;
+  title: string;
+  severity: 'priority' | 'watch';
+  evidence: string;
+  suggestedAction: string;
+  conceptId?: string;
+  conceptTitle?: string;
+  domainLabel?: string;
+}
+
+function percent(numerator: number, denominator: number): number {
+  return denominator > 0 ? Math.round((numerator / denominator) * 100) : 0;
+}
+
+function roundWeighted(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function domainWeight(concept: KnowledgePoint, domain: CapabilityDomain): number {
+  if (concept.capabilityDomains?.primary === domain) return 1;
+  if (concept.capabilityDomains?.secondary === domain) return 0.5;
+  return 0;
+}
+
+function sortedDomainScores(scores: CapabilityDomainScore[]): CapabilityDomainScore[] {
+  return [...scores].sort((a, b) => {
+    if (a.finalScore !== b.finalScore) return a.finalScore - b.finalScore;
+    if (a.confidence !== b.confidence) {
+      const rank: Record<CapabilityConfidence, number> = { low: 0, medium: 1, high: 2 };
+      return rank[a.confidence] - rank[b.confidence];
+    }
+    return b.totalWeightedCount - a.totalWeightedCount;
+  });
+}
+
+function getConceptById(conceptId: string | undefined): KnowledgePoint | undefined {
+  return conceptId ? conceptById.get(conceptId) : undefined;
+}
+
+function getFirstWrongConcept(wrongQuestionIds: string[]): KnowledgePoint | undefined {
+  const wrongQuestionSet = new Set(wrongQuestionIds);
+  return concepts.find(
+    (concept) => concept.diagnosticQuestion && wrongQuestionSet.has(concept.diagnosticQuestion.id),
+  );
+}
+
+function appendRecommendation(
+  recommendations: WeeklyProfileRecommendation[],
+  usedConceptIds: Set<string>,
+  recommendation: WeeklyProfileRecommendation,
+): void {
+  if (recommendations.length >= 3) return;
+  if (recommendation.conceptId && usedConceptIds.has(recommendation.conceptId)) return;
+  recommendations.push(recommendation);
+  if (recommendation.conceptId) usedConceptIds.add(recommendation.conceptId);
+}
+
+export function capabilityDomainProgress(
+  completedConceptIds: string[],
+  wrongQuestionIds: string[],
+): CapabilityDomainScore[] {
+  const completed = new Set(completedConceptIds);
+  const wrongQuestions = new Set(wrongQuestionIds);
+  const orderedPublishedConcepts = orderedPublishedConceptIds
+    .map((id) => conceptById.get(id))
+    .filter((concept): concept is KnowledgePoint => Boolean(concept && isPublishedConcept(concept)));
+
+  return (Object.keys(capabilityDomainLabels) as CapabilityDomain[]).map((domain) => {
+    let completedWeightedCount = 0;
+    let totalWeightedCount = 0;
+    let diagnosticWeightedCount = 0;
+    let wrongWeightedCount = 0;
+    let nextConceptId: string | undefined;
+
+    for (const concept of orderedPublishedConcepts) {
+      const weight = domainWeight(concept, domain);
+      if (weight === 0) continue;
+
+      totalWeightedCount += weight;
+      const isCompleted = completed.has(concept.id);
+      if (isCompleted) completedWeightedCount += weight;
+      if (!isCompleted && !nextConceptId) nextConceptId = concept.id;
+
+      if (isCompleted && concept.diagnosticQuestion) {
+        diagnosticWeightedCount += weight;
+        if (wrongQuestions.has(concept.diagnosticQuestion.id)) {
+          wrongWeightedCount += weight;
+        }
+      }
+    }
+
+    const completionScore = totalWeightedCount > 0
+      ? completedWeightedCount / totalWeightedCount
+      : 0;
+    const diagnosticScore = diagnosticWeightedCount > 0
+      ? (diagnosticWeightedCount - wrongWeightedCount) / diagnosticWeightedCount
+      : undefined;
+    const finalScore = diagnosticScore === undefined
+      ? completionScore
+      : completionScore * 0.7 + diagnosticScore * 0.3;
+    const confidence: CapabilityConfidence =
+      diagnosticWeightedCount === 0 ? 'low' : diagnosticWeightedCount < 3 ? 'medium' : 'high';
+
+    return {
+      domain,
+      label: capabilityDomainLabels[domain],
+      completionScore,
+      diagnosticScore,
+      finalScore,
+      confidence,
+      completedWeightedCount: roundWeighted(completedWeightedCount),
+      totalWeightedCount: roundWeighted(totalWeightedCount),
+      diagnosticWeightedCount: roundWeighted(diagnosticWeightedCount),
+      wrongWeightedCount: roundWeighted(wrongWeightedCount),
+      nextConceptId,
+    };
+  });
+}
+
+function countCompletedConcepts(conceptIds: string[], completed: ReadonlySet<string>): number {
+  return conceptIds.reduce((sum, id) => sum + (completed.has(id) ? 1 : 0), 0);
+}
+
+export function rolePathProgress(completedConceptIds: string[]): RolePathProgress[] {
+  const completed = new Set(completedConceptIds);
+
+  return rolePaths.map((path) => {
+    const done = countCompletedConcepts(path.recommendedConceptIds, completed);
+    const total = path.recommendedConceptIds.length;
+    const phases = path.phases.map((phase) => {
+      const phaseDone = countCompletedConcepts(phase.conceptIds, completed);
+      const phaseTotal = phase.conceptIds.length;
+      return {
+        id: phase.id,
+        title: phase.title,
+        outcome: phase.outcome,
+        done: phaseDone,
+        total: phaseTotal,
+        percent: percent(phaseDone, phaseTotal),
+        nextConceptId: phase.conceptIds.find((id) => !completed.has(id)),
+      };
+    });
+
+    return {
+      id: path.id,
+      title: path.title,
+      goal: path.goal,
+      done,
+      total,
+      percent: percent(done, total),
+      nextConceptId: path.recommendedConceptIds.find((id) => !completed.has(id)),
+      phases,
+    };
+  });
+}
+
+export function getNextProfileAction(
+  progress: Pick<UserProgress, 'completedConceptIds' | 'wrongQuestionIds' | 'lastVisitedConceptId'>,
+  domainScores: CapabilityDomainScore[],
+  pathScores: RolePathProgress[],
+): ProfileNextAction {
+  const wrongConcept = getFirstWrongConcept(progress.wrongQuestionIds);
+  if (wrongConcept) {
+    return {
+      kind: 'wrongQuestion',
+      title: 'Review the missed question first',
+      reason: 'A missed diagnostic question is the strongest signal. Revisit the scenario, options, and troubleshooting path before adding new lessons.',
+      conceptId: wrongConcept.id,
+      conceptTitle: wrongConcept.title,
+    };
+  }
+
+  const weakestDomain = sortedDomainScores(domainScores).find((score) => score.nextConceptId);
+  if (weakestDomain?.nextConceptId) {
+    const concept = conceptById.get(weakestDomain.nextConceptId);
+    if (concept) {
+      return {
+        kind: 'capabilityGap',
+        title: 'Close the weakest capability gap',
+        reason: weakestDomain.label + ' has the lowest current estimate. Finish the next lesson in this domain first.',
+        conceptId: concept.id,
+        conceptTitle: concept.title,
+        contextLabel: weakestDomain.label,
+      };
+    }
+  }
+
+  const weakestPath = [...pathScores]
+    .sort((a, b) => (a.percent === b.percent ? b.total - a.total : a.percent - b.percent))
+    .find((path) => path.nextConceptId);
+  if (weakestPath?.nextConceptId) {
+    const concept = conceptById.get(weakestPath.nextConceptId);
+    if (concept) {
+      return {
+        kind: 'rolePath',
+        title: 'Continue the role path',
+        reason: weakestPath.title + ' is the least complete role path. Continue with its next lesson.',
+        conceptId: concept.id,
+        conceptTitle: concept.title,
+        contextLabel: weakestPath.title,
+      };
+    }
+  }
+
+  const fallbackId = progress.lastVisitedConceptId ?? orderedPublishedConceptIds[0] ?? '';
+  const fallbackConcept = conceptById.get(fallbackId) ?? concepts[0];
+  return {
+    kind: 'review',
+    title: 'Enter review mode',
+    reason: 'All capability domains and role paths look complete. Revisit the latest lesson and turn it into an explicit engineering judgment.',
+    conceptId: fallbackConcept.id,
+    conceptTitle: fallbackConcept.title,
+  };
+}
+
+export function getWeeklyProfileRecommendations(
+  progress: Pick<
+    UserProgress,
+    'completedConceptIds' | 'favoriteConceptIds' | 'wrongQuestionIds' | 'lastVisitedConceptId'
+  >,
+  domainScores: CapabilityDomainScore[],
+  pathScores: RolePathProgress[],
+): WeeklyProfileRecommendation[] {
+  const completed = new Set(progress.completedConceptIds);
+  const recommendations: WeeklyProfileRecommendation[] = [];
+  const usedConceptIds = new Set<string>();
+  const wrongConcept = getFirstWrongConcept(progress.wrongQuestionIds);
+
+  if (wrongConcept?.diagnosticQuestion) {
+    appendRecommendation(recommendations, usedConceptIds, {
+      id: 'wrong-' + wrongConcept.id,
+      kind: 'nextQuestion',
+      title: 'Next question: review the miss',
+      actionLabel: 'Open missed lesson',
+      reason: 'Question ' + wrongConcept.diagnosticQuestion.id + ' is the clearest current judgment-risk signal. Redo its scenario and troubleshooting path this week.',
+      conceptId: wrongConcept.id,
+      conceptTitle: wrongConcept.title,
+      contextLabel: 'Wrong-question signal',
+    });
+  }
+
+  const unfinishedFavorite = progress.favoriteConceptIds
+    .map((id) => getConceptById(id))
+    .find((concept): concept is KnowledgePoint => Boolean(concept && !completed.has(concept.id)));
+  if (unfinishedFavorite) {
+    appendRecommendation(recommendations, usedConceptIds, {
+      id: 'favorite-' + unfinishedFavorite.id,
+      kind: 'reviewFavorite',
+      title: 'Turn a favorite into action',
+      actionLabel: 'Finish favorite',
+      reason: 'You saved this lesson but have not completed it. Use it as the shortest path from interest to evidence.',
+      conceptId: unfinishedFavorite.id,
+      conceptTitle: unfinishedFavorite.title,
+      contextLabel: 'Favorite signal',
+    });
+  }
+
+  const weakestDomain = sortedDomainScores(domainScores).find((score) => score.nextConceptId);
+  const weakestDomainConcept = getConceptById(weakestDomain?.nextConceptId);
+  if (weakestDomain && weakestDomainConcept) {
+    appendRecommendation(recommendations, usedConceptIds, {
+      id: 'domain-' + weakestDomain.domain,
+      kind: 'nextLesson',
+      title: 'Next lesson: close a weak domain',
+      actionLabel: 'Open next lesson',
+      reason: weakestDomain.label + ' is estimated at ' + Math.round(weakestDomain.finalScore * 100) + '%. Complete the next lesson in this domain.',
+      conceptId: weakestDomainConcept.id,
+      conceptTitle: weakestDomainConcept.title,
+      contextLabel: weakestDomain.label,
+    });
+  }
+
+  const weakestPath = [...pathScores]
+    .sort((a, b) => (a.percent === b.percent ? b.total - a.total : a.percent - b.percent))
+    .find((path) => path.nextConceptId);
+  const weakestPathConcept = getConceptById(weakestPath?.nextConceptId);
+  if (weakestPath && weakestPathConcept) {
+    appendRecommendation(recommendations, usedConceptIds, {
+      id: 'path-' + weakestPath.id,
+      kind: 'nextLesson',
+      title: 'Move the role path forward',
+      actionLabel: 'Continue path',
+      reason: weakestPath.title + ' is ' + weakestPath.percent + '% complete. This lesson advances the leader path.',
+      conceptId: weakestPathConcept.id,
+      conceptTitle: weakestPathConcept.title,
+      contextLabel: weakestPath.title,
+    });
+  }
+
+  const scenarioEntryConcept =
+    ['multi-model-routing', 'cost-routing', 'capability-routing']
+      .map((id) => getConceptById(id))
+      .find((concept): concept is KnowledgePoint => Boolean(concept && !completed.has(concept.id))) ??
+    getConceptById(progress.lastVisitedConceptId) ??
+    getConceptById(orderedPublishedConceptIds[0]);
+  if (scenarioEntryConcept) {
+    appendRecommendation(recommendations, usedConceptIds, {
+      id: 'scenario-model-router',
+      kind: 'scenarioExercise',
+      title: 'Next scenario: model-router failure diagnosis',
+      actionLabel: 'Open entry lesson',
+      reason: 'Practice cost, quality, SLA, and governance tradeoffs in one routing incident.',
+      conceptId: scenarioEntryConcept.id,
+      conceptTitle: scenarioEntryConcept.title,
+      contextLabel: 'Scenario exercise',
+      scenarioId: 'model-router',
+      scenarioTitle: 'Model-router failure diagnosis',
+      scenarioNote: 'Scenario routing is not wired yet. Start from the entry lesson for now.',
+    });
+  }
+
+  if (recommendations.length === 0) {
+    const fallbackConcept =
+      getConceptById(progress.lastVisitedConceptId) ?? getConceptById(orderedPublishedConceptIds[0]);
+    if (fallbackConcept) {
+      appendRecommendation(recommendations, usedConceptIds, {
+        id: 'fallback-' + fallbackConcept.id,
+        kind: 'nextLesson',
+        title: 'Weekly review entry',
+        actionLabel: 'Open review lesson',
+        reason: 'No wrong-question or favorite signal exists yet. Start from the latest or first lesson and make one leader-level judgment explicit.',
+        conceptId: fallbackConcept.id,
+        conceptTitle: fallbackConcept.title,
+        contextLabel: 'Fallback',
+      });
+    }
+  }
+
+  return recommendations;
+}
+
+const biasCopyByDomain: Record<
+  CapabilityDomain,
+  { title: string; suggestedAction: string }
+> = {
+  modelMechanics: {
+    title: 'Model-mechanism black-box bias',
+    suggestedAction: 'Review mechanism lessons until you can explain error modes, hallucination, and sampling boundaries rather than only naming symptoms.',
+  },
+  inferenceCostPerformance: {
+    title: 'Cost-first bias',
+    suggestedAction: 'Review cost, latency, throughput, and quality together. Avoid platform decisions based only on per-call cost.',
+  },
+  maasPlatformization: {
+    title: 'Quality / SLA boundary bias',
+    suggestedAction: 'Review gateway, routing, SLA, and circuit-breaker lessons so degradation and fallback are explicit.',
+  },
+  ragContextEngineering: {
+    title: 'Context-solves-everything bias',
+    suggestedAction: 'Review context window, compression, pollution, and session layering. Separate retrieval gaps from context pollution and model limits.',
+  },
+  agentEngineering: {
+    title: 'Agent-boundary optimism bias',
+    suggestedAction: 'Review tool calling, human confirmation, subagents, and multi-agent boundaries. Write autonomy limits into execution rules.',
+  },
+  evaluationObservability: {
+    title: 'Evaluation / observability gap bias',
+    suggestedAction: 'Review eval, trace, and observability so quality issues are explained with evidence rather than intuition.',
+  },
+  securityGovernanceOrg: {
+    title: 'Governance / permission-afterthought bias',
+    suggestedAction: 'Review permission governance, Token ROI, and org rollout. Move risk interception, cost ownership, and approval boundaries earlier.',
+  },
+};
+
+export function getProfileJudgmentBiases(
+  progress: Pick<UserProgress, 'wrongQuestionIds' | 'favoriteConceptIds' | 'lastVisitedConceptId'>,
+  domainScores: CapabilityDomainScore[],
+): ProfileJudgmentBias[] {
+  const wrongQuestionSet = new Set(progress.wrongQuestionIds);
+  const wrongConcepts = concepts.filter(
+    (concept) => concept.diagnosticQuestion && wrongQuestionSet.has(concept.diagnosticQuestion.id),
+  );
+  const wrongDomainCounts = new Map<CapabilityDomain, number>();
+
+  for (const concept of wrongConcepts) {
+    const domains = [concept.capabilityDomains?.primary, concept.capabilityDomains?.secondary]
+      .filter((domain): domain is CapabilityDomain => Boolean(domain));
+    for (const domain of domains) {
+      wrongDomainCounts.set(domain, (wrongDomainCounts.get(domain) ?? 0) + 1);
+    }
+  }
+
+  const sorted = sortedDomainScores(domainScores)
+    .map((score) => ({
+      score,
+      wrongCount: wrongDomainCounts.get(score.domain) ?? 0,
+    }))
+    .sort((a, b) => {
+      if (a.wrongCount !== b.wrongCount) return b.wrongCount - a.wrongCount;
+      return a.score.finalScore - b.score.finalScore;
+    });
+
+  const biases: ProfileJudgmentBias[] = [];
+  const pushBias = (score: CapabilityDomainScore, wrongCount: number) => {
+    if (biases.length >= 3) return;
+    const copy = biasCopyByDomain[score.domain];
+    const nextConcept = getConceptById(score.nextConceptId);
+    const evidenceParts = [
+      score.label + ' estimate ' + Math.round(score.finalScore * 100) + '%',
+      wrongCount > 0 ? wrongCount + ' related missed question(s)' : undefined,
+      score.diagnosticWeightedCount === 0 ? 'diagnostic sample is thin' : undefined,
+    ].filter(Boolean);
+    biases.push({
+      id: 'bias-' + score.domain,
+      title: copy.title,
+      severity: wrongCount > 0 || score.finalScore < 0.55 ? 'priority' : 'watch',
+      evidence: evidenceParts.join(', '),
+      suggestedAction: copy.suggestedAction,
+      conceptId: nextConcept?.id,
+      conceptTitle: nextConcept?.title,
+      domainLabel: score.label,
+    });
+  };
+
+  for (const item of sorted) {
+    if (
+      item.wrongCount > 0 ||
+      item.score.finalScore < 0.75 ||
+      item.score.diagnosticWeightedCount === 0
+    ) {
+      pushBias(item.score, item.wrongCount);
+    }
+  }
+
+  if (biases.length === 0) {
+    const fallbackScores = sortedDomainScores(domainScores).slice(0, 2);
+    for (const score of fallbackScores) {
+      pushBias(score, wrongDomainCounts.get(score.domain) ?? 0);
+    }
+  }
+
+  if (biases.length < 2 && progress.favoriteConceptIds.length > 0) {
+    const favoriteConcept = progress.favoriteConceptIds
+      .map((id) => getConceptById(id))
+      .find((concept): concept is KnowledgePoint => Boolean(concept));
+    if (favoriteConcept && biases.every((bias) => bias.conceptId !== favoriteConcept.id)) {
+      biases.push({
+        id: 'bias-favorite-' + favoriteConcept.id,
+        title: 'Interest-without-closure bias',
+        severity: 'watch',
+        evidence: 'Favorited ' + favoriteConcept.title + ', but a favorite is not yet a completed leader judgment.',
+        suggestedAction: 'Turn the favorite into one decision checklist: applicable scenario, counterexample, metric, and rollout boundary.',
+        conceptId: favoriteConcept.id,
+        conceptTitle: favoriteConcept.title,
+      });
+    }
+  }
+
+  if (biases.length < 2 && progress.lastVisitedConceptId) {
+    const lastVisited = getConceptById(progress.lastVisitedConceptId);
+    if (lastVisited && biases.every((bias) => bias.conceptId !== lastVisited.id)) {
+      biases.push({
+        id: 'bias-last-' + lastVisited.id,
+        title: 'Recent-learning-without-review bias',
+        severity: 'watch',
+        evidence: 'Last visited ' + lastVisited.title + ', but it still needs to become an explicit engineering judgment.',
+        suggestedAction: 'Return to the latest lesson and write one standard you would use in a launch review.',
+        conceptId: lastVisited.id,
+        conceptTitle: lastVisited.title,
+      });
+    }
+  }
+
+  return biases.slice(0, 3);
 }

@@ -1,0 +1,374 @@
+.page {
+  max-width: var(--content-max-home);
+  margin: 0 auto;
+  padding: 42px var(--content-padding-x) 64px;
+}
+
+.back {
+  display: inline-flex;
+  margin-bottom: 22px;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.header {
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--color-title);
+}
+
+.header > span {
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 148px;
+  gap: 28px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(31px, 4vw, 42px);
+  line-height: 1.16;
+}
+
+.header p {
+  margin: 14px 0 0;
+  max-width: 760px;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.headerMeta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  padding: 14px;
+  border-left: 2px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.headerMeta strong {
+  font-family: var(--font-serif);
+  font-size: 27px;
+  line-height: 1;
+  color: var(--color-primary);
+}
+
+.headerMeta span,
+.panelHeading span,
+.metricCard span,
+.metricCard em,
+.requestCard dt,
+.signal span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.relatedLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.relatedLinks a {
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+  padding: 5px 9px;
+  color: var(--color-primary);
+  font-size: 13px;
+}
+
+.metricStrip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.metricCard,
+.panel,
+.missing {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.metricCard {
+  min-width: 0;
+  padding: 13px 12px;
+}
+
+.metricCard strong {
+  display: block;
+  margin: 7px 0 5px;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--color-title);
+}
+
+.metricCard.better {
+  border-color: #bed8ca;
+  background: var(--color-progress-soft);
+}
+
+.metricCard.worse {
+  border-color: #f1d0a8;
+  background: #fff7ea;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.92fr) minmax(360px, 1.25fr) minmax(260px, 0.95fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.leftRail,
+.rightRail,
+.requestList,
+.loadList,
+.controls,
+.signalList {
+  display: grid;
+  gap: 12px;
+}
+
+.panel,
+.missing {
+  padding: 18px;
+}
+
+.panelHeading,
+.rowBetween {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.panelHeading h2,
+.requestCard h3,
+.signal h3,
+.reviewPanel h3 {
+  margin: 0;
+}
+
+.panelHeading h2 {
+  font-size: 18px;
+}
+
+.requestCard {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.requestCard:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.requestCard h3 {
+  font-size: 15px;
+}
+
+.requestCard p,
+.explanation,
+.signal p,
+.reviewPanel p,
+.reviewPanel li {
+  color: var(--color-text);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.requestCard dl {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+}
+
+.requestCard dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.requestCard dd {
+  margin: 0;
+  text-align: right;
+  color: var(--color-title);
+}
+
+.loadTrack {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-soft);
+}
+
+.loadTrack div {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.controlGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 16px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.controlGroup:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.controlGroup legend {
+  margin-bottom: 10px;
+  padding: 0;
+  font-weight: 650;
+  color: var(--color-title);
+}
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.optionButton {
+  min-height: 112px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.optionButton strong,
+.optionButton span {
+  display: block;
+}
+
+.optionButton strong {
+  margin-bottom: 7px;
+  color: var(--color-title);
+}
+
+.optionButton span {
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.optionButton:hover,
+.optionActive {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.optionActive {
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.primary,
+.secondary {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid transparent;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.signal {
+  padding: 12px;
+  border-left: 3px solid var(--color-border-strong);
+  background: var(--color-bg);
+}
+
+.signal.warning {
+  border-left-color: var(--color-warning);
+}
+
+.signal.critical {
+  border-left-color: var(--color-primary);
+}
+
+.reviewPanel ol,
+.reviewPanel ul {
+  display: grid;
+  gap: 7px;
+  margin: 8px 0 14px;
+  padding-left: 20px;
+}
+
+.reviewPanel h3 {
+  margin-top: 16px;
+  font-size: 15px;
+}
+
+@media (max-width: 1080px) {
+  .metricStrip,
+  .workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace > .panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 32px 20px 54px;
+  }
+
+  .headerRow,
+  .metricStrip,
+  .workspace,
+  .optionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerMeta {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+  }
+
+  .optionButton {
+    min-height: auto;
+  }
+}
