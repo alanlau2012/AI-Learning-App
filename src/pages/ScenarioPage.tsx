@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { concepts } from '../data/concepts';
 import { scenarioExerciseById } from '../data/scenarioExercises';
+import { useProgressStore } from '../store/progressStore';
 import {
   applyStrategyChange,
   deriveScenarioReview,
@@ -44,6 +45,11 @@ export function ScenarioPage() {
   const exercise = scenarioId ? scenarioExerciseById[scenarioId] : undefined;
   const [selectedStrategies, setSelectedStrategies] = useState<Record<string, string>>({});
   const [showReview, setShowReview] = useState(false);
+  const completedScenarioIds = useProgressStore((s) => s.completedScenarioIds);
+  const reviewScenarioIds = useProgressStore((s) => s.reviewScenarioIds);
+  const completeScenario = useProgressStore((s) => s.completeScenario);
+  const toggleReviewScenario = useProgressStore((s) => s.toggleReviewScenario);
+  const recordScenarioVisit = useProgressStore((s) => s.recordScenarioVisit);
 
   const result = useMemo(() => {
     if (!exercise) return undefined;
@@ -62,6 +68,12 @@ export function ScenarioPage() {
   const entryConcept = exercise ? conceptById.get(exercise.entryConceptIds[0]) : undefined;
   const factGroups = exercise?.facts ?? [];
   const showRequestBreakdowns = Boolean(result?.requestBreakdowns.length);
+  const isCompleted = Boolean(exercise && completedScenarioIds.includes(exercise.id));
+  const isInReview = Boolean(exercise && reviewScenarioIds.includes(exercise.id));
+
+  useEffect(() => {
+    if (exercise) recordScenarioVisit(exercise.id);
+  }, [exercise, recordScenarioVisit]);
 
   if (!exercise || !result || !review) {
     return (
@@ -86,9 +98,17 @@ export function ScenarioPage() {
     setShowReview(false);
   };
 
+  const submitDiagnosis = () => {
+    completeScenario(exercise.id);
+    setShowReview(true);
+  };
+
   return (
     <main className={styles.page}>
-      <Link to={entryConcept ? `/concepts/${entryConcept.slug}` : '/'} className={styles.back}>返回相关知识点</Link>
+      <div className={styles.backLinks}>
+        <Link to="/scenarios" className={styles.back}>返回场景目录</Link>
+        <Link to={entryConcept ? `/concepts/${entryConcept.slug}` : '/'} className={styles.back}>返回相关知识点</Link>
+      </div>
 
       <section className={styles.header}>
         <span>Scenario Exercise</span>
@@ -103,6 +123,8 @@ export function ScenarioPage() {
             <span>分钟</span>
             <strong>{exercise.strategyControls.length}</strong>
             <span>策略组</span>
+            <strong>{isCompleted ? '已完成' : '未完成'}</strong>
+            <span>演练状态</span>
           </div>
         </div>
         <div className={styles.relatedLinks}>
@@ -220,8 +242,8 @@ export function ScenarioPage() {
             ))}
           </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={() => setShowReview(true)}>
-              提交诊断
+            <button type="button" className={styles.primary} onClick={submitDiagnosis}>
+              {isCompleted ? '查看复盘' : '提交诊断'}
             </button>
             <button type="button" className={styles.secondary} onClick={resetScenario}>
               恢复基线
@@ -268,6 +290,14 @@ export function ScenarioPage() {
               </ul>
               <div className={styles.relatedLinks}>
                 {review.relatedConceptIds.map(conceptLink)}
+              </div>
+              <div className={styles.reviewActions}>
+                <button type="button" className={styles.secondary} onClick={() => toggleReviewScenario(exercise.id)}>
+                  {isInReview ? '移出场景复盘' : '加入场景复盘'}
+                </button>
+                <Link to="/scenarios" className={styles.secondaryLink}>
+                  回到场景目录
+                </Link>
               </div>
             </section>
           )}

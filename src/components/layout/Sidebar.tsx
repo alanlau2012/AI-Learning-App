@@ -13,6 +13,7 @@ import styles from './Sidebar.module.css';
 const PRIMARY_NAV = [
   { to: '/', label: '首页', end: true },
   { to: '/profile', label: '我的学习' },
+  { to: '/scenarios', label: '场景演练' },
   { to: '/search', label: '搜索' },
 ];
 

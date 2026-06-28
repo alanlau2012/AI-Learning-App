@@ -8,14 +8,16 @@ import type { KnowledgePoint, UserProgress } from '../types';
 import { modules } from '../data/modules';
 
 export const PROGRESS_STORAGE_KEY = 'ai-learning-app-progress-v1';
-export const CURRENT_PROGRESS_VERSION = 1;
+export const CURRENT_PROGRESS_VERSION = 2;
 
 export function defaultProgress(): UserProgress {
   return {
     completedConceptIds: [],
+    completedScenarioIds: [],
     favoriteConceptIds: [],
     wrongQuestionIds: [],
     reviewConceptIds: [],
+    reviewScenarioIds: [],
     studyStreakDays: 0,
   };
 }
@@ -25,20 +27,25 @@ function isUserProgressShape(data: unknown): data is UserProgress {
   const o = data as Record<string, unknown>;
   return (
     Array.isArray(o.completedConceptIds) &&
+    (o.completedScenarioIds === undefined || Array.isArray(o.completedScenarioIds)) &&
     Array.isArray(o.favoriteConceptIds) &&
     Array.isArray(o.wrongQuestionIds) &&
     (o.reviewConceptIds === undefined || Array.isArray(o.reviewConceptIds)) &&
+    (o.reviewScenarioIds === undefined || Array.isArray(o.reviewScenarioIds)) &&
     typeof o.studyStreakDays === 'number' &&
     (o.lastVisitedConceptId === undefined || typeof o.lastVisitedConceptId === 'string') &&
+    (o.lastVisitedScenarioId === undefined || typeof o.lastVisitedScenarioId === 'string') &&
     (o.lastStudyDate === undefined || typeof o.lastStudyDate === 'string')
   );
 }
 
 export function migrateProgress(fromVersion: number, data: unknown): UserProgress {
-  if (fromVersion === CURRENT_PROGRESS_VERSION && isUserProgressShape(data)) {
+  if ((fromVersion === CURRENT_PROGRESS_VERSION || fromVersion === 1 || fromVersion === 0) && isUserProgressShape(data)) {
     return {
       ...data,
+      completedScenarioIds: Array.isArray(data.completedScenarioIds) ? data.completedScenarioIds : [],
       reviewConceptIds: Array.isArray(data.reviewConceptIds) ? data.reviewConceptIds : [],
+      reviewScenarioIds: Array.isArray(data.reviewScenarioIds) ? data.reviewScenarioIds : [],
     };
   }
   return defaultProgress();

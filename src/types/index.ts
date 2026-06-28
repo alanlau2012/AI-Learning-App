@@ -207,10 +207,13 @@ export interface LearningModule {
 
 export interface UserProgress {
   completedConceptIds: string[];
+  completedScenarioIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
   reviewConceptIds: string[];
+  reviewScenarioIds: string[];
   lastVisitedConceptId?: string;
+  lastVisitedScenarioId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
 }

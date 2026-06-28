@@ -35,9 +35,11 @@ export function HomePage() {
   const completedSet = new Set(completedConceptIds);
   const continueId = getContinueLearningConceptId({
     completedConceptIds,
+    completedScenarioIds: [],
     favoriteConceptIds,
     wrongQuestionIds: [],
     reviewConceptIds: [],
+    reviewScenarioIds: [],
     lastVisitedConceptId,
     studyStreakDays,
   });
@@ -71,6 +73,9 @@ export function HomePage() {
           </button>
           <Link to="/profile" className={styles.secondaryBtn}>
             查看我的学习
+          </Link>
+          <Link to="/scenarios" className={styles.secondaryBtn}>
+            进入场景演练
           </Link>
         </div>
         <div className={styles.heroRule} aria-hidden />

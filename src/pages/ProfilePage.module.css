@@ -125,6 +125,31 @@
   color: var(--color-primary);
 }
 
+.scenarioStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.scenarioPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.scenarioPills a {
+  padding: 5px 9px;
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
 .domainList {
   display: grid;
   gap: 16px;

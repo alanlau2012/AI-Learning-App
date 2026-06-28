@@ -172,10 +172,13 @@ export interface DiagnosticOption {
 
 export interface UserProgress {
   completedConceptIds: string[];
+  completedScenarioIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
   reviewConceptIds: string[];
+  reviewScenarioIds: string[];
   lastVisitedConceptId?: string;
+  lastVisitedScenarioId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
 }
@@ -324,7 +327,7 @@ export interface ScenarioReviewRubric {
 ```
 
 `AnimationType` 的枚举值定义在 [animation-spec.md](animation-spec.md) §1，由 `types/index.ts` 统一导出。
-`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。`UserProgress.reviewConceptIds` 用于本周复盘清单，旧本地进度缺省时由 `loadProgress()` 归一化为空数组。
+`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。`UserProgress.reviewConceptIds` 与 `reviewScenarioIds` 用于本周复盘清单，旧本地进度缺省时由 `loadProgress()` 归一化为空数组；`completedScenarioIds` 与 `lastVisitedScenarioId` 用于 Scenario Library R2 的场景完成和最近访问状态。
 
 ## 2. 字段级约束
 

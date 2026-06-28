@@ -12,6 +12,12 @@
   font-size: 13px;
 }
 
+.backLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .header {
   padding-bottom: 26px;
   border-bottom: 1px solid var(--color-title);
@@ -319,6 +325,19 @@
   color: var(--color-text);
 }
 
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  text-decoration: none;
+}
+
 .signal {
   padding: 12px;
   border-left: 3px solid var(--color-border-strong);
@@ -344,6 +363,13 @@
 .reviewPanel h3 {
   margin-top: 16px;
   font-size: 15px;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 @media (max-width: 1080px) {

@@ -4,6 +4,7 @@ import { ProgressBar } from '../components/progress/ProgressBar';
 import { StudyStats } from '../components/progress/StudyStats';
 import { concepts } from '../data/concepts';
 import { modules } from '../data/modules';
+import { scenarioExercises } from '../data/scenarioExercises';
 import { useProgressStore } from '../store/progressStore';
 import {
   capabilityDomainProgress,
@@ -17,6 +18,7 @@ import {
 import styles from './ProfilePage.module.css';
 
 const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
+const scenarioById = new Map(scenarioExercises.map((scenario) => [scenario.id, scenario]));
 
 const confidenceLabels: Record<string, string> = {
   low: '低',
@@ -35,12 +37,15 @@ function conceptUrl(conceptId: string): string {
 
 export function ProfilePage() {
   const completedConceptIds = useProgressStore((s) => s.completedConceptIds);
+  const completedScenarioIds = useProgressStore((s) => s.completedScenarioIds);
   const favoriteConceptIds = useProgressStore((s) => s.favoriteConceptIds);
   const wrongQuestionIds = useProgressStore((s) => s.wrongQuestionIds);
   const reviewConceptIds = useProgressStore((s) => s.reviewConceptIds);
+  const reviewScenarioIds = useProgressStore((s) => s.reviewScenarioIds);
   const lastVisitedConceptId = useProgressStore((s) => s.lastVisitedConceptId);
   const studyStreakDays = useProgressStore((s) => s.studyStreakDays);
   const removeReviewConcept = useProgressStore((s) => s.removeReviewConcept);
+  const removeReviewScenario = useProgressStore((s) => s.removeReviewScenario);
   const clearAll = useProgressStore((s) => s.clearAll);
 
   const completedSet = new Set(completedConceptIds);
@@ -53,7 +58,7 @@ export function ProfilePage() {
     pathScores,
   );
   const weeklyRecommendations = getWeeklyProfileRecommendations(
-    { completedConceptIds, favoriteConceptIds, wrongQuestionIds, lastVisitedConceptId },
+    { completedConceptIds, completedScenarioIds, favoriteConceptIds, wrongQuestionIds, lastVisitedConceptId },
     domainScores,
     pathScores,
   );
@@ -72,6 +77,12 @@ export function ProfilePage() {
   const reviewConcepts = reviewConceptIds
     .map((id) => conceptById.get(id))
     .filter((concept): concept is (typeof concepts)[number] => Boolean(concept));
+  const completedScenarios = completedScenarioIds
+    .map((id) => scenarioById.get(id))
+    .filter((scenario): scenario is (typeof scenarioExercises)[number] => Boolean(scenario));
+  const reviewScenarios = reviewScenarioIds
+    .map((id) => scenarioById.get(id))
+    .filter((scenario): scenario is (typeof scenarioExercises)[number] => Boolean(scenario));
 
   function confirmClearAll() {
     if (window.confirm('确认清空所有本地学习记录？此操作不会影响课程内容。')) {
@@ -95,6 +106,29 @@ export function ProfilePage() {
         wrongQuestions={wrongQuestionIds.length}
         streakDays={studyStreakDays}
       />
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <h2>场景训练</h2>
+          <span>{completedScenarios.length} / {scenarioExercises.length} 已完成</span>
+        </div>
+        <p className={styles.panelIntro}>场景演练把多个知识点压缩到一个生产症状、策略选择和复盘结论里。</p>
+        <div className={styles.scenarioStats}>
+          <Link to="/scenarios" className={styles.primaryLink}>
+            打开场景目录
+          </Link>
+          <span>{reviewScenarios.length} 个场景待复盘</span>
+        </div>
+        {completedScenarios.length > 0 && (
+          <div className={styles.scenarioPills}>
+            {completedScenarios.map((scenario) => (
+              <Link key={scenario.id} to={`/scenarios/${scenario.id}`}>
+                {scenario.title}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className={`${styles.panel} ${styles.actionPanel}`}>
         <div className={styles.panelHeading}>
@@ -145,8 +179,28 @@ export function ProfilePage() {
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
           <h2>本周复盘</h2>
-          <span>{reviewConcepts.length} 个知识点</span>
+          <span>{reviewConcepts.length} 个知识点 · {reviewScenarios.length} 个场景</span>
         </div>
+        {reviewScenarios.length > 0 && (
+          <div className={styles.reviewList}>
+            {reviewScenarios.map((scenario) => (
+              <article key={scenario.id} className={styles.reviewItem}>
+                <div>
+                  <strong>{scenario.title}</strong>
+                  <p>{scenario.initialSymptom ?? scenario.background}</p>
+                </div>
+                <div className={styles.reviewActions}>
+                  <Link to={`/scenarios/${scenario.id}`} className={styles.inlineLink}>
+                    复盘场景
+                  </Link>
+                  <button type="button" onClick={() => removeReviewScenario(scenario.id)}>
+                    移除
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
         {reviewConcepts.length > 0 ? (
           <div className={styles.reviewList}>
             {reviewConcepts.map((concept) => (
@@ -167,7 +221,9 @@ export function ProfilePage() {
             ))}
           </div>
         ) : (
-          <p className={styles.empty}>还没有加入复盘的知识点。可以在任意知识点详情页加入本周复盘。</p>
+          reviewScenarios.length === 0 && (
+            <p className={styles.empty}>还没有加入复盘的知识点或场景。可以在知识点详情页或场景复盘面板加入本周复盘。</p>
+          )
         )}
       </section>
 

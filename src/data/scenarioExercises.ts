@@ -1,4 +1,5 @@
 import type { ScenarioExercise } from '../types';
+import { scenarioExercisesR2 } from './scenarioExercisesR2.ts';
 
 export const scenarioExercises: ScenarioExercise[] = [
   {
@@ -598,6 +599,7 @@ export const scenarioExercises: ScenarioExercise[] = [
     ],
     reviewRubric: { prompt: '请判断 RAG 答案质量下降的主要来源，并说明如何按权限边界、失败样本、召回、重排、上下文构造、回答约束和 Trace 顺序排查。', requiredFindings: ['必须先确认召回前权限过滤是强制边界。', '必须区分召回缺失、重排错序、上下文冲突和生成约束不足。', '必须说明如何用 Trace 还原片段、版本、来源、权限结果和排序。'], acceptableActions: ['恢复召回前权限过滤并监控越权片段率。', '增加版本或权威来源加权。', '隔离冲突片段并要求来源引用。', '把失败样本沉淀到 Eval。'], nextStepRecommendations: ['回看 permission-governance、prompt-context、context-window、context-pollution、eval 和 trace。', '用失败样本驱动权限、重排和上下文策略复盘。'] },
   },
+  ...scenarioExercisesR2,
 ];
 
 export const scenarioExerciseById = Object.fromEntries(

@@ -9,11 +9,15 @@ import { defaultProgress, loadProgress, saveProgress } from '../utils/progressCo
 
 interface ProgressState extends UserProgress {
   toggleComplete: (conceptId: string) => void;
+  completeScenario: (scenarioId: string) => void;
   toggleFavorite: (conceptId: string) => void;
   toggleReviewConcept: (conceptId: string) => void;
+  toggleReviewScenario: (scenarioId: string) => void;
   removeReviewConcept: (conceptId: string) => void;
+  removeReviewScenario: (scenarioId: string) => void;
   recordWrongQuestion: (questionId: string) => void;
   recordVisit: (conceptId: string) => void;
+  recordScenarioVisit: (scenarioId: string) => void;
   clearAll: () => void;
 }
 
@@ -37,10 +41,13 @@ function yesterdayISO(): string {
 function persist(state: UserProgress): void {
   saveProgress({
     completedConceptIds: state.completedConceptIds,
+    completedScenarioIds: state.completedScenarioIds,
     favoriteConceptIds: state.favoriteConceptIds,
     wrongQuestionIds: state.wrongQuestionIds,
     reviewConceptIds: state.reviewConceptIds,
+    reviewScenarioIds: state.reviewScenarioIds,
     lastVisitedConceptId: state.lastVisitedConceptId,
+    lastVisitedScenarioId: state.lastVisitedScenarioId,
     lastStudyDate: state.lastStudyDate,
     studyStreakDays: state.studyStreakDays,
   });
@@ -64,6 +71,17 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     set({ completedConceptIds });
   },
 
+  completeScenario: (scenarioId) => {
+    if (get().completedScenarioIds.includes(scenarioId)) return;
+    const completedScenarioIds = [...get().completedScenarioIds, scenarioId];
+    const reviewScenarioIds = get().reviewScenarioIds.includes(scenarioId)
+      ? get().reviewScenarioIds
+      : [...get().reviewScenarioIds, scenarioId];
+    const next: UserProgress = { ...get(), completedScenarioIds, reviewScenarioIds };
+    persist(next);
+    set({ completedScenarioIds, reviewScenarioIds });
+  },
+
   toggleFavorite: (conceptId) => {
     const favoriteConceptIds = toggleMember(get().favoriteConceptIds, conceptId);
     const next: UserProgress = { ...get(), favoriteConceptIds };
@@ -78,11 +96,25 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     set({ reviewConceptIds });
   },
 
+  toggleReviewScenario: (scenarioId) => {
+    const reviewScenarioIds = toggleMember(get().reviewScenarioIds, scenarioId);
+    const next: UserProgress = { ...get(), reviewScenarioIds };
+    persist(next);
+    set({ reviewScenarioIds });
+  },
+
   removeReviewConcept: (conceptId) => {
     const reviewConceptIds = removeMember(get().reviewConceptIds, conceptId);
     const next: UserProgress = { ...get(), reviewConceptIds };
     persist(next);
     set({ reviewConceptIds });
+  },
+
+  removeReviewScenario: (scenarioId) => {
+    const reviewScenarioIds = removeMember(get().reviewScenarioIds, scenarioId);
+    const next: UserProgress = { ...get(), reviewScenarioIds };
+    persist(next);
+    set({ reviewScenarioIds });
   },
 
   recordWrongQuestion: (questionId) => {
@@ -108,6 +140,15 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     };
     persist(next);
     set({ lastVisitedConceptId: conceptId, lastStudyDate: today, studyStreakDays });
+  },
+
+  recordScenarioVisit: (scenarioId) => {
+    const next: UserProgress = {
+      ...get(),
+      lastVisitedScenarioId: scenarioId,
+    };
+    persist(next);
+    set({ lastVisitedScenarioId: scenarioId });
   },
 
   clearAll: () => {
