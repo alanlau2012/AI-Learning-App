@@ -5,8 +5,9 @@
 
 ## 1. 结论先行
 
-- **R1 已完成 P1 清零**：`#11` 动画画布 token 化、`#63` Glossary IA 口径均已修复。
-- 低风险 P2 已一并处理：`#21 #22 #24 #25 #28 #34 #35 #48`。
+- **R1 已完成 P1 清零并关闭 issue**：`#11` 动画画布 token 化、`#63` Glossary IA 口径均已修复。
+- 低风险 P2/P3 已一并处理并关闭：`#21 #22 #24 #25 #28 #34 #35 #48`。
+- GitHub open issue 从 R0 后的 30 降至 20。
 - `#37` 曾尝试机械移除 `.ts` import，但会破坏 `validate:content` 的 Node ESM 数据导入，因此暂缓，不作为发布阻断。
 - `#36 #38 #53` 等保留为后续 polish / 重构，不进入 R1。
 
@@ -14,15 +15,15 @@
 
 | Issue | 状态 | 修复 |
 |---|---|---|
-| #11 | 已修 | 在 `tokens.css` 增加 `--anim-canvas-*` 系列 token，动画 CSS 改为消费 token；不改视觉布局 |
-| #63 | 已修 | Glossary 对无同名知识点术语展示“术语索引项”，并把 `relatedConceptIds[0]` 显示为“主关联讲” |
-| #21/#22 | 已验证可关闭 | Scenario/Profile 状态色已走 token，本轮回归确认无新增硬编码 |
-| #24 | 已修 | `src/data/concepts.ts` 导出 `conceptById`，页面和 Profile 派生逻辑复用 |
-| #25 | 已修 | HomePage 主按钮 hover 改用 `--color-primary-hover` |
-| #28 | 已修 | DecisionGuideSection 正/反场景边框改用 progress/warning token |
-| #34 | 已修 | `progressCore.ts` 注释明确轻量持久化边界，Profile 派生留在 `progress.ts` |
-| #35 | 已修 | `completeScenario` 注释明确“提交诊断即完成并加入复盘”的产品契约 |
-| #48 | 已修 | SearchPage `Esc` 关闭搜索：有站内历史则返回，直接打开则回首页 |
+| #11 | 已关闭 | 在 `tokens.css` 增加 `--anim-canvas-*` 系列 token，动画 CSS 改为消费 token；不改视觉布局 |
+| #63 | 已关闭 | Glossary 对无同名知识点术语展示“术语索引项”，并把 `relatedConceptIds[0]` 显示为“主关联讲” |
+| #21/#22 | 已关闭 | Scenario/Profile 状态色已走 token，本轮回归确认无新增硬编码 |
+| #24 | 已关闭 | `src/data/concepts.ts` 导出 `conceptById`，页面和 Profile 派生逻辑复用 |
+| #25 | 已关闭 | HomePage 主按钮 hover 改用 `--color-primary-hover` |
+| #28 | 已关闭 | DecisionGuideSection 正/反场景边框改用 progress/warning token |
+| #34 | 已关闭 | `progressCore.ts` 注释明确轻量持久化边界，Profile 派生留在 `progress.ts` |
+| #35 | 已关闭 | `completeScenario` 注释明确“提交诊断即完成并加入复盘”的产品契约 |
+| #48 | 已关闭 | SearchPage `Esc` 关闭搜索：有站内历史则返回，直接打开则回首页 |
 
 ## 3. 子 Agent 结论
 
