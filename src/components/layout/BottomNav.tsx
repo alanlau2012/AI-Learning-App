@@ -3,19 +3,13 @@
  * 仅移动端可见（≤960px）：首页 / 场景 / 搜索 / 我的。
  */
 import { NavLink } from 'react-router-dom';
+import { primaryNavItems } from './navItems';
 import styles from './BottomNav.module.css';
-
-const ITEMS = [
-  { to: '/', label: '首页', end: true },
-  { to: '/scenarios', label: '场景', end: false },
-  { to: '/search', label: '搜索', end: false },
-  { to: '/profile', label: '我的', end: false },
-];
 
 export function BottomNav() {
   return (
     <nav className={styles.bottomNav} aria-label="主导航">
-      {ITEMS.map((item) => (
+      {primaryNavItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}

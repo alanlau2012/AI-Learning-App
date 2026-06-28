@@ -5,13 +5,13 @@
 }
 
 .ok {
-  border-color: rgba(46, 125, 88, 0.55);
+  border-color: var(--color-progress-border);
   background: var(--color-progress-soft);
 }
 
 .warn {
-  border-color: rgba(232, 148, 58, 0.6);
-  background: #fff5e8;
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-soft);
 }
 
 .panel strong {

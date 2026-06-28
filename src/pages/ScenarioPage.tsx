@@ -94,6 +94,9 @@ export function ScenarioPage() {
   };
 
   const resetScenario = () => {
+    if (!window.confirm('恢复基线会清空当前策略调整，是否继续？')) {
+      return;
+    }
     setSelectedStrategies(initializeScenarioState(exercise).selectedStrategies);
     setShowReview(false);
   };
@@ -230,6 +233,7 @@ export function ScenarioPage() {
                         key={option.id}
                         type="button"
                         className={active ? `${styles.optionButton} ${styles.optionActive}` : styles.optionButton}
+                        aria-pressed={active}
                         onClick={() => changeStrategy(control.id, option.id)}
                       >
                         <strong>{option.label}</strong>

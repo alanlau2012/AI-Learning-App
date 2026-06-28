@@ -705,8 +705,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "diagnosticQuestion": {
       "id": "q-ttft-1",
       "type": "multiple",
-      "scenario": "某 MaaS 平台高峰期 TTFT 从 800ms 上升到 4s。TPOT 基本稳定，错误率未升高，但队列长度、RAG 检索耗时和 KV Cache 未命中率都上升。",
-      "question": "以下哪些排查方向是合理的？",
+      "scenario": "办公助手新版本上线后，P95 TTFT 从 800ms 升到 4s，总输出长度和 TPOT 基本稳定。链路看板显示网关排队变长，RAG 检索 P95 波动增大，KV Cache 命中率从 62% 降到 28%；同时 GPU 利用率也升高，但没有 OOM 或实例错误。",
+      "question": "以下哪些排查方向是合理的？（多选）",
       "options": [
         {
           "id": "a",
@@ -722,7 +722,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "只优化 Decode 阶段 TPOT，因为流式输出速度决定首字时延"
+          "text": "优先优化 Decode TPOT 和输出长度，因为 GPU 利用率升高"
         }
       ],
       "correctOptionIds": [
@@ -730,7 +730,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         "b",
         "c"
       ],
-      "explanation": "TTFT 是首字前链路指标，受网关排队、模型前处理、Prefill、缓存命中和网络共同影响。题干同时给出队列长度、RAG 检索耗时和 KV Cache 未命中率上升，因此 a/b/c 都是合理排查方向。d 不是最佳判断，因为 TPOT 基本稳定，且 Decode 阶段发生在首字产生之后，只优化 TPOT 不能解释首字前等待增长。",
+      "explanation": "TTFT 是首字前链路指标，受网关排队、模型前处理、Prefill、缓存命中和网络共同影响。A/B/C 都发生在首字前链路，能解释 TTFT 上升。D 是强干扰项：GPU 利用率升高可能提示容量压力，但题干说明 TPOT 和输出长度稳定，且没有 OOM 或实例错误；仅优化 Decode 不能优先解释首字前等待。",
       "troubleshootingPath": [
         "拆分端到端 TTFT 时间段",
         "检查网关排队、限流和路由日志",
@@ -1327,7 +1327,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "建立上下文选择与约束保留机制，把硬约束固定在高优先级上下文中"
+          "text": "建立高优先级约束区，固定硬约束并限制低价值上下文"
         }
       ],
       "correctOptionIds": [
@@ -2001,7 +2001,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
     "pitfalls": [
       "认为只要内容在上下文窗口内，模型就会等价利用。",
       "把关键约束、用户输入、RAG 片段和工具结果随意拼接。",
-      "只测试短输入，不测试长输入和多轮对话后的规则命中率。"
+      "只测试短输入，不测试长输入和多轮对话后的规则命中率。",
+      "假设模型在标称窗口内所有位置表现一致，忽略长上下文外推和位置偏置带来的质量波动。"
     ],
     "diagnosticQuestion": {
       "id": "q-positional-encoding-1",
@@ -2323,8 +2324,8 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "options": [
         { "id": "a", "text": "换成参数更大的模型，提升复杂推理能力" },
         { "id": "b", "text": "把所有财务制度全文加入系统提示词" },
-        { "id": "c", "text": "要求模型在答案里展示更完整的思考过程" },
-        { "id": "d", "text": "把任务拆成口径确认、取数、公式校验、结论生成，并对高风险差异加人审" }
+        { "id": "c", "text": "要求模型多轮自检并展示完整思考过程、公式推导和数据来源" },
+        { "id": "d", "text": "拆成取数、公式校验和结论复核，高风险差异加人审" }
       ],
       "correctOptionIds": ["d"],
       "explanation": "D 把一次性生成变成可验证流程，直接覆盖口径混用和缺校验问题。A 是强干扰项，更大模型可能改善部分推理，但不能保证口径和公式被验证。B 会增加上下文负担，仍可能混用。C 展示过程不等于外部验证，甚至可能把错误解释得更像真的。",
@@ -2775,21 +2776,21 @@ const rawDemoConcepts: KnowledgePoint[] = [
                                                    },
                                                    {
                                                        "id":  "b",
-                                                       "text":  "先给所有应用换成最大模型"
+                                                        "text":  "先要求各业务 SDK 统一埋点，并冻结新增直连路径"
                                                    },
                                                    {
                                                        "id":  "c",
-                                                       "text":  "让每个业务自己补充日志字段"
+                                                        "text":  "先按部门补齐账单标签，月底再汇总外部 API 成本"
                                                    },
                                                    {
                                                        "id":  "d",
-                                                       "text":  "先扩大 GPU 集群，避免业务抱怨"
+                                                        "text":  "先建设模型目录页面，让业务自行选择供应商和版本"
                                                    }
                                                ],
                                    "correctOptionIds":  [
                                                             "a"
                                                         ],
-                                   "explanation":  "A 先建立平台控制面，能同时处理接入、计量和审计。B 和 D 只是扩大模型或资源，不解决治理。C 有帮助但仍是分散补丁，无法形成统一模型目录和成本归属。",
+                                    "explanation":  "A 是第一步，因为问题根因是生产调用入口分散，平台无法统一执行鉴权、计量、审计和模型目录治理。B 是强干扰项，SDK 埋点和冻结新增直连可作为迁移期措施，但既有直连仍会绕过控制面。C 只能改善财务归因，不能处理权限和审计。D 有助于透明化模型能力，但若没有统一入口，选择权会继续分散治理责任。",
                                    "troubleshootingPath":  [
                                                                "梳理接入应用、模型来源和直连路径",
                                                                "收敛到统一 MaaS 入口",
@@ -2921,7 +2922,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
                                    "options":  [
                                                    {
                                                        "id":  "a",
-                                                       "text":  "立刻全量切换低成本模型"
+                                                        "text":  "先按固定比例把 30% 低风险流量灰度到低成本模型"
                                                    },
                                                    {
                                                        "id":  "b",
@@ -2929,17 +2930,17 @@ const rawDemoConcepts: KnowledgePoint[] = [
                                                    },
                                                    {
                                                        "id":  "c",
-                                                       "text":  "只提高缓存时间，避免模型调用"
+                                                        "text":  "先把重复请求接入缓存，并只观察账单是否下降"
                                                    },
                                                    {
                                                        "id":  "d",
-                                                       "text":  "先购买更多低价模型额度"
+                                                        "text":  "先扩大低价模型额度，再根据投诉率回滚高风险任务"
                                                    }
                                                ],
                                    "correctOptionIds":  [
                                                             "b"
                                                         ],
-                                   "explanation":  "B 先确定质量底线和可降级范围。A 和 D 是强干扰项，看似能省钱，但会带来质量和 SLA 风险。C 只能处理重复请求，不解决模型选择策略。",
+                                    "explanation":  "B 是第一步，因为成本路由必须先知道任务价值、质量底线和可降级范围。A 有灰度意识，但没有评测基线和不可降级清单，可能把高风险样本混入低成本路径。C 能降低重复调用成本，但不能判断模型降级是否伤害质量。D 只扩额度和事后看投诉，会把质量风险推到线上。",
                                    "troubleshootingPath":  [
                                                                "按任务、团队和 Token 消耗拆账单",
                                                                "建立回放评测集和质量底线",
@@ -3377,25 +3378,25 @@ const rawDemoConcepts: KnowledgePoint[] = [
                                    "options":  [
                                                    {
                                                        "id":  "a",
-                                                       "text":  "只把可用性目标从 99.5% 提高到 99.9%"
+                                                        "text":  "提高接口可用性目标，并新增 P95 首字告警"
                                                    },
                                                    {
                                                        "id":  "b",
-                                                       "text":  "把所有请求都切到旗舰模型"
+                                                        "text":  "把高风险合同切到旗舰模型，并保留原 SLA 口径"
                                                    },
                                                    {
                                                        "id":  "c",
-                                                       "text":  "在 SLA 中加入关键链路延迟、质量抽检指标、降级/人工复核策略和事故复盘"
+                                                        "text":  "补充链路延迟、质量抽检、降级和复盘口径"
                                                    },
                                                    {
                                                        "id":  "d",
-                                                       "text":  "关闭 trace，减少日志成本"
+                                                        "text":  "把漏检投诉纳入人工复核，但暂不拆链路指标"
                                                    }
                                                ],
                                    "correctOptionIds":  [
                                                             "c"
                                                         ],
-                                   "explanation":  "C 覆盖体验和质量两个缺口。A 只提高 HTTP 目标，不能解决漏检和首字变慢。B 是强干扰项，可能增慢且不保证质量。D 会削弱排查和复盘能力。",
+                                    "explanation":  "C 覆盖当前 SLA 缺失的体验延迟、业务质量、降级和复盘闭环。A 补了延迟但仍只在技术可用性附近打转，不能处理漏检质量。B 可能缓解部分质量问题，但不定义质量指标和降级边界。D 能止血高风险投诉，但缺少链路拆分，无法解释 P95 首字上升。",
                                    "troubleshootingPath":  [
                                                                "拆分技术成功率、TTFT/P99 和质量指标",
                                                                "定义业务等级和任务成功标准",
@@ -4080,7 +4081,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
   ],
   "contentStatus": "mvp",
   "hasAnimation": false,
-  "definition": "AGENTS.md 是写给 Agent 运行环境的项目级操作手册，用来固定业务边界、角色权限、可调用工具、验证命令和升级条件；在代码仓库中它表现为仓库说明，在业务 Agent 平台中也可以是同类运行规程。",
+  "definition": "AGENTS.md 是写给 Agent 运行环境的项目级操作手册，用来固定业务边界、角色权限、工具范围、验证命令和升级条件。",
   "whyItMatters": "Agent 不会自动知道组织里的隐性协作规则。没有类似 AGENTS.md 的操作手册，后续执行者可能读错权威文档、调用错工具、绕过审批流程，或者把草稿内容直接写入生产系统。",
   "mentalModel": "把 AGENTS.md 看成进入工地前必须看的施工牌：它不替代图纸，但告诉每个角色能进哪片区域、先读哪份图纸、完工前必须验收什么。",
   "mechanism": [
@@ -4220,7 +4221,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       },
       {
         "id": "d",
-        "text": "先建立任务上下文包，覆盖权威规则、覆盖链、变更史和验收命令"
+        "text": "先建任务上下文包，覆盖权威规则、覆盖链、变更史和验收命令"
       }
     ],
     "correctOptionIds": [
@@ -4693,7 +4694,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "b",
-          "text": "重新评估任务是否真的需要多 Agent，把强依赖的子任务收敛回单 Agent"
+          "text": "先评估是否适合拆分，强依赖子任务收敛回单 Agent"
         },
         {
           "id": "c",
@@ -4794,7 +4795,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "c",
-          "text": "规则集的阻断等级与模块基线是否合理，误报是否来自提示级被当成阻断"
+          "text": "复核阻断等级和模块基线，先降低误报阻断"
         },
         {
           "id": "d",
@@ -4883,7 +4884,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "options": [
         {
           "id": "a",
-          "text": "先要求 Agent 在拆解前输出澄清问题，并为每个子任务强制带验收标准"
+          "text": "拆解前补澄清问题，并给每个子任务写验收标准"
         },
         {
           "id": "b",
@@ -4980,7 +4981,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "options": [
         {
           "id": "a",
-          "text": "继续提高覆盖率到 95% 以上"
+          "text": "继续提高覆盖率到 95% 以上，并扩大生成范围"
         },
         {
           "id": "b",
@@ -4992,7 +4993,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "把目标从覆盖率改为缺陷捕获率，并用变异测试剔除恒真断言"
+          "text": "改看缺陷捕获率，并用变异测试剔除空断言"
         }
       ],
       "correctOptionIds": [
@@ -5081,7 +5082,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "b",
-          "text": "收回自动写权限，让 Agent 默认只读、只给假设，高风险处置走人工审批"
+          "text": "收回自动写权限，高风险处置转人工审批"
         },
         {
           "id": "c",
@@ -5182,7 +5183,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "c",
-          "text": "把衡量指标从生成量改为采纳率、返工率和单位价值成本，并据此收缩低价值场景"
+          "text": "把指标改为采纳率、返工率和单位价值成本"
         },
         {
           "id": "d",
@@ -5271,7 +5272,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "options": [
         {
           "id": "a",
-          "text": "先建覆盖典型与边界场景的评测集，把改动前回归作为上线前置条件"
+          "text": "先建覆盖典型和边界场景的评测集"
         },
         {
           "id": "b",
@@ -5773,25 +5774,25 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "options": [
         {
           "id": "a",
-          "text": "收敛到最小权限默认只读，高风险写或删动作走人工审批并接入完整审计日志"
+          "text": "先收敛到最小权限，高风险写动作走人工审批"
         },
         {
           "id": "b",
-          "text": "提高模型的安全对齐能力以抵抗注入"
+          "text": "先在提示词中加入防注入规则并收紧工具描述"
         },
         {
           "id": "c",
-          "text": "增加 Agent 可访问的数据表以提升分析能力"
+          "text": "先按表级权限分组，保留生产库写权限方便自动修复"
         },
         {
           "id": "d",
-          "text": "给 Agent 增加一次自我确认的提示步骤"
+          "text": "先补全操作日志，再观察是否仍有越权动作"
         }
       ],
       "correctOptionIds": [
         "a"
       ],
-      "explanation": "A 是第一步：根因是权限过大且无审批与审计，必须先收敛权限、加审批边界和留痕。B 安全对齐有帮助但抵不住权限本身过大。C 方向相反。D 让 Agent 自我确认无法替代真正的权限边界和人工审批。",
+      "explanation": "A 是第一步，因为事故根因是权限过大且高风险写动作没有强边界。B 是必要但不充分的模型侧防护，抵不住运行时权限过宽。C 有权限分组意识，但保留生产写权限会继续扩大爆炸半径。D 能改善追责，但先留痕后治理会让下一次误操作仍可发生。",
       "troubleshootingPath": [
         "收敛 Agent 到最小权限默认只读",
         "高风险动作设人工审批",
@@ -5882,7 +5883,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "重新设计人机分工与责任归属，让人上移到验收、方向和高风险判断"
+          "text": "重划人机责任，让人负责验收、方向和风险判断"
         }
       ],
       "correctOptionIds": [

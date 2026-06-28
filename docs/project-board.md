@@ -3,15 +3,15 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-28 · 维护人：主开发 Agent（Scenario Library R2 封板）
+**最后更新时间**：2026-06-28 · 维护人：主开发 Agent（GitHub issue Stabilization R0 第一批修复）
 
 ## 1. 当前里程碑
 
-- **当前阶段**：**Scenario Library R2 已封板 / Web 可发布、桌面可内部试用分发**。56 讲全部 `contentRevision: v2`；已完成 17 条决策手册、56 讲能力域映射、4 条角色路径、ConceptPage 工程决策章节、Profile 能力概览/本周建议/场景复盘、Search/Glossary 能力域联动，以及场景演练库 R0+R1+R2。
+- **当前阶段**：**Scenario Library R2 已封板 / Production Readiness 已收口 / GitHub issue Stabilization R0 第一批修复完成**。56 讲全部 `contentRevision: v2`；已完成 17 条决策手册、56 讲能力域映射、4 条角色路径、ConceptPage 工程决策章节、Profile 能力概览/本周建议/场景复盘、Search/Glossary 能力域联动，以及场景演练库 R0+R1+R2。
 - **当前上线内容**：**56 / 56 讲**；剩余 `stub`：**0**。地图无 stub。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`（全部满额）。
-- **验证**：最新 Scenario Library R2 验证以 `reports/scenario-library-r2-summary-20260628.md`、`reports/scenario-library-r2-browser-qa-20260628.md`、`reports/scenario-library-r2-ux-qa-20260628.md`、`reports/scenario-library-r2-performance-20260628.md`、`reports/scenario-library-r2-release-gate-20260628.md` 为准；生产化验证以 `reports/release-readiness-20260628.md`、`reports/browser-regression-20260628.md`、`reports/security-readiness-20260628.md`、`reports/performance-budget-20260628.md`、`reports/desktop-release-20260628.md` 为准；历史 Phase 1/2/3 与场景库报告见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md`、`reports/scenario-library-r1-summary.md`。
-- **下一轮建议（均需 Owner 确认）**：场景演练 R3（`multi-agent-stuck`、目录排序/搜索、更多入口露出完成状态）、完整 PWA 离线能力、桌面版图标/代码签名/自动更新、内容 P2/P3。
+- **验证**：最新 Scenario Library R2 验证以 `reports/scenario-library-r2-summary-20260628.md`、`reports/scenario-library-r2-browser-qa-20260628.md`、`reports/scenario-library-r2-ux-qa-20260628.md`、`reports/scenario-library-r2-performance-20260628.md`、`reports/scenario-library-r2-release-gate-20260628.md` 为准；生产化验证以 `reports/release-readiness-20260628.md`、`reports/browser-regression-20260628.md`、`reports/security-readiness-20260628.md`、`reports/performance-budget-20260628.md`、`reports/desktop-release-20260628.md` 为准；GitHub issue Stabilization R0 以 `reports/github-issues-triage-20260628.md`、`reports/stabilization-r0-summary-20260628.md`、`reports/stabilization-r0-browser-regression-20260628.md`、`reports/stabilization-r0-ux-implementation-checklist-20260628.md` 为准；历史 Phase 1/2/3 与场景库报告见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md`、`reports/scenario-library-r1-summary.md`。
+- **下一轮建议（均需 Owner 确认）**：Stabilization R1（继续处理 GitHub 剩余 P1/P2，重点确认 #11 和 #63 的产品取舍）、场景演练 R3（`multi-agent-stuck`、目录排序/搜索、更多入口露出完成状态）、完整 PWA 离线能力、桌面版图标/代码签名/自动更新、内容 P2/P3。
 - 后续内容（如样板回改）仍走流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
 ## 2. 阶段任务板
@@ -29,6 +29,7 @@
 | Scenario Library R2 | `/scenarios` 目录页、五场景闭环、Profile 场景复盘、LocalStorage v2 迁移、`agent-tool-failure` / `trace-not-diagnostic` 入库 | 多 Agent 编队 → 主开发合入 | done | `validate:content` / `typecheck` / `lint` / `build` + browser regression PASS | 见 `reports/scenario-library-r2-summary-20260628.md` |
 | 2026-06-28 Content P1 Repair | 关闭内容专业审核 6 个 P1：Session Affinity、RAG 权限边界、Trace/路由记录、租户缓存隔离、诊断题形态泄漏 | 内容生产子 Agent → 主审 Agent | done | `validate:content` / `typecheck` / `git diff --check` PASS | 见 `reports/content-p1-repair-review-20260628.md` |
 | Production Readiness | 发布卫生、CSP、Electron 外链 allowlist、首包拆分、Web/桌面验证、release readiness 报告 | 主开发 Agent + 专项 Agent | done | 五项命令 + browser regression + desktop build/smoke PASS | 见 `reports/release-readiness-20260628.md` |
+| GitHub issue Stabilization R0 | 拉取 61 个 GitHub open issues，关闭已验证重复/已修复项，修复第一批 P0/P1 内容、导航、可访问性与场景 UX 问题 | 总控 Agent + 内容/审核/UX Agent | done | `validate:content` / `typecheck` / `lint` / `build` + browser regression PASS | #11/#63 暂缓至 R1，见 `reports/stabilization-r0-summary-20260628.md` |
 
 ## 3. 内容生产流水线（draft → review → 入库）
 

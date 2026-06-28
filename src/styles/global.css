@@ -34,6 +34,11 @@ body {
   background: #dfe3fb;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
 /* 标题：serif，教材感 */
 h1,
 h2,

@@ -69,7 +69,7 @@
 }
 
 .headerMeta strong {
-  font-family: var(--font-serif);
+  font-family: var(--font-mono);
   font-size: 27px;
   line-height: 1;
   color: var(--color-primary);
@@ -130,13 +130,13 @@
 }
 
 .metricCard.better {
-  border-color: #bed8ca;
+  border-color: var(--color-progress-border);
   background: var(--color-progress-soft);
 }
 
 .metricCard.worse {
-  border-color: #f1d0a8;
-  background: #fff7ea;
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-soft);
 }
 
 .workspace {
@@ -294,7 +294,8 @@
 }
 
 .optionActive {
-  box-shadow: inset 0 0 0 1px var(--color-primary);
+  border-color: var(--color-primary);
+  border-width: 2px;
 }
 
 .actions {
@@ -316,7 +317,7 @@
 .primary {
   border: 1px solid transparent;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .secondary {

@@ -59,6 +59,7 @@ export function ScenariosPage() {
         <button
           type="button"
           className={selectedDomain === 'all' ? styles.activeFilter : undefined}
+          aria-pressed={selectedDomain === 'all'}
           onClick={() => setSelectedDomain('all')}
         >
           全部
@@ -68,6 +69,7 @@ export function ScenariosPage() {
             key={domain}
             type="button"
             className={selectedDomain === domain ? styles.activeFilter : undefined}
+            aria-pressed={selectedDomain === domain}
             onClick={() => setSelectedDomain(domain)}
           >
             {label}
@@ -76,6 +78,15 @@ export function ScenariosPage() {
       </section>
 
       <section className={styles.grid} aria-label="场景列表">
+        {visibleScenarios.length === 0 && (
+          <div className={styles.emptyState}>
+            <h2>暂无匹配场景</h2>
+            <p>当前能力域还没有对应的场景演练，可以先查看全部场景。</p>
+            <button type="button" onClick={() => setSelectedDomain('all')}>
+              清除筛选
+            </button>
+          </div>
+        )}
         {visibleScenarios.map((scenario) => {
           const completed = completedSet.has(scenario.id);
           const inReview = reviewSet.has(scenario.id);

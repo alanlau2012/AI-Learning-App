@@ -19,15 +19,21 @@
 
   /* 主色：操作 / 选中 / 章节编号 / 关键强调 */
   --color-primary: #1f40d8;
+  --color-primary-hover: #1838b8;
   --color-primary-soft: #ebeefe;
   --color-primary-border: #c9d2fb;
+  --color-on-primary: #ffffff;
 
   /* 进度 / 完成 */
   --color-progress: #2e7d58;
   --color-progress-soft: #e8f2ec;
+  --color-progress-border: #bed8ca;
 
   /* 告警（克制使用） */
   --color-warning: #e8943a;
+  --color-warning-soft: #fff5e8;
+  --color-warning-border: #f1d0a8;
+  --color-warning-text: #9a520f;
 
   /* 字体：标题 serif / 正文 sans / 序号与指标 mono */
   --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
