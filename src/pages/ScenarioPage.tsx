@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { conceptById } from '../data/concepts';
 import { scenarioExerciseById } from '../data/scenarioExercises';
@@ -43,6 +43,7 @@ export function ScenarioPage() {
   const exercise = scenarioId ? scenarioExerciseById[scenarioId] : undefined;
   const [selectedStrategies, setSelectedStrategies] = useState<Record<string, string>>({});
   const [showReview, setShowReview] = useState(false);
+  const reviewPanelRef = useRef<HTMLElement | null>(null);
   const completedScenarioIds = useProgressStore((s) => s.completedScenarioIds);
   const reviewScenarioIds = useProgressStore((s) => s.reviewScenarioIds);
   const completeScenario = useProgressStore((s) => s.completeScenario);
@@ -72,6 +73,12 @@ export function ScenarioPage() {
   useEffect(() => {
     if (exercise) recordScenarioVisit(exercise.id);
   }, [exercise, recordScenarioVisit]);
+
+  useEffect(() => {
+    if (showReview) {
+      reviewPanelRef.current?.focus();
+    }
+  }, [showReview]);
 
   if (!exercise || !result || !review) {
     return (
@@ -272,7 +279,12 @@ export function ScenarioPage() {
           </section>
 
           {showReview && (
-            <section className={`${styles.panel} ${styles.reviewPanel}`}>
+            <section
+              ref={reviewPanelRef}
+              className={`${styles.panel} ${styles.reviewPanel}`}
+              tabIndex={-1}
+              aria-live="polite"
+            >
               <div className={styles.panelHeading}>
                 <h2>复盘结论</h2>
                 {review.event && <span>{review.event.title}</span>}

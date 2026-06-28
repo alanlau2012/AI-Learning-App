@@ -63,6 +63,16 @@ export function ProfilePage() {
     { wrongQuestionIds, favoriteConceptIds, lastVisitedConceptId },
     domainScores,
   );
+  const confirmRemoveReviewConcept = (conceptId: string) => {
+    if (window.confirm('确定从本周复盘移除这个知识点吗？')) {
+      removeReviewConcept(conceptId);
+    }
+  };
+  const confirmRemoveReviewScenario = (scenarioId: string) => {
+    if (window.confirm('确定从场景复盘队列移除这个场景吗？')) {
+      removeReviewScenario(scenarioId);
+    }
+  };
 
   const lastVisited = lastVisitedConceptId ? conceptById.get(lastVisitedConceptId) : undefined;
   const favorites = favoriteConceptIds
@@ -190,7 +200,7 @@ export function ProfilePage() {
                   <Link to={`/scenarios/${scenario.id}`} className={styles.inlineLink}>
                     复盘场景
                   </Link>
-                  <button type="button" onClick={() => removeReviewScenario(scenario.id)}>
+                  <button type="button" onClick={() => confirmRemoveReviewScenario(scenario.id)}>
                     移除
                   </button>
                 </div>
@@ -210,7 +220,7 @@ export function ProfilePage() {
                   <Link to={`/concepts/${concept.slug}`} className={styles.inlineLink}>
                     复盘
                   </Link>
-                  <button type="button" onClick={() => removeReviewConcept(concept.id)}>
+                  <button type="button" onClick={() => confirmRemoveReviewConcept(concept.id)}>
                     移除
                   </button>
                 </div>

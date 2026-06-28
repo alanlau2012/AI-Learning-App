@@ -125,7 +125,9 @@ export function getFirstPublishedConceptIdByModule(moduleId: string): string | u
   return module?.conceptIds.find((id) => publishedConceptIdSet.has(id));
 }
 
-export function getContinueLearningConceptId(progress: UserProgress): string {
+type ContinueLearningProgress = Pick<UserProgress, 'completedConceptIds' | 'lastVisitedConceptId'>;
+
+export function getContinueLearningConceptId(progress: ContinueLearningProgress): string {
   if (
     progress.lastVisitedConceptId &&
     publishedConceptIdSet.has(progress.lastVisitedConceptId)

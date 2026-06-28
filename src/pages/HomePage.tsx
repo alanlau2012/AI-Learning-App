@@ -35,13 +35,7 @@ export function HomePage() {
   const completedSet = new Set(completedConceptIds);
   const continueId = getContinueLearningConceptId({
     completedConceptIds,
-    completedScenarioIds: [],
-    favoriteConceptIds,
-    wrongQuestionIds: [],
-    reviewConceptIds: [],
-    reviewScenarioIds: [],
     lastVisitedConceptId,
-    studyStreakDays,
   });
   const continueConceptTitle = conceptTitleById[continueId];
 

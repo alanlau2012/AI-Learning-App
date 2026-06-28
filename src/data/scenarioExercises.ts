@@ -469,8 +469,7 @@ export const scenarioExercises: ScenarioExercise[] = [
       ],
       nextStepRecommendations: [
         '把这次诊断结果回链到 multi-model-routing、cost-routing 和 capability-routing 三讲复盘。',
-        '后续 DEV-06 用纯函数实现这些策略组合的指标模拟。',
-        '后续 DEV-07/08 在 UI 中展示指标变化解释和复盘路径。',
+        '用同一批失败样本复验路由策略、指标解释和复盘路径。',
       ],
     },
   },

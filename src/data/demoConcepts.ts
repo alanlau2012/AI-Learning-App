@@ -2139,7 +2139,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "scenario": "合同摘要服务同一输入重复运行 5 次，条款排序和风险描述差异很大。业务要求摘要可审计、可复现。当前 temperature=0.9，并且没有强制引用条款编号。",
       "question": "第一步最合理的处理是什么？",
       "options": [
-        { "id": "a", "text": "将高风险摘要任务切到低随机采样，并固定输出 schema 与引用要求" },
+        { "id": "a", "text": "将高风险摘要任务切到低 temperature/top-p 采样，并固定输出 schema 与引用要求" },
         { "id": "b", "text": "增加候选摘要数量，让用户从 5 个版本里选择最好的" },
         { "id": "c", "text": "扩大 top-p，让模型覆盖更多可能表达" },
         { "id": "d", "text": "保持参数不变，只在页面提示“AI 结果仅供参考”" }
@@ -5685,7 +5685,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "c",
-          "text": "按场景算 ROI，高价值保质、低价值压缩"
+          "text": "先按场景拆 Token 成本、采纳率和返工率，再收缩负 ROI 场景"
         },
         {
           "id": "d",
@@ -5695,7 +5695,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "correctOptionIds": [
         "c"
       ],
-      "explanation": "C 是正解：问题是用全局压缩取代了按场景的价值判断。A 继续全局压缩会加重高价值场景损失。B 全换回大模型又回到不看成本的另一极端。D 统一加长上下文同样无视场景差异且推高成本。",
+      "explanation": "C 是正解：问题是用全局压缩取代了按场景的价值判断，需要把 Token 成本、采纳率、返工率放到同一张 ROI 表里。A 继续全局压缩会加重高价值场景损失。B 全换回大模型又回到不看成本的另一极端。D 统一加长上下文同样无视场景差异且推高成本。",
       "troubleshootingPath": [
         "按场景统计单位任务 Token 成本",
         "把成本对齐到可量化价值",
@@ -5883,7 +5883,7 @@ const rawDemoConcepts: KnowledgePoint[] = [
         },
         {
           "id": "d",
-          "text": "重划人机责任，让人负责验收、方向和风险判断"
+          "text": "重划人机 RACI，让人负责验收、方向、审批和风险判断"
         }
       ],
       "correctOptionIds": [
@@ -5892,8 +5892,9 @@ const rawDemoConcepts: KnowledgePoint[] = [
       "explanation": "D 是正解：问题是引入工具却没调整组织阵型。A 在阵型未理顺时扩大采纳会加重责任真空。B 回退放弃了已有价值。C 让资深人员继续做低价值复核，正是要纠正的错配。",
       "troubleshootingPath": [
         "区分可自动化执行与人负责的判断",
-        "把人的角色上移到验收与方向",
-        "明确每类产出的责任归属",
+        "为关键 Agent 流程写 RACI 与操作手册",
+        "把人的角色上移到验收、方向、审批和风险判断",
+        "明确每类产出的责任归属和事故兜底人",
         "用评测与复盘支撑组织决策",
         "随能力变化持续调整分工"
       ],

@@ -55,9 +55,12 @@ export const rolePaths: RolePath[] = [
       'maas',
       'model-gateway',
       'multi-model-routing',
+      'cost-routing',
+      'capability-routing',
       'cache-system',
       'rate-limit-circuit-break',
       'sla',
+      'trace',
       'observability',
     ],
     phases: [
@@ -70,13 +73,13 @@ export const rolePaths: RolePath[] = [
       {
         id: 'platform-routing',
         title: '平台路由',
-        conceptIds: ['session-affinity', 'maas', 'model-gateway', 'multi-model-routing', 'cache-system'],
+        conceptIds: ['session-affinity', 'maas', 'model-gateway', 'multi-model-routing', 'cost-routing', 'capability-routing', 'cache-system'],
         outcome: '能设计可解释的企业模型网关。',
       },
       {
         id: 'stability',
         title: '稳定性',
-        conceptIds: ['rate-limit-circuit-break', 'sla', 'observability'],
+        conceptIds: ['rate-limit-circuit-break', 'sla', 'trace', 'observability'],
         outcome: '能建立平台运行期保护和观测。',
       },
     ],
@@ -98,6 +101,8 @@ export const rolePaths: RolePath[] = [
       'human-in-the-loop',
       'multi-agent',
       'eval',
+      'trace',
+      'permission-governance',
     ],
     phases: [
       {
@@ -122,8 +127,8 @@ export const rolePaths: RolePath[] = [
       {
         id: 'quality-validation',
         title: '质量验证',
-        conceptIds: ['eval'],
-        outcome: '能为应用方案设计基本评估口径。',
+        conceptIds: ['eval', 'trace', 'permission-governance'],
+        outcome: '能为应用方案设计基本评估口径、链路证据和权限边界。',
       },
     ],
   },
