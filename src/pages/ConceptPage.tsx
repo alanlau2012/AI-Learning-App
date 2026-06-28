@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { concepts } from '../data/concepts';
+import { conceptById, concepts } from '../data/concepts';
 import { getHyperframeMaterialsForConcept } from '../data/hyperframes';
 import { modules } from '../data/modules';
 import { scenarioExercises } from '../data/scenarioExercises';
@@ -17,7 +17,6 @@ import { useProgressStore } from '../store/progressStore';
 import { isPublishedConcept } from '../utils/progress';
 import styles from './ConceptPage.module.css';
 
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 const orderedPublishedConcepts = modules
   .flatMap((module) => module.conceptIds)
   .map((id) => conceptById.get(id))

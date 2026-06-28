@@ -7,6 +7,8 @@
 import type { KnowledgePoint, UserProgress } from '../types';
 import { modules } from '../data/modules';
 
+// Keep this file lightweight: layout shell and HomePage import it without pulling
+// full lesson/scenario data. Profile-only derived calculations live in progress.ts.
 export const PROGRESS_STORAGE_KEY = 'ai-learning-app-progress-v1';
 export const CURRENT_PROGRESS_VERSION = 2;
 

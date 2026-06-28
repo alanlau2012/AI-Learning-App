@@ -6,15 +6,13 @@
  */
 import type { CapabilityDomain, KnowledgePoint, RolePath, UserProgress } from '../types';
 import { capabilityDomainLabels } from '../data/capabilityDomains';
-import { concepts } from '../data/concepts';
+import { conceptById, concepts } from '../data/concepts';
 import { rolePaths } from '../data/rolePaths';
 import { scenarioExercises } from '../data/scenarioExercises';
 import {
   isPublishedConcept,
   orderedPublishedConceptIds,
 } from './progressCore';
-
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 export {
   isPublishedConcept,

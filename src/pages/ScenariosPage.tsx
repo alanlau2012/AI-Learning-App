@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { capabilityDomainLabels } from '../data/capabilityDomains';
-import { concepts } from '../data/concepts';
+import { conceptById } from '../data/concepts';
 import { scenarioExercises } from '../data/scenarioExercises';
 import { useProgressStore } from '../store/progressStore';
 import type { CapabilityDomain } from '../types';
 import styles from './ScenariosPage.module.css';
-
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 const difficultyLabels = {
   basic: '基础',

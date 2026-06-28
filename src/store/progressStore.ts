@@ -74,6 +74,8 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
   completeScenario: (scenarioId) => {
     if (get().completedScenarioIds.includes(scenarioId)) return;
     const completedScenarioIds = [...get().completedScenarioIds, scenarioId];
+    // Product contract: submitting a scenario diagnosis marks it complete and
+    // queues the scenario for later review; repeated submits remain idempotent.
     const reviewScenarioIds = get().reviewScenarioIds.includes(scenarioId)
       ? get().reviewScenarioIds
       : [...get().reviewScenarioIds, scenarioId];

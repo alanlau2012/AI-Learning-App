@@ -355,6 +355,7 @@ export interface ScenarioReviewRubric {
 - `KnowledgePoint.capabilityDomains`：Phase 1 起正式导出的 56 个 Concept 均必填；`primary` 必须来自 `CapabilityDomain` 枚举；`secondary` 可选，存在时也必须来自枚举且不得等于 `primary`；每讲最多 2 个能力域。
 - `GlossaryTerm.capabilityDomains`：可选；存在时长度为 1–2，值必须来自同一 `CapabilityDomain` 枚举且不得重复。`/glossary` 展示能力域时必须从该字段读取，不得在页面硬编码。
 - `GlossaryTerm.confusedWith`：可选；用于“常被混淆概念 / 易混点”，存在时必须为非空字符串数组。Phase 3 DEV-11 起，至少 10 个核心术语应具备该字段。
+- `GlossaryTerm.id` 不要求与 `KnowledgePoint.id` 同名；无同名知识点时，该术语是“术语索引项”，`relatedConceptIds[0]` 作为主关联讲，其余作为相关知识点。
 - `KnowledgePoint.decisionGuide`：可选；Phase 1 MVP 至少 12 个通过审核的知识点必须具备。存在时内部字段均必填，最低长度如下：`applicableScenarios >= 2`、`nonApplicableScenarios >= 2`、`decisionSignals >= 3`、`tradeoffs >= 3`、`reviewQuestions >= 3`、`implementationChecklist >= 3`。
 - `DecisionScenario.signals`、`ReviewQuestion.goodAnswerSignals` 均至少 1 条非空字符串。
 - `ArchitectureTradeoff.dimension` 只能是 `cost / latency / quality / reliability / observability / security / operability`。
@@ -612,7 +613,7 @@ const kvCache: KnowledgePoint = {
 2. **id / slug 唯一**：全局唯一、kebab-case；首版 `slug === id`。
 3. **moduleId 合法**：∈ `{m1..m6}`；`LearningModule.conceptIds` 与该模块概念集合及 `order` 完全一致。
 4. **order 连续**：每个模块内 `order` 从 1 起连续、唯一。
-5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。Glossary 能力域必须引用合法 `CapabilityDomain`；`confusedWith` 存在时必须是非空字符串数组。
+5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。Glossary 能力域必须引用合法 `CapabilityDomain`；`confusedWith` 存在时必须是非空字符串数组。无同名知识点的术语必须通过 `relatedConceptIds[0]` 提供主关联讲。
 6. **contentStatus 合法**：∈ `{stub, demo, mvp}`。
 7. **诊断题结构**（当存在 `diagnosticQuestion` 时）：`correctOptionIds` ⊆ `options[].id`；`single` 长度为 1、`multiple` ≥ 1；`options.length >= 2`。
 

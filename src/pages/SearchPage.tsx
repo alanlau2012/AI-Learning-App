@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SearchBox } from '../components/search/SearchBox';
 import { capabilityDomainLabels } from '../data/capabilityDomains';
 import { concepts } from '../data/concepts';
@@ -48,6 +48,8 @@ function getDomainBadges(
 }
 
 export function SearchPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<SearchDomainFilter>('all');
   const hasQuery = query.trim().length > 0;
@@ -76,15 +78,12 @@ export function SearchPage() {
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.key !== 'Escape') return;
-      if (query.trim()) {
-        setQuery('');
-        return;
-      }
-      if (selectedDomain !== 'all') setSelectedDomain('all');
+      if (location.key !== 'default') navigate(-1);
+      else navigate('/', { replace: true });
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [query, selectedDomain]);
+  }, [location.key, navigate]);
 
   return (
     <main className={styles.page}>

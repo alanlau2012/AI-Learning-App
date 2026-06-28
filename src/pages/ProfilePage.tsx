@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { ModuleProgress } from '../components/progress/ModuleProgress';
 import { ProgressBar } from '../components/progress/ProgressBar';
 import { StudyStats } from '../components/progress/StudyStats';
-import { concepts } from '../data/concepts';
+import { conceptById, concepts } from '../data/concepts';
 import { modules } from '../data/modules';
-import { scenarioExercises } from '../data/scenarioExercises';
+import { scenarioExerciseById, scenarioExercises } from '../data/scenarioExercises';
 import { useProgressStore } from '../store/progressStore';
 import {
   capabilityDomainProgress,
@@ -16,9 +16,6 @@ import {
   rolePathProgress,
 } from '../utils/progress';
 import styles from './ProfilePage.module.css';
-
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
-const scenarioById = new Map(scenarioExercises.map((scenario) => [scenario.id, scenario]));
 
 const confidenceLabels: Record<string, string> = {
   low: '低',
@@ -78,10 +75,10 @@ export function ProfilePage() {
     .map((id) => conceptById.get(id))
     .filter((concept): concept is (typeof concepts)[number] => Boolean(concept));
   const completedScenarios = completedScenarioIds
-    .map((id) => scenarioById.get(id))
+    .map((id) => scenarioExerciseById[id])
     .filter((scenario): scenario is (typeof scenarioExercises)[number] => Boolean(scenario));
   const reviewScenarios = reviewScenarioIds
-    .map((id) => scenarioById.get(id))
+    .map((id) => scenarioExerciseById[id])
     .filter((scenario): scenario is (typeof scenarioExercises)[number] => Boolean(scenario));
 
   function confirmClearAll() {

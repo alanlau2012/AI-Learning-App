@@ -49,14 +49,14 @@
   border: none;
   border-radius: var(--radius);
   background-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 150ms ease;
 }
 .primaryBtn:hover {
-  background-color: #1838b8;
+  background-color: var(--color-primary-hover);
 }
 .secondaryBtn {
   padding: 11px 16px;

@@ -6,8 +6,8 @@
   margin: 0 auto;
   padding: 20px;
   border-radius: var(--radius-lg);
-  background: #1a1916;
-  color: #f7f3ea;
+  background: var(--anim-canvas-bg);
+  color: var(--anim-canvas-text);
 }
 
 .stage {
@@ -18,19 +18,19 @@
 .label {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .flow {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #4f4c45;
+  color: var(--anim-canvas-text-faint);
   text-align: center;
   transition: color 180ms ease;
 }
 
 .flow.lit {
-  color: #8ea2ff;
+  color: var(--anim-canvas-primary);
 }
 
 /* 1 文本 */
@@ -38,15 +38,15 @@
   align-self: start;
   padding: 8px 12px;
   border-radius: 4px 12px 12px 12px;
-  border: 1px solid rgba(250, 249, 246, 0.18);
-  background: rgba(250, 249, 246, 0.05);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.18);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.05);
   font-size: 13px;
   transition: all 180ms ease;
 }
 
 .textBubble.active {
-  border-color: #8ea2ff;
-  background: rgba(31, 64, 216, 0.28);
+  border-color: var(--anim-canvas-primary);
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.28);
 }
 
 /* 文本被切分/向量化后，原始文字「退场」，强调之后面对的是编号与向量 */
@@ -64,19 +64,19 @@
 .tok {
   height: 22px;
   border-radius: 3px;
-  background: rgba(250, 249, 246, 0.1);
-  border: 1px solid rgba(250, 249, 246, 0.14);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.1);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.14);
   transition: all 180ms ease;
 }
 
 .tok.filled {
-  background: rgba(142, 162, 255, 0.22);
-  border-color: rgba(142, 162, 255, 0.4);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.22);
+  border-color: rgb(var(--anim-canvas-primary-soft-rgb) / 0.4);
 }
 
 .tok.active {
-  background: rgba(31, 64, 216, 0.4);
-  border-color: #8ea2ff;
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.4);
+  border-color: var(--anim-canvas-primary);
 }
 
 /* 3 编号 + 向量 */
@@ -92,19 +92,19 @@
   border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #6f6b62;
-  border: 1px solid rgba(250, 249, 246, 0.12);
+  color: var(--anim-canvas-text-dim);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.12);
   transition: all 180ms ease;
 }
 
 .idChip.filled {
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .idChip.active {
-  color: #c7d0ff;
-  border-color: #8ea2ff;
-  background: rgba(31, 64, 216, 0.18);
+  color: var(--anim-canvas-primary-soft);
+  border-color: var(--anim-canvas-primary);
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.18);
 }
 
 .vecRow {
@@ -116,16 +116,16 @@
   flex: 1;
   height: 14px;
   border-radius: 2px;
-  background: rgba(250, 249, 246, 0.08);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.08);
   transition: background-color 180ms ease;
 }
 
 .vec.filled {
-  background: rgba(142, 162, 255, 0.2);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.2);
 }
 
 .vec.active {
-  background: rgba(142, 162, 255, 0.45);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.45);
 }
 
 /* 4 / 5 指标区 */
@@ -134,7 +134,7 @@
   gap: 6px;
   padding: 10px;
   border-radius: var(--radius);
-  border: 1px solid rgba(250, 249, 246, 0.1);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.1);
   transition: opacity 180ms ease, filter 180ms ease;
 }
 
@@ -154,14 +154,14 @@
   flex: 0 0 64px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .track {
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  background: rgba(250, 249, 246, 0.08);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.08);
   overflow: hidden;
 }
 
@@ -175,30 +175,30 @@
 }
 
 .prefillFill {
-  background: rgba(142, 162, 255, 0.3);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.3);
 }
 
 .prefillFill.active {
   width: 82%;
-  background: #8ea2ff;
+  background: var(--anim-canvas-primary);
 }
 
 .ttftFill {
-  background: rgba(142, 162, 255, 0.3);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.3);
 }
 
 .ttftFill.active {
   width: 72%;
-  background: #8ea2ff;
+  background: var(--anim-canvas-primary);
 }
 
 .costFill {
-  background: rgba(240, 192, 137, 0.3);
+  background: rgb(var(--anim-canvas-warning-soft-rgb) / 0.3);
 }
 
 .costFill.active {
   width: 78%;
-  background: #f0c089;
+  background: var(--anim-canvas-warning-soft);
 }
 
 .outSeq {
@@ -210,12 +210,12 @@
   width: 12px;
   height: 20px;
   border-radius: 3px;
-  background: rgba(250, 249, 246, 0.12);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.12);
   transition: background-color 180ms ease;
 }
 
 .outTok.active {
-  background: rgba(240, 192, 137, 0.6);
+  background: rgb(var(--anim-canvas-warning-soft-rgb) / 0.6);
 }
 
 .reduced * {

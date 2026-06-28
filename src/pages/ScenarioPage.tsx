@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { concepts } from '../data/concepts';
+import { conceptById } from '../data/concepts';
 import { scenarioExerciseById } from '../data/scenarioExercises';
 import { useProgressStore } from '../store/progressStore';
 import {
@@ -11,8 +11,6 @@ import {
 } from '../utils/scenarioSimulation';
 import type { ScenarioMetricTrend } from '../types';
 import styles from './ScenarioPage.module.css';
-
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 const trendLabels: Record<ScenarioMetricTrend, string> = {
   better: '向好',

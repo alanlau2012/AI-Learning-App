@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { capabilityDomainLabels } from '../data/capabilityDomains';
-import { concepts } from '../data/concepts';
+import { conceptById } from '../data/concepts';
 import { glossary } from '../data/glossary';
 import { modules } from '../data/modules';
 import styles from './GlossaryPage.module.css';
 
 const moduleById = new Map(modules.map((module) => [module.id, module]));
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 export function GlossaryPage() {
   return (
@@ -44,18 +43,33 @@ export function GlossaryPage() {
                   </ul>
                 </div>
               )}
+              {!conceptById.has(term.id) && (
+                <div className={styles.indexNote}>
+                  <span>术语索引项</span>
+                  <p>该术语不单独占用一讲，优先从主关联知识点进入学习。</p>
+                </div>
+              )}
             </div>
             <div className={styles.related} aria-label="相关知识点">
-              {term.relatedConceptIds.map((id) => {
+              {term.relatedConceptIds.map((id, relatedIndex) => {
                 const concept = conceptById.get(id);
                 if (!concept) return null;
                 const decisionHash = concept.decisionGuide ? '#decision-guide' : '';
+                const isPrimaryLink = !conceptById.has(term.id) && relatedIndex === 0;
                 return (
                   <Link
                     key={id}
+                    className={isPrimaryLink ? styles.primaryRelated : undefined}
                     to={`/concepts/${concept.slug}${decisionHash}`}
-                    title={concept.decisionGuide ? '跳转到知识点的工程决策章节' : '跳转到知识点'}
+                    title={
+                      isPrimaryLink
+                        ? '跳转到该术语的主关联知识点'
+                        : concept.decisionGuide
+                          ? '跳转到知识点的工程决策章节'
+                          : '跳转到知识点'
+                    }
                   >
+                    {isPrimaryLink && <span>主关联讲</span>}
                     {concept.title}
                   </Link>
                 );
