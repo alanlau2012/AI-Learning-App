@@ -14,6 +14,7 @@
 | `ux-accessibility-qa-agent.md` | P1 体验可用性 | 审核视觉一致性、移动端、键盘可用性、基础无障碍与阅读体验 |
 | `performance-budget-agent.md` | P1 性能预算 | 审核构建产物、首屏加载、资源体积、路由切包与性能预算 |
 | `desktop-distribution-agent.md` | P1 桌面发行 | 审核 Windows 安装包、portable、图标、签名、自动更新与安装卸载 smoke |
+| `architecture-code-audit-agent.md` | P1 架构与代码质量 | 审计分层边界、schema 一致性、状态集中度、视觉单一来源、路由切包、可维护性红旗 |
 | `post-release-canary-agent.md` | P2 发布后巡检 | 对线上地址或发布包做发布后关键路径、控制台错误和回滚风险巡检 |
 
 ## 使用原则
