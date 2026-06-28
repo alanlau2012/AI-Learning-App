@@ -212,7 +212,7 @@ export const decisionGuideByConceptId: Record<string, DecisionGuide> = {
   }),
   'session-affinity': buildGuide('session-affinity', {
     app: [
-      ['多轮会话依赖实例内状态或 KV Cache', '连续请求需要保持上下文状态。', ['连续请求多', '缓存命中率与 TTFT 强相关', '实例内状态不可共享']],
+      ['多轮请求依赖缓存局部性', '连续请求需要复用 shared prefix、KV Cache 或服务端临时状态，但语义上下文连续仍由应用层状态保证。', ['连续请求多', '缓存命中率与 TTFT 强相关', 'shared prefix 或临时状态不可跨域共享']],
       ['扩缩容后用户体验波动', '扩容时间点与会话迁移、缓存失效、首字延迟同步出现。', ['扩容后迁移率升高', '命中率下降', 'P95 TTFT 上升']],
     ],
     non: [
@@ -220,13 +220,13 @@ export const decisionGuideByConceptId: Record<string, DecisionGuide> = {
       ['实例状态不可控或不可恢复', '强行亲和会把实例故障放大成会话故障。', ['无故障迁移', '状态不可恢复', '实例水位不透明']],
     ],
     signals: [
-      ['同一 session 的实例切换率', '切换率上升伴随 TTFT 上升时必须排查', '切换会破坏缓存和状态连续性。', '网关日志'],
+      ['同一 session 的实例切换率', '切换率上升伴随 TTFT 上升时必须排查', '切换会破坏缓存局部性和服务端临时状态复用。', '网关日志'],
       ['缓存命中率与路由策略相关性', undefined, '亲和有效性要用缓存收益验证。', 'KV 指标和路由 Trace'],
       ['热点实例水位', undefined, '过度亲和可能造成局部拥塞。', '实例负载、排队长度'],
     ],
     tradeoffs: [
       ['latency', '稳定命中缓存。', '热点实例可能拖慢 P95。', '同时观察迁移率和实例水位。'],
-      ['reliability', '会话连续性更好。', '实例故障时迁移复杂。', '需要故障转移路径。'],
+      ['reliability', '服务端临时状态和缓存复用更稳定。', '实例故障时迁移复杂。', '应用层仍要保存语义上下文和故障转移路径。'],
       ['operability', '诊断链路清晰。', '扩缩容和预热策略更复杂。', '扩容策略必须纳入缓存影响。'],
     ],
     questions: [
@@ -240,10 +240,10 @@ export const decisionGuideByConceptId: Record<string, DecisionGuide> = {
       ['running', '监控迁移率、命中率、热点实例和 P95。', '亲和收益大于拥塞副作用。'],
     ],
     exec: {
-      summary: 'Session 亲和让同一会话尽量落在能延续上下文状态的实例上。',
-      businessValue: '它让多轮助手体验更稳定，减少重复计算。',
+      summary: 'Session 亲和让同一会话或共享前缀尽量落在可复用缓存域或服务端临时状态的实例上。',
+      businessValue: '它提升 cache locality，减少重复 Prefill 和临时状态重建。',
       mainRisk: '亲和过强会造成热点，亲和过弱会让缓存失效。',
-      riskControl: '用匿名亲和键、迁移策略、热点监控和扩缩容演练治理。',
+      riskControl: '用匿名亲和键、shared prefix/cache key、迁移策略、热点监控治理；语义上下文连续由应用层状态兜底。',
     },
   }),
   'cache-system': buildGuide('cache-system', {
@@ -609,7 +609,7 @@ export const decisionGuideByConceptId: Record<string, DecisionGuide> = {
   trace: buildGuide('trace', {
     app: [
       ['一次 AI 请求跨越多个步骤', '适用于 RAG 检索、重排、Prompt 拼装、模型调用、工具调用、Agent Loop 等链路。', ['单个失败无法从最终响应看出原因']],
-      ['需要复盘质量、权限或成本异常', '适用于模型误选、工具失败、上下文污染、权限拒绝等问题。', ['必须还原每一步输入', '必须还原输出摘要、耗时和决策']],
+      ['需要复盘质量、权限或成本异常', '适用于模型误选、工具失败、上下文污染、权限拒绝等问题。', ['还原输入摘要、引用 id/hash、版本和脱敏参数', '还原输出摘要、耗时和决策原因']],
     ],
     non: [
       ['链路极短且无生产复盘要求', '完整 Trace 可能投入过重。', ['只有单次模型调用', '无工具', '无上线 SLA']],
@@ -626,20 +626,20 @@ export const decisionGuideByConceptId: Record<string, DecisionGuide> = {
       ['security', '权限拒绝和工具动作可审计。', '链路中可能出现敏感业务数据。', '访问控制和保留周期。'],
     ],
     questions: [
-      ['一次请求失败后，Trace 能否还原每个关键步骤的输入摘要、输出摘要、耗时和决策原因？', '验证诊断完整性。', ['span tree', 'duration', 'status', 'reason tags']],
-      ['哪些字段记录 id/摘要/哈希，哪些字段允许采样原文？', '控制敏感数据风险。', ['字段分级', '脱敏规则', '采样白名单']],
+      ['一次请求失败后，Trace 能否还原每个关键步骤的输入摘要、引用 id/hash、版本、脱敏参数和决策原因？', '验证诊断完整性。', ['span tree', 'duration', 'status', 'reason tags', 'version tags']],
+      ['哪些字段记录 id/摘要/哈希，哪些字段允许白名单采样原文？', '控制敏感数据风险。', ['字段分级', '脱敏规则', '采样白名单', '访问控制', '保留期']],
       ['Trace 如何关联 Eval、投诉、成本和发布版本？', '单条链路要能进入复盘闭环。', ['eval case id', 'feedback id', 'cost id', 'release version']],
     ],
     checks: [
       ['beforeBuild', '定义 span 边界和必填 tag。', 'RAG、Agent、工具、权限步骤均有稳定 span 名称。'],
       ['beforeLaunch', '用失败样本演练 Trace 复盘。', '能定位到检索、上下文、模型、工具或权限中的具体环节。'],
-      ['running', '执行 Trace 数据保留、采样和访问审计。', '敏感字段未默认原文落库，排障人员访问有记录。'],
+      ['running', '执行 Trace 数据保留、白名单采样和访问审计。', '敏感字段未默认原文落库，原文样本受访问控制和保留期约束。'],
     ],
     exec: {
-      summary: 'Trace 是 AI 请求的逐步行程记录，用来还原模型、上下文、工具和权限怎样共同产生结果。',
+      summary: 'Trace 是 AI 请求的逐步行程记录，用摘要、引用 id/hash、版本、脱敏参数和决策原因还原关键链路。',
       businessValue: '它能让质量事故、成本异常和权限问题有可追溯证据，减少排障时间。',
       mainRisk: 'Trace 若记录过多原文，会把诊断系统变成敏感数据集中地。',
-      riskControl: '用结构化 span、字段最小化、脱敏、采样、保留周期和访问审计治理。',
+      riskControl: '用结构化 span、字段最小化、脱敏、原文白名单采样、保留周期和访问审计治理。',
     },
   }),
   'permission-governance': buildGuide('permission-governance', {
