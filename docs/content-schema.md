@@ -371,6 +371,24 @@ export interface ScenarioReviewRubric {
 - `events.length >= 3`；每个事件必须有非空 `title / symptom / correctDiagnosis`，`triggerStrategyOptionIds` 必须引用存在的策略 option，`investigationOrder >= 3`，`missedRisks >= 2`，`relatedConceptIds >= 2`，`nextStepRecommendations >= 2`。
 - `reviewRubric.prompt` 必填；`requiredFindings >= 3`、`acceptableActions >= 3`、`nextStepRecommendations >= 2`，所有字符串均不能为空。
 - 场景数据只能使用本地模拟请求、模型、策略、指标和事件；不得调用真实模型 API，不得包含真实客户、真实成本或真实供应商敏感数据。
+
+### 2.3 ScenarioExercise v2 R0+R1 extension
+
+R1 keeps `model-router` compatible and adds a generic scenario path for non-routing exercises.
+
+- `ScenarioExercise.type` is required for new scenarios. Existing `model-router` is treated as `modelRouting` when omitted.
+- Supported R1 types are `modelRouting`, `costGovernance`, and `ragQuality`; the broader enum is reserved for later R2/R3 work.
+- `ScenarioMetric.id` is a string. References are validated per scenario instead of by a fixed global metric enum.
+- `ScenarioMetric` may define `polarity`, `neutralTolerance`, `min`, and `max`. `polarity` defaults to `lowerIsBetter` for cost/latency/escalation/complaint/error/conflict/risk metrics and `higherIsBetter` otherwise.
+- `MetricEffect` supports `deltaMode?: 'relative' | 'absolute'` and `delta?: number`. Missing `delta` falls back to `small=5%`, `medium=12%`, `large=25%`.
+- `MetricEffect.metricId` must reference `baseline.metrics[].id` in the same scenario.
+- `requestTypes` and `modelPool` are required only when `type === 'modelRouting'`. Non-routing scenarios must provide `facts.length >= 3` and `baseline.metrics.length >= 4`.
+- Non-routing strategy options may keep `routingRules: []`; model-routing options must keep valid routing rule references.
+- Each new scenario must set `capabilityDomains`, `initialSymptom`, and `objectLabels.factsTitle/controlTitle`; `objectLabels.secondaryTitle` is optional.
+- `triggerStrategyOptionIds` must reference real option ids in the same scenario.
+- `events[].relatedConceptIds` must reference real `KnowledgePoint.id` values.
+- R1 strategy controls remain one selected option per control. `minSelect/maxSelect` are future extension fields and must not imply group-level multiselect in R1.
+- `modelRouting` keeps the existing physical simulator; `costGovernance`, `ragQuality`, and other non-routing types use `baseline.metrics + selected metricEffects` for deterministic metric values and explanations.
 ## 3. 56 讲写作模板 → 权威 schema 映射
 
 56 讲 PDF 的写作字段需转换为权威 schema：

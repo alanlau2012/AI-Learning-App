@@ -109,6 +109,9 @@ content/drafts/<id>.md   →   content/reviewed/<id>.md   →   src/data/concept
 
 ```bash
 npm install            # 安装依赖
+scripts\start-local.cmd web              # Windows 首选：启动 Web 开发版（http://127.0.0.1:5173/）
+scripts\start-local.cmd electron         # Windows 首选：启动 Electron 桌面开发版（自带 Vite）
+scripts\start-local.cmd electron-attach  # Web 已在 5173 运行时，仅启动 Electron 并连接现有 Web
 npm run dev            # 本地开发
 npm run build          # Web 生产构建
 npm run dev:desktop    # Electron 桌面版开发运行

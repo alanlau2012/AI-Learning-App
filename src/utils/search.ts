@@ -1,6 +1,7 @@
 import { capabilityDomainLabels } from '../data/capabilityDomains';
 import { glossary } from '../data/glossary';
-import type { CapabilityDomain, GlossaryTerm, KnowledgePoint } from '../types';
+import { scenarioExercises } from '../data/scenarioExercises';
+import type { CapabilityDomain, GlossaryTerm, KnowledgePoint, ScenarioExercise } from '../types';
 import { isMechanismGrouped } from '../types';
 import { isPublishedConcept } from './progress';
 
@@ -364,5 +365,89 @@ export function searchConcepts(
         domainRank(a) - domainRank(b) ||
         a.concept.order - b.concept.order,
     )
+    .slice(0, limit);
+}
+
+export interface SearchScenarioResult {
+  scenario: ScenarioExercise;
+  score: number;
+  reason: string;
+}
+
+const SCENARIO_INTENT_TERMS: Record<string, string[]> = {
+  'token-cost-spike': ['token 成本', '成本上涨', '成本异常', '成本飙升', '重试风暴', '缓存缺失', '上下文膨胀', '低 roi'],
+  'rag-answer-quality': ['rag 答案差', '答案质量', '召回正常', '引用错误', '事实错误', '上下文冲突', '旧政策', '无来源回答'],
+};
+
+function scenarioTextFields(scenario: ScenarioExercise): string[] {
+  return [
+    scenario.title,
+    scenario.subtitle ?? '',
+    scenario.background,
+    scenario.initialSymptom ?? '',
+    ...(scenario.capabilityDomains ?? []),
+    ...scenario.relatedConceptIds,
+    ...scenario.entryConceptIds,
+    ...(scenario.facts ?? []).flatMap((fact) => [
+      fact.title,
+      fact.description,
+      ...(fact.risks ?? []),
+      ...fact.attributes.flatMap((attribute) => [attribute.label, attribute.value]),
+    ]),
+    ...scenario.strategyControls.flatMap((control) => [
+      control.label,
+      ...control.options.flatMap((option) => [
+        option.label,
+        option.description,
+        ...option.metricEffects.map((effect) => effect.explanation),
+      ]),
+    ]),
+    ...scenario.events.flatMap((event) => [
+      event.title,
+      event.symptom,
+      event.correctDiagnosis,
+      ...event.relatedConceptIds,
+    ]),
+  ];
+}
+
+function scenarioIntentScore(scenario: ScenarioExercise, query: string): SearchScenarioResult | null {
+  const title = scenario.title.toLowerCase();
+  if (title.includes(query)) {
+    return { scenario, score: 92, reason: '场景标题匹配' };
+  }
+
+  const terms = SCENARIO_INTENT_TERMS[scenario.id] ?? [];
+  const matchedTerm = terms.find((term) => {
+    const normalized = term.toLowerCase();
+    return normalized.includes(query) || query.includes(normalized);
+  });
+  if (matchedTerm) {
+    return { scenario, score: 86, reason: `场景意图匹配：${matchedTerm}` };
+  }
+
+  if (scenarioTextFields(scenario).some((field) => includes(field, query))) {
+    return { scenario, score: 62, reason: '场景内容匹配' };
+  }
+
+  return null;
+}
+
+export function searchScenarios(options: {
+  query: string;
+  selectedDomain?: SearchDomainFilter;
+  limit?: number;
+}): SearchScenarioResult[] {
+  const query = options.query.trim().toLowerCase();
+  const selectedDomain = options.selectedDomain ?? 'all';
+  const limit = options.limit ?? 6;
+
+  if (!query) return [];
+
+  return scenarioExercises
+    .filter((scenario) => selectedDomain === 'all' || scenario.capabilityDomains?.includes(selectedDomain))
+    .map((scenario) => scenarioIntentScore(scenario, query))
+    .filter((item): item is SearchScenarioResult => Boolean(item))
+    .sort((a, b) => b.score - a.score || a.scenario.id.localeCompare(b.scenario.id))
     .slice(0, limit);
 }

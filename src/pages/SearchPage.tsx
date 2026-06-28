@@ -5,7 +5,7 @@ import { capabilityDomainLabels } from '../data/capabilityDomains';
 import { concepts } from '../data/concepts';
 import type { KnowledgePoint } from '../types';
 import { isPublishedConcept } from '../utils/progress';
-import { searchConcepts } from '../utils/search';
+import { searchConcepts, searchScenarios } from '../utils/search';
 import type { SearchDomainFilter, SearchResult } from '../utils/search';
 import styles from './SearchPage.module.css';
 
@@ -62,6 +62,16 @@ export function SearchPage() {
       }),
     [hasQuery, query, selectedDomain],
   );
+  const scenarioResults = useMemo(
+    () =>
+      searchScenarios({
+        query,
+        selectedDomain,
+        limit: 4,
+      }),
+    [query, selectedDomain],
+  );
+  const totalResults = results.length + scenarioResults.length;
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -92,12 +102,12 @@ export function SearchPage() {
       {!hasQuery && selectedDomain === 'all' && (
         <p className={styles.empty}>输入关键词，或选择一个能力域开始浏览。</p>
       )}
-      {results.length > 0 && (
+      {totalResults > 0 && (
         <p className={styles.resultMeta}>
-          {activeDomainLabel ? `${activeDomainLabel} · ` : ''}找到 {results.length} 个结果
+          {activeDomainLabel ? `${activeDomainLabel} 路 ` : ''}找到 {totalResults} 个结果
         </p>
       )}
-      {(hasQuery || selectedDomain !== 'all') && results.length === 0 && (
+      {(hasQuery || selectedDomain !== 'all') && totalResults === 0 && (
         <div className={styles.emptyPanel}>
           <p>
             {activeDomainLabel
@@ -111,7 +121,24 @@ export function SearchPage() {
           )}
         </div>
       )}
-      {results.length > 0 && (
+      {scenarioResults.length > 0 && (
+        <div className={styles.results}>
+          {scenarioResults.map((result, index) => {
+            const { scenario, reason } = result;
+            return (
+              <Link key={scenario.id} to={`/scenarios/${scenario.id}`} className={styles.result}>
+                <span className={styles.resultIdx}>{String(index + 1).padStart(2, '0')}</span>
+                <div className={styles.resultText}>
+                  <span className={styles.reason}>{reason}</span>
+                  <h2>{scenario.title}</h2>
+                  <p>{scenario.initialSymptom ?? scenario.subtitle ?? scenario.background}</p>
+                </div>
+                <span className={styles.meta}>{scenario.estimatedMinutes ?? 8} 分钟</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}      {results.length > 0 && (
         <div className={styles.results}>
           {results.map((result, index) => {
             const { concept, reason } = result;

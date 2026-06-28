@@ -269,13 +269,15 @@ export type ScenarioContextCondition = 'short' | 'medium' | 'long';
 
 export type ScenarioSlaCondition = 'strict' | 'normal';
 
-export type ScenarioMetricId =
-  | 'costPer1kRequests'
-  | 'p95LatencyMs'
-  | 'successRate'
-  | 'escalationRate'
-  | 'riskInterceptRate'
-  | 'qualityComplaintRate';
+export type ScenarioExerciseType =
+  | 'modelRouting'
+  | 'ragQuality'
+  | 'agentTooling'
+  | 'observability'
+  | 'multiAgent'
+  | 'costGovernance';
+
+export type ScenarioMetricId = string;
 
 export type ScenarioMetricTrend = 'better' | 'worse' | 'neutral';
 
@@ -289,6 +291,10 @@ export interface ScenarioMetric {
   value: number;
   unit: string;
   trend: ScenarioMetricTrend;
+  polarity?: 'higherIsBetter' | 'lowerIsBetter';
+  neutralTolerance?: number;
+  min?: number;
+  max?: number;
   explanation: string;
 }
 
@@ -334,6 +340,8 @@ export interface MetricEffect {
   metricId: ScenarioMetricId;
   direction: MetricEffectDirection;
   magnitude: MetricEffectMagnitude;
+  deltaMode?: 'relative' | 'absolute';
+  delta?: number;
   explanation: string;
 }
 
@@ -349,6 +357,28 @@ export interface StrategyControl {
   id: string;
   label: string;
   options: StrategyOption[];
+  minSelect?: number;
+  maxSelect?: number;
+}
+
+export interface ScenarioObjectLabels {
+  factsTitle: string;
+  secondaryTitle?: string;
+  controlTitle: string;
+}
+
+export interface ScenarioFactAttribute {
+  label: string;
+  value: string;
+}
+
+export interface ScenarioFactGroup {
+  id: string;
+  title: string;
+  description: string;
+  weight?: number;
+  attributes: ScenarioFactAttribute[];
+  risks?: string[];
 }
 
 export interface ScenarioEvent {
@@ -372,13 +402,21 @@ export interface ScenarioReviewRubric {
 
 export interface ScenarioExercise {
   id: string;
+  type?: ScenarioExerciseType;
   title: string;
+  subtitle?: string;
   relatedConceptIds: string[];
   entryConceptIds: string[];
+  capabilityDomains?: CapabilityDomain[];
+  difficulty?: Difficulty;
+  estimatedMinutes?: number;
   background: string;
+  initialSymptom?: string;
+  objectLabels?: ScenarioObjectLabels;
   baseline: ScenarioState;
-  requestTypes: ScenarioRequestType[];
-  modelPool: ScenarioModel[];
+  facts?: ScenarioFactGroup[];
+  requestTypes?: ScenarioRequestType[];
+  modelPool?: ScenarioModel[];
   strategyControls: StrategyControl[];
   events: ScenarioEvent[];
   reviewRubric: ScenarioReviewRubric;

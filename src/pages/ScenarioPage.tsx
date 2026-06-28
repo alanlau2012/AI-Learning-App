@@ -54,6 +54,14 @@ export function ScenarioPage() {
     if (!exercise || !result) return undefined;
     return deriveScenarioReview(exercise, result);
   }, [exercise, result]);
+  const labels = exercise?.objectLabels ?? {
+    factsTitle: '请求队列',
+    secondaryTitle: '模型池负载',
+    controlTitle: '路由策略',
+  };
+  const entryConcept = exercise ? conceptById.get(exercise.entryConceptIds[0]) : undefined;
+  const factGroups = exercise?.facts ?? [];
+  const showRequestBreakdowns = Boolean(result?.requestBreakdowns.length);
 
   if (!exercise || !result || !review) {
     return (
@@ -80,7 +88,7 @@ export function ScenarioPage() {
 
   return (
     <main className={styles.page}>
-      <Link to="/concepts/multi-model-routing" className={styles.back}>返回多模型路由</Link>
+      <Link to={entryConcept ? `/concepts/${entryConcept.slug}` : '/'} className={styles.back}>返回相关知识点</Link>
 
       <section className={styles.header}>
         <span>Scenario Exercise</span>
@@ -88,12 +96,13 @@ export function ScenarioPage() {
           <div>
             <h1>{exercise.title}</h1>
             <p>{exercise.background}</p>
+            {exercise.initialSymptom && <p className={styles.symptom}>{exercise.initialSymptom}</p>}
           </div>
           <div className={styles.headerMeta}>
-            <strong>{exercise.requestTypes.length}</strong>
-            <span>请求类型</span>
-            <strong>{exercise.modelPool.length}</strong>
-            <span>候选模型</span>
+            <strong>{exercise.estimatedMinutes ?? 8}</strong>
+            <span>分钟</span>
+            <strong>{exercise.strategyControls.length}</strong>
+            <span>策略组</span>
           </div>
         </div>
         <div className={styles.relatedLinks}>
@@ -115,22 +124,39 @@ export function ScenarioPage() {
         <div className={styles.leftRail}>
           <section className={styles.panel}>
             <div className={styles.panelHeading}>
-              <h2>请求队列</h2>
-              <span>按流量权重</span>
+              <h2>{labels.factsTitle}</h2>
+              <span>{showRequestBreakdowns ? '按流量权重' : `${factGroups.length} 组事实`}</span>
             </div>
             <div className={styles.requestList}>
-              {result.requestBreakdowns.map((request) => (
+              {showRequestBreakdowns ? result.requestBreakdowns.map((request) => (
                 <article key={request.requestTypeId} className={styles.requestCard}>
                   <div className={styles.rowBetween}>
                     <h3>{request.requestLabel}</h3>
                     <span>{Math.round(request.volumeShare * 100)}%</span>
                   </div>
-                  <p>{request.decisionReasons.join('；')}</p>
+                  <p>{request.decisionReasons.join('，')}</p>
                   <dl>
-                    <div><dt>命中模型</dt><dd>{request.selectedModelLabel}</dd></div>
+                    <div><dt>命中对象</dt><dd>{request.selectedModelLabel}</dd></div>
                     <div><dt>SLA</dt><dd>{request.slaCondition === 'strict' ? '严格' : '常规'}</dd></div>
                     <div><dt>风险</dt><dd>{request.risks.length || '低'}</dd></div>
                   </dl>
+                </article>
+              )) : factGroups.map((fact) => (
+                <article key={fact.id} className={styles.requestCard}>
+                  <div className={styles.rowBetween}>
+                    <h3>{fact.title}</h3>
+                    {fact.weight !== undefined && <span>{Math.round(fact.weight * 100)}%</span>}
+                  </div>
+                  <p>{fact.description}</p>
+                  <dl>
+                    {fact.attributes.map((attribute) => (
+                      <div key={`${fact.id}-${attribute.label}`}>
+                        <dt>{attribute.label}</dt>
+                        <dd>{attribute.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {fact.risks && fact.risks.length > 0 && <p>{fact.risks.join(' ')}</p>}
                 </article>
               ))}
             </div>
@@ -138,20 +164,28 @@ export function ScenarioPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeading}>
-              <h2>模型池负载</h2>
-              <span>模拟分布</span>
+              <h2>{labels.secondaryTitle ?? '指标解释'}</h2>
+              <span>{result.modelLoad.length ? '模拟分布' : '当前指标'}</span>
             </div>
             <div className={styles.loadList}>
-              {result.modelLoad.map((load) => (
+              {result.modelLoad.length ? result.modelLoad.map((load) => (
                 <div key={load.modelId} className={styles.loadRow}>
                   <div className={styles.rowBetween}>
                     <span>{load.modelLabel}</span>
-                    <strong>{Math.round(load.volumeShare * 100)}%</strong>
+                    <strong>{Math.round(load.volumeShare)}%</strong>
                   </div>
                   <div className={styles.loadTrack}>
-                    <div style={{ width: `${Math.min(100, Math.round(load.volumeShare * 100))}%` }} />
+                    <div style={{ width: `${Math.min(100, Math.round(load.volumeShare))}%` }} />
                   </div>
                 </div>
+              )) : result.metrics.map((metric) => (
+                <article key={`metric-${metric.id}`} className={styles.requestCard}>
+                  <div className={styles.rowBetween}>
+                    <h3>{metric.label}</h3>
+                    <span>{trendLabels[metric.trend]}</span>
+                  </div>
+                  <p>{metric.explanation}</p>
+                </article>
               ))}
             </div>
           </section>
@@ -159,7 +193,7 @@ export function ScenarioPage() {
 
         <section className={styles.panel}>
           <div className={styles.panelHeading}>
-            <h2>路由策略</h2>
+            <h2>{labels.controlTitle}</h2>
             <span>第 {result.state.round + 1} 轮</span>
           </div>
           <div className={styles.controls}>

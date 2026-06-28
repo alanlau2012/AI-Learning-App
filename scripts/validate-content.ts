@@ -65,24 +65,19 @@ const VALID_SCENARIO_QUALITY_NEEDS = new Set(['low', 'medium', 'high']);
 const VALID_SCENARIO_MODEL_TYPES = new Set(['fast', 'strong', 'lowCost', 'restricted']);
 const VALID_SCENARIO_CONTEXT_CONDITIONS = new Set(['short', 'medium', 'long']);
 const VALID_SCENARIO_SLA_CONDITIONS = new Set(['strict', 'normal']);
-const VALID_SCENARIO_METRICS = new Set([
-  'costPer1kRequests',
-  'p95LatencyMs',
-  'successRate',
-  'escalationRate',
-  'riskInterceptRate',
-  'qualityComplaintRate',
+const VALID_SCENARIO_TYPES = new Set([
+  'modelRouting',
+  'ragQuality',
+  'agentTooling',
+  'observability',
+  'multiAgent',
+  'costGovernance',
 ]);
-const REQUIRED_SCENARIO_METRICS = [
-  'costPer1kRequests',
-  'p95LatencyMs',
-  'successRate',
-  'escalationRate',
-  'riskInterceptRate',
-];
 const VALID_SCENARIO_TRENDS = new Set(['better', 'worse', 'neutral']);
+const VALID_SCENARIO_POLARITIES = new Set(['higherIsBetter', 'lowerIsBetter']);
 const VALID_METRIC_EFFECT_DIRECTIONS = new Set(['up', 'down', 'mixed']);
 const VALID_METRIC_EFFECT_MAGNITUDES = new Set(['small', 'medium', 'large']);
+const VALID_METRIC_DELTA_MODES = new Set(['relative', 'absolute']);
 const REGISTERED_ANIMATION_TYPES = new Set([
   'token-flow',
   'attention-map',
@@ -192,27 +187,39 @@ function validateDecisionGuide(conceptId: string, guide: NonNullable<typeof conc
   }
 }
 function validateScenarioExercises(conceptIdSet: Set<string>): void {
-  if (scenarioExercises.length < 1) {
-    fail('Phase 2 scenarioExercises 至少需要 1 个场景');
+  if (scenarioExercises.length < 3) {
+    fail('R1 scenarioExercises 至少需要 3 个场景（model-router + 2 个 P0 场景）');
   }
 
   const hasModelRouterScenario = scenarioExercises.some((exercise) => exercise.id === 'model-router');
   if (!hasModelRouterScenario) {
-    fail('Phase 2 scenarioExercises 必须包含 model-router 场景');
+    fail('scenarioExercises 必须包含 model-router 场景');
   }
 
   const exerciseIds = new Set<string>();
   for (const exercise of scenarioExercises) {
     const prefix = `scenarioExercise ${exercise.id}`;
+    const type = exercise.type ?? (exercise.id === 'model-router' ? 'modelRouting' : undefined);
+    const isModelRouting = type === 'modelRouting';
 
     if (!nonEmpty(exercise.id)) fail('scenarioExercise.id 不能为空');
     if (!KEBAB.test(exercise.id)) fail(`${prefix}: id 不符合 kebab-case`);
     if (exerciseIds.has(exercise.id)) fail(`${prefix}: id 重复`);
     exerciseIds.add(exercise.id);
 
+    if (!type || !VALID_SCENARIO_TYPES.has(type)) fail(`${prefix}: type 非法或缺失：${type ?? ''}`);
     if (!nonEmpty(exercise.title)) fail(`${prefix}: title 不能为空`);
     if (!nonEmpty(exercise.background)) fail(`${prefix}: background 不能为空`);
-    if (!hasItems(exercise.relatedConceptIds, 1)) fail(`${prefix}: relatedConceptIds 至少需要 1 个`);
+    if (!nonEmpty(exercise.initialSymptom ?? '')) fail(`${prefix}: initialSymptom 不能为空`);
+    if (!hasItems(exercise.capabilityDomains, 1)) fail(`${prefix}: capabilityDomains 至少需要 1 个`);
+    for (const domain of exercise.capabilityDomains ?? []) {
+      if (!VALID_CAPABILITY_DOMAINS.has(domain)) fail(`${prefix}: capabilityDomains 非法：${domain}`);
+    }
+    if (!exercise.objectLabels?.factsTitle || !exercise.objectLabels.controlTitle) {
+      fail(`${prefix}: objectLabels.factsTitle/controlTitle 必填`);
+    }
+
+    if (!hasItems(exercise.relatedConceptIds, 3)) fail(`${prefix}: relatedConceptIds 至少需要 3 个`);
     if (!hasItems(exercise.entryConceptIds, 1)) fail(`${prefix}: entryConceptIds 至少需要 1 个`);
     for (const cid of exercise.relatedConceptIds) {
       if (!conceptIdSet.has(cid)) fail(`${prefix}: relatedConceptIds 悬空：${cid}`);
@@ -228,13 +235,19 @@ function validateScenarioExercises(conceptIdSet: Set<string>): void {
       }
     }
 
-    if (!hasItems(exercise.requestTypes, 4)) fail(`${prefix}: requestTypes 至少需要 4 类`);
-    if (!hasItems(exercise.modelPool, 4)) fail(`${prefix}: modelPool 至少需要 4 类模型`);
+    const requestTypes = exercise.requestTypes ?? [];
+    const modelPool = exercise.modelPool ?? [];
+    if (isModelRouting) {
+      if (!hasItems(requestTypes, 4)) fail(`${prefix}: modelRouting requestTypes 至少需要 4 类`);
+      if (!hasItems(modelPool, 4)) fail(`${prefix}: modelRouting modelPool 至少需要 4 类模型`);
+    } else {
+      if (!hasItems(exercise.facts, 3)) fail(`${prefix}: 非路由场景 facts 至少需要 3 组`);
+    }
     if (!hasItems(exercise.strategyControls, 3)) fail(`${prefix}: strategyControls 至少需要 3 个策略项`);
     if (!hasItems(exercise.events, 3)) fail(`${prefix}: events 至少需要 3 个异常事件`);
 
     const requestIds = new Set<string>();
-    for (const request of exercise.requestTypes) {
+    for (const request of requestTypes) {
       if (!nonEmpty(request.id)) fail(`${prefix}: requestTypes.id 不能为空`);
       if (requestIds.has(request.id)) fail(`${prefix}: requestType id 重复：${request.id}`);
       requestIds.add(request.id);
@@ -246,13 +259,15 @@ function validateScenarioExercises(conceptIdSet: Set<string>): void {
       if (!VALID_SCENARIO_QUALITY_NEEDS.has(request.qualityNeed)) fail(`${prefix}: requestType ${request.id}.qualityNeed 非法：${request.qualityNeed}`);
       if (request.slaMs <= 0) fail(`${prefix}: requestType ${request.id}.slaMs 必须为正数`);
     }
-    const totalVolumeShare = exercise.requestTypes.reduce((sum, request) => sum + request.volumeShare, 0);
-    if (Math.abs(totalVolumeShare - 1) > 0.001) {
-      fail(`${prefix}: requestTypes.volumeShare 总和应为 1，实际 ${totalVolumeShare}`);
+    if (requestTypes.length > 0) {
+      const totalVolumeShare = requestTypes.reduce((sum, request) => sum + request.volumeShare, 0);
+      if (Math.abs(totalVolumeShare - 1) > 0.001) {
+        fail(`${prefix}: requestTypes.volumeShare 总和应为 1，实际 ${totalVolumeShare}`);
+      }
     }
 
     const modelIds = new Set<string>();
-    for (const model of exercise.modelPool) {
+    for (const model of modelPool) {
       if (!nonEmpty(model.id)) fail(`${prefix}: modelPool.id 不能为空`);
       if (modelIds.has(model.id)) fail(`${prefix}: model id 重复：${model.id}`);
       modelIds.add(model.id);
@@ -264,6 +279,34 @@ function validateScenarioExercises(conceptIdSet: Set<string>): void {
       if (model.riskHandlingScore < 0 || model.riskHandlingScore > 1) fail(`${prefix}: model ${model.id}.riskHandlingScore 必须在 0..1`);
       if (model.contextLimitTokens <= 0) fail(`${prefix}: model ${model.id}.contextLimitTokens 必须为正数`);
       if (!nonEmpty(model.availability)) fail(`${prefix}: model ${model.id}.availability 不能为空`);
+    }
+
+    const factIds = new Set<string>();
+    for (const fact of exercise.facts ?? []) {
+      if (!nonEmpty(fact.id)) fail(`${prefix}: fact.id 不能为空`);
+      if (factIds.has(fact.id)) fail(`${prefix}: fact id 重复：${fact.id}`);
+      factIds.add(fact.id);
+      if (!nonEmpty(fact.title)) fail(`${prefix}: fact ${fact.id}.title 不能为空`);
+      if (!nonEmpty(fact.description)) fail(`${prefix}: fact ${fact.id}.description 不能为空`);
+      if (!hasItems(fact.attributes, 1)) fail(`${prefix}: fact ${fact.id}.attributes 至少需要 1 项`);
+      for (const attr of fact.attributes) {
+        if (!nonEmpty(attr.label) || !nonEmpty(attr.value)) fail(`${prefix}: fact ${fact.id}.attributes 存在空 label/value`);
+      }
+    }
+
+    if (!nonEmpty(exercise.baseline.explanation)) fail(`${prefix}: baseline.explanation 不能为空`);
+    if (!hasItems(exercise.baseline.metrics, 4)) fail(`${prefix}: baseline.metrics 至少需要 4 个指标`);
+    const metricIds = new Set<string>();
+    for (const metric of exercise.baseline.metrics) {
+      if (!nonEmpty(metric.id)) fail(`${prefix}: baseline metric id 不能为空`);
+      if (metricIds.has(metric.id)) fail(`${prefix}: baseline metric id 重复：${metric.id}`);
+      metricIds.add(metric.id);
+      if (!nonEmpty(metric.label)) fail(`${prefix}: baseline metric ${metric.id}.label 不能为空`);
+      if (!Number.isFinite(metric.value)) fail(`${prefix}: baseline metric ${metric.id}.value 必须为数字`);
+      if (!nonEmpty(metric.unit)) fail(`${prefix}: baseline metric ${metric.id}.unit 不能为空`);
+      if (!VALID_SCENARIO_TRENDS.has(metric.trend)) fail(`${prefix}: baseline metric ${metric.id}.trend 非法：${metric.trend}`);
+      if (metric.polarity && !VALID_SCENARIO_POLARITIES.has(metric.polarity)) fail(`${prefix}: baseline metric ${metric.id}.polarity 非法：${metric.polarity}`);
+      if (!nonEmpty(metric.explanation)) fail(`${prefix}: baseline metric ${metric.id}.explanation 不能为空`);
     }
 
     const strategyControlIds = new Set<string>();
@@ -280,19 +323,23 @@ function validateScenarioExercises(conceptIdSet: Set<string>): void {
         optionIds.add(option.id);
         if (!nonEmpty(option.label)) fail(`${prefix}: strategy option ${option.id}.label 不能为空`);
         if (!nonEmpty(option.description)) fail(`${prefix}: strategy option ${option.id}.description 不能为空`);
-        for (const rule of option.routingRules) {
-          if (rule.requestTypeId && !requestIds.has(rule.requestTypeId)) fail(`${prefix}: option ${option.id} routingRule requestTypeId 悬空：${rule.requestTypeId}`);
-          if (rule.riskLevel && !VALID_SCENARIO_RISK_LEVELS.has(rule.riskLevel)) fail(`${prefix}: option ${option.id} routingRule riskLevel 非法：${rule.riskLevel}`);
-          if (rule.contextCondition && !VALID_SCENARIO_CONTEXT_CONDITIONS.has(rule.contextCondition)) fail(`${prefix}: option ${option.id} routingRule contextCondition 非法：${rule.contextCondition}`);
-          if (rule.slaCondition && !VALID_SCENARIO_SLA_CONDITIONS.has(rule.slaCondition)) fail(`${prefix}: option ${option.id} routingRule slaCondition 非法：${rule.slaCondition}`);
-          if (!modelIds.has(rule.targetModelId)) fail(`${prefix}: option ${option.id} routingRule targetModelId 悬空：${rule.targetModelId}`);
-          if (rule.fallbackModelId && !modelIds.has(rule.fallbackModelId)) fail(`${prefix}: option ${option.id} routingRule fallbackModelId 悬空：${rule.fallbackModelId}`);
+        if (isModelRouting) {
+          for (const rule of option.routingRules) {
+            if (rule.requestTypeId && !requestIds.has(rule.requestTypeId)) fail(`${prefix}: option ${option.id} routingRule requestTypeId 悬空：${rule.requestTypeId}`);
+            if (rule.riskLevel && !VALID_SCENARIO_RISK_LEVELS.has(rule.riskLevel)) fail(`${prefix}: option ${option.id} routingRule riskLevel 非法：${rule.riskLevel}`);
+            if (rule.contextCondition && !VALID_SCENARIO_CONTEXT_CONDITIONS.has(rule.contextCondition)) fail(`${prefix}: option ${option.id} routingRule contextCondition 非法：${rule.contextCondition}`);
+            if (rule.slaCondition && !VALID_SCENARIO_SLA_CONDITIONS.has(rule.slaCondition)) fail(`${prefix}: option ${option.id} routingRule slaCondition 非法：${rule.slaCondition}`);
+            if (!modelIds.has(rule.targetModelId)) fail(`${prefix}: option ${option.id} routingRule targetModelId 悬空：${rule.targetModelId}`);
+            if (rule.fallbackModelId && !modelIds.has(rule.fallbackModelId)) fail(`${prefix}: option ${option.id} routingRule fallbackModelId 悬空：${rule.fallbackModelId}`);
+          }
         }
         if (!hasItems(option.metricEffects, 1)) fail(`${prefix}: strategy option ${option.id}.metricEffects 至少需要 1 条`);
         for (const effect of option.metricEffects) {
-          if (!VALID_SCENARIO_METRICS.has(effect.metricId)) fail(`${prefix}: option ${option.id} metricEffect.metricId 非法：${effect.metricId}`);
+          if (!metricIds.has(effect.metricId)) fail(`${prefix}: option ${option.id} metricEffect.metricId 悬空：${effect.metricId}`);
           if (!VALID_METRIC_EFFECT_DIRECTIONS.has(effect.direction)) fail(`${prefix}: option ${option.id} metricEffect.direction 非法：${effect.direction}`);
           if (!VALID_METRIC_EFFECT_MAGNITUDES.has(effect.magnitude)) fail(`${prefix}: option ${option.id} metricEffect.magnitude 非法：${effect.magnitude}`);
+          if (effect.deltaMode && !VALID_METRIC_DELTA_MODES.has(effect.deltaMode)) fail(`${prefix}: option ${option.id} metricEffect.deltaMode 非法：${effect.deltaMode}`);
+          if (effect.delta !== undefined && !Number.isFinite(effect.delta)) fail(`${prefix}: option ${option.id} metricEffect.delta 必须为数字`);
           if (!nonEmpty(effect.explanation)) fail(`${prefix}: option ${option.id} metricEffect.explanation 不能为空`);
         }
       }
@@ -311,23 +358,6 @@ function validateScenarioExercises(conceptIdSet: Set<string>): void {
     }
     for (const key of selectedStrategyKeys) {
       if (!strategyControlIds.has(key)) fail(`${prefix}: baseline.selectedStrategies 存在未知策略项：${key}`);
-    }
-
-    if (!nonEmpty(exercise.baseline.explanation)) fail(`${prefix}: baseline.explanation 不能为空`);
-    if (!hasItems(exercise.baseline.metrics, 5)) fail(`${prefix}: baseline.metrics 至少需要 5 个指标`);
-    const metricIds = new Set<string>();
-    for (const metric of exercise.baseline.metrics) {
-      if (!VALID_SCENARIO_METRICS.has(metric.id)) fail(`${prefix}: baseline metric id 非法：${metric.id}`);
-      if (metricIds.has(metric.id)) fail(`${prefix}: baseline metric id 重复：${metric.id}`);
-      metricIds.add(metric.id);
-      if (!nonEmpty(metric.label)) fail(`${prefix}: baseline metric ${metric.id}.label 不能为空`);
-      if (!Number.isFinite(metric.value)) fail(`${prefix}: baseline metric ${metric.id}.value 必须为数字`);
-      if (!nonEmpty(metric.unit)) fail(`${prefix}: baseline metric ${metric.id}.unit 不能为空`);
-      if (!VALID_SCENARIO_TRENDS.has(metric.trend)) fail(`${prefix}: baseline metric ${metric.id}.trend 非法：${metric.trend}`);
-      if (!nonEmpty(metric.explanation)) fail(`${prefix}: baseline metric ${metric.id}.explanation 不能为空`);
-    }
-    for (const metricId of REQUIRED_SCENARIO_METRICS) {
-      if (!metricIds.has(metricId)) fail(`${prefix}: baseline.metrics 缺少必需指标：${metricId}`);
     }
 
     const eventIds = new Set<string>();

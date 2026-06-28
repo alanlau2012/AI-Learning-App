@@ -3,11 +3,22 @@ import type { ScenarioExercise } from '../types';
 export const scenarioExercises: ScenarioExercise[] = [
   {
     id: 'model-router',
+    type: 'modelRouting',
     title: '模型路由策略失效诊断',
+    subtitle: '在成本、延迟、质量和风险之间诊断路由策略取舍',
+    difficulty: 'advanced',
+    estimatedMinutes: 8,
     relatedConceptIds: ['multi-model-routing', 'cost-routing', 'capability-routing'],
     entryConceptIds: ['multi-model-routing', 'cost-routing', 'capability-routing'],
+    capabilityDomains: ['maasPlatformization', 'inferenceCostPerformance'],
     background:
       '企业 MaaS 网关承接客服、办公、研发和合规审查请求。团队希望通过模型路由同时控制成本、P95 延迟、成功率和风险拦截，但最近出现成本下降后投诉升高、严格治理后 SLA 波动等复合问题。',
+    initialSymptom: '成本下降后投诉升高、严格治理后 SLA 波动，团队需要判断路由、上下文、风险和 fallback 哪一层先失效。',
+    objectLabels: {
+      factsTitle: '请求队列',
+      secondaryTitle: '模型池负载',
+      controlTitle: '路由策略',
+    },
     baseline: {
       selectedStrategies: {
         taskRoutingMode: 'balanced',
@@ -461,6 +472,124 @@ export const scenarioExercises: ScenarioExercise[] = [
         '后续 DEV-07/08 在 UI 中展示指标变化解释和复盘路径。',
       ],
     },
+  },
+  {
+    id: 'token-cost-spike',
+    type: 'costGovernance',
+    title: 'Token 成本异常上涨诊断',
+    subtitle: '把成本拆到上下文、缓存、路由、重试和业务价值',
+    difficulty: 'advanced',
+    estimatedMinutes: 8,
+    relatedConceptIds: ['token-roi', 'context-window', 'kv-cache', 'cost-routing', 'batch-scheduling', 'observability'],
+    entryConceptIds: ['token-roi', 'cost-routing', 'kv-cache', 'observability'],
+    capabilityDomains: ['inferenceCostPerformance', 'maasPlatformization', 'evaluationObservability'],
+    background: '企业 AI 助手覆盖客服、研发、数据分析和办公助手，每日约 20 万次请求。新版本上线后月度 Token 成本上涨 40%，业务请求量只上涨 10%，满意度没有同步提升。',
+    initialSymptom: '账单成本和 P95 延迟同时上升，但成功率和采纳率几乎不变，团队无法判断是上下文膨胀、缓存缺失、重试风暴还是模型误选。',
+    objectLabels: { factsTitle: '成本事实对象', secondaryTitle: 'Token 构成', controlTitle: '成本治理策略' },
+    facts: [
+      { id: 'traffic-buckets', title: '流量桶', description: '简单问答占 45%，长文总结占 20%，代码生成占 18%，Agent 多步任务占 17%。成本上涨主要集中在长上下文和多步任务。', attributes: [{ label: '日请求量', value: '约 200k' }, { label: '请求增长', value: '+10%' }, { label: '成本增长', value: '+40%' }], risks: ['只看总成本会掩盖高价值任务和低价值流量的差异。'] },
+      { id: 'token-breakdown', title: 'Token 构成', description: '系统提示、历史上下文、检索片段、工具结果和重试调用共同放大输入 Token。新版本默认携带完整历史。', attributes: [{ label: '平均输入 Token', value: '6,800' }, { label: '检索片段', value: 'TopK 从 5 提升到 12' }, { label: '重试调用', value: '失败即重试' }], risks: ['上下文膨胀会同时推高成本、延迟和失败后的重试放大。'] },
+      { id: 'cache-value-signals', title: '缓存与价值信号', description: 'prefix 命中率下降，租户维度提示词不稳定；低价值流量采纳率低但仍使用强模型。', attributes: [{ label: 'prefix 命中率', value: '28%' }, { label: '低价值流量占比', value: '31%' }, { label: '高价值任务成功率', value: '92%' }], risks: ['低 Token 成本不等于高 ROI，过度裁剪可能让返工成本上升。'] },
+    ],
+    baseline: {
+      selectedStrategies: { contextPolicy: 'summaryCompression', cachePolicy: 'prefixStandardization', valueRouting: 'valueTierRouting', retryPolicy: 'classifiedRetry' },
+      metrics: [
+        { id: 'costPer1kRequests', label: '每千请求成本', value: 142, unit: '模拟点', trend: 'neutral', polarity: 'lowerIsBetter', min: 70, max: 260, explanation: '基线已做部分压缩和价值分层，但长上下文与多步任务仍是主要成本来源。' },
+        { id: 'avgInputTokens', label: '平均输入 Token', value: 6800, unit: 'tokens', trend: 'neutral', polarity: 'lowerIsBetter', min: 2200, max: 14000, explanation: '历史上下文和检索片段是输入 Token 的主要组成。' },
+        { id: 'retryAmplificationRate', label: '重试放大率', value: 18, unit: '%', trend: 'neutral', polarity: 'lowerIsBetter', min: 4, max: 60, explanation: '错误分类重试能抑制无效重复调用，但仍需观察工具和模型错误类型。' },
+        { id: 'cacheHitRate', label: '缓存命中率', value: 44, unit: '%', trend: 'neutral', polarity: 'higherIsBetter', min: 0, max: 90, explanation: 'prefix 标准化后命中率回升，但租户与任务分组还不充分。' },
+        { id: 'highValueSuccessRate', label: '高价值任务成功率', value: 92, unit: '%', trend: 'better', polarity: 'higherIsBetter', min: 70, max: 99, explanation: '价值分层路由让高价值任务仍保留强模型和兜底路径。' },
+        { id: 'lowValueTrafficShare', label: '低价值流量占比', value: 31, unit: '%', trend: 'neutral', polarity: 'lowerIsBetter', min: 10, max: 55, explanation: '低价值流量仍消耗较多预算，需要与采纳率和完成率一起看。' },
+      ],
+      explanation: '基线代表可复盘默认线：先压缩上下文、标准化 prefix、按任务价值路由，并对错误分类重试。',
+    },
+    strategyControls: [
+      { id: 'contextPolicy', label: '上下文策略', options: [
+        { id: 'fullHistory', label: '全量历史', description: '每次请求携带完整对话历史和检索片段，诊断简单但成本膨胀。', routingRules: [], metricEffects: [{ metricId: 'avgInputTokens', direction: 'up', magnitude: 'large', deltaMode: 'relative', delta: 0.35, explanation: '全量历史让输入 Token 明显增加。' }, { metricId: 'costPer1kRequests', direction: 'up', magnitude: 'large', deltaMode: 'relative', delta: 0.22, explanation: '上下文膨胀直接推高每千请求成本。' }] },
+        { id: 'summaryCompression', label: '摘要压缩', description: '保留任务摘要和关键证据，压缩历史上下文。', routingRules: [], metricEffects: [{ metricId: 'avgInputTokens', direction: 'down', magnitude: 'medium', deltaMode: 'relative', delta: 0.14, explanation: '摘要压缩减少重复历史。' }, { metricId: 'highValueSuccessRate', direction: 'up', magnitude: 'small', deltaMode: 'absolute', delta: 1.2, explanation: '关键证据保留后质量基本稳定。' }] },
+        { id: 'taskWindowTrim', label: '按任务窗口裁剪', description: '严格裁剪到当前任务窗口，成本低但可能丢失高价值上下文。', routingRules: [], metricEffects: [{ metricId: 'avgInputTokens', direction: 'down', magnitude: 'large', deltaMode: 'relative', delta: 0.28, explanation: '任务窗口裁剪显著降低输入规模。' }, { metricId: 'highValueSuccessRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 4.5, explanation: '过度裁剪会损伤复杂任务成功率。' }] },
+      ] },
+      { id: 'cachePolicy', label: '缓存策略', options: [
+        { id: 'noCache', label: '不缓存', description: '不做 prefix 或 KV locality 约束，便于快速发布但成本和 TTFT 波动大。', routingRules: [], metricEffects: [{ metricId: 'cacheHitRate', direction: 'down', magnitude: 'large', deltaMode: 'absolute', delta: 28, explanation: '不缓存让可复用前缀失效。' }, { metricId: 'costPer1kRequests', direction: 'up', magnitude: 'medium', deltaMode: 'relative', delta: 0.16, explanation: '重复 Prefill 消耗更多预算。' }] },
+        { id: 'prefixStandardization', label: 'prefix 标准化', description: '规范系统提示和租户前缀，提升可缓存比例。', routingRules: [], metricEffects: [{ metricId: 'cacheHitRate', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 14, explanation: '稳定 prefix 可提升缓存命中。' }, { metricId: 'costPer1kRequests', direction: 'down', magnitude: 'small', deltaMode: 'relative', delta: 0.06, explanation: '复用前缀降低重复计算。' }] },
+        { id: 'tenantTaskGrouping', label: '按租户和任务分组', description: '让相似租户和任务稳定命中同类上下文与缓存实例。', routingRules: [], metricEffects: [{ metricId: 'cacheHitRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 24, explanation: '按租户和任务分组提升 cache locality。' }, { metricId: 'costPer1kRequests', direction: 'down', magnitude: 'medium', deltaMode: 'relative', delta: 0.11, explanation: '更高命中率降低平均成本。' }] },
+      ] },
+      { id: 'valueRouting', label: '路由策略', options: [
+        { id: 'singleStrongModel', label: '单一强模型', description: '所有任务都走强模型，质量稳定但低价值流量吞噬预算。', routingRules: [], metricEffects: [{ metricId: 'costPer1kRequests', direction: 'up', magnitude: 'large', deltaMode: 'relative', delta: 0.25, explanation: '低价值流量也使用强模型，成本上升。' }, { metricId: 'highValueSuccessRate', direction: 'up', magnitude: 'small', deltaMode: 'absolute', delta: 1.5, explanation: '复杂任务质量略有保障。' }] },
+        { id: 'costRouting', label: '成本路由', description: '优先降低单次调用成本，适合低价值任务但需保护高价值任务。', routingRules: [], metricEffects: [{ metricId: 'costPer1kRequests', direction: 'down', magnitude: 'large', deltaMode: 'relative', delta: 0.18, explanation: '更多请求进入低成本路径。' }, { metricId: 'highValueSuccessRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 3.8, explanation: '如果没有价值护栏，高价值任务可能被误降级。' }] },
+        { id: 'valueTierRouting', label: '价值分层路由', description: '按采纳率、完成率和风险将强模型留给高价值任务。', routingRules: [], metricEffects: [{ metricId: 'lowValueTrafficShare', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 6, explanation: '低价值流量被限额或降级。' }, { metricId: 'highValueSuccessRate', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 2.8, explanation: '高价值任务保留能力预算。' }] },
+      ] },
+      { id: 'retryPolicy', label: '重试策略', options: [
+        { id: 'retryImmediately', label: '失败即重试', description: '任何失败都立即重试，短期成功率可能上升但容易形成重试风暴。', routingRules: [], metricEffects: [{ metricId: 'retryAmplificationRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 18, explanation: '无差别重试放大调用量。' }, { metricId: 'costPer1kRequests', direction: 'up', magnitude: 'medium', deltaMode: 'relative', delta: 0.14, explanation: '重复调用直接增加成本。' }] },
+        { id: 'classifiedRetry', label: '错误分类重试', description: '只对瞬时错误重试，对能力不匹配和权限错误升级或限额。', routingRules: [], metricEffects: [{ metricId: 'retryAmplificationRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 7, explanation: '错误分类减少无效重试。' }, { metricId: 'highValueSuccessRate', direction: 'up', magnitude: 'small', deltaMode: 'absolute', delta: 1.1, explanation: '真正可恢复的失败仍有兜底。' }] },
+        { id: 'failFastQuota', label: '失败升级并限额', description: '对重复失败快速升级，同时给低价值流量设置预算上限。', routingRules: [], metricEffects: [{ metricId: 'retryAmplificationRate', direction: 'down', magnitude: 'large', deltaMode: 'absolute', delta: 11, explanation: '限额阻止重复失败扩大。' }, { metricId: 'lowValueTrafficShare', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 7, explanation: '低价值流量被预算约束。' }] },
+      ] },
+    ],
+    events: [
+      { id: 'cost-up-success-flat', title: '成本涨但成功率不涨', symptom: '每千请求成本明显上升，但高价值任务成功率几乎不变。', triggerStrategyOptionIds: ['fullHistory', 'singleStrongModel'], correctDiagnosis: '全量历史和单一强模型叠加，让低价值流量也消耗高价上下文和强模型预算。第一步应拆分任务价值、上下文构成和模型命中，而不是只看总调用量。', investigationOrder: ['按任务类型和价值层拆成本。', '查看平均输入 Token 与上下文来源。', '核对强模型命中是否覆盖低价值流量。'], missedRisks: ['低价值流量可能吞噬高价值预算。', '整体成功率稳定会掩盖 ROI 下降。'], relatedConceptIds: ['token-roi', 'context-window', 'cost-routing'], nextStepRecommendations: ['恢复价值分层路由。', '将完整历史改为摘要或任务窗口。'] },
+      { id: 'retry-cache-storm', title: '成本和 P95 同涨', symptom: 'P95 与成本同步升高，失败样本里重复调用比例增加。', triggerStrategyOptionIds: ['retryImmediately', 'noCache'], correctDiagnosis: '失败即重试和缓存缺失叠加，重复 Prefill 与重复模型调用共同放大成本和延迟。', investigationOrder: ['先按错误类型拆重试。', '检查 prefix 和 KV cache locality。', '对不可恢复错误关闭重试并升级。'], missedRisks: ['重试会掩盖根因并制造二次流量。', '缓存缺失会让每次重试都重新支付 Prefill 成本。'], relatedConceptIds: ['kv-cache', 'batch-scheduling', 'observability'], nextStepRecommendations: ['启用错误分类重试。', '标准化 prefix 并按租户和任务分组。'] },
+      { id: 'cheap-token-bad-roi', title: '成本降但返工升', symptom: '单次 Token 成本下降，但高价值任务成功率下降，人工返工和投诉增加。', triggerStrategyOptionIds: ['taskWindowTrim', 'costRouting'], correctDiagnosis: '过度裁剪和成本路由只优化了单次 Token 成本，却损伤高价值任务质量，综合 ROI 变差。', investigationOrder: ['先看高价值任务成功率和采纳率。', '抽样检查裁剪后丢失的关键上下文。', '比较返工成本与 Token 节省。'], missedRisks: ['低 Token 成本不等于高 ROI。', '过度裁剪会把成本转移到人工返工。'], relatedConceptIds: ['token-roi', 'context-compression', 'cost-routing'], nextStepRecommendations: ['给高价值任务设置上下文下限。', '将成本指标与采纳率、完成率一起评估。'] },
+    ],
+    reviewRubric: { prompt: '请判断 Token 成本异常上涨的主要来源，并说明你会如何按任务价值、上下文、缓存、路由和重试顺序排查。', requiredFindings: ['必须拆分任务类型和业务价值。', '必须定位上下文构成和重试放大。', '必须识别低 Token 成本不等于高 ROI。'], acceptableActions: ['启用摘要压缩或任务窗口裁剪。', '标准化 prefix 或按租户任务分组。', '按价值分层路由并分类重试。'], nextStepRecommendations: ['回看 token-roi、context-window、kv-cache 和 cost-routing。', '把采纳率、完成率和投诉率纳入成本治理看板。'] },
+  },
+  {
+    id: 'rag-answer-quality',
+    type: 'ragQuality',
+    title: 'RAG 召回正常但答案差诊断',
+    subtitle: '区分召回、重排、上下文冲突、回答约束和评测缺口',
+    difficulty: 'advanced',
+    estimatedMinutes: 9,
+    relatedConceptIds: ['semantic-space', 'prompt-context', 'context-window', 'context-compression', 'context-pollution', 'system-prompt', 'eval', 'trace'],
+    entryConceptIds: ['prompt-context', 'context-window', 'context-pollution', 'eval', 'trace'],
+    capabilityDomains: ['ragContextEngineering', 'evaluationObservability', 'agentEngineering'],
+    background: '企业客服、法务和 IT 知识库每日 8 到 10 万次问答，知识库近期完成政策版本更新。离线召回 TopK 命中率稳定，但线上事实错误率从 3% 升到 11%。',
+    initialSymptom: '召回覆盖率看起来正常，但回答引用旧政策、遗漏关键约束或没有来源，团队争论该先改 embedding、重排、chunk、prompt 还是评测集。',
+    objectLabels: { factsTitle: '文档片段与失败样本', secondaryTitle: '检索链路', controlTitle: 'RAG 诊断策略' },
+    facts: [
+      { id: 'document-fragments', title: '文档片段', description: '新政策、旧政策、FAQ、工单历史和低可信来源同时被召回，旧政策文本更长且语义相似度更高。', attributes: [{ label: '新政策版本', value: '2026-Q2' }, { label: '旧政策版本', value: '2025-Q4' }, { label: '低可信来源', value: '历史工单摘要' }], risks: ['召回正常不代表上下文可直接回答。'] },
+      { id: 'retrieval-chain', title: '检索链路', description: '召回、重排、权限过滤、上下文拼接和模型回答均有 Trace，但当前排序缺少版本、来源权威性和冲突信号。', attributes: [{ label: 'TopK 命中率', value: '86%' }, { label: '重排特征', value: '语义相似度优先' }, { label: 'Trace 字段', value: '片段 id / 排序 / 来源' }], risks: ['没有版本和来源权重，重排会把旧但相似的片段放到前面。'] },
+      { id: 'failure-samples', title: '失败样本', description: '错误引用、遗漏约束、上下文冲突和无来源回答混在一起，需要先分型再优化。', attributes: [{ label: '事实错误率', value: '11%' }, { label: '引用正确率', value: '74%' }, { label: '冲突片段占比', value: '18%' }], risks: ['只改 prompt 会掩盖召回后处理和评测缺口。'] },
+    ],
+    baseline: {
+      selectedStrategies: { retrievalScope: 'versionFirst', rerankPolicy: 'authorityWeighted', contextAssembly: 'dedupCompressed', answerGuard: 'sourceRequired' },
+      metrics: [
+        { id: 'recallCoverage', label: '召回覆盖率', value: 86, unit: '%', trend: 'better', polarity: 'higherIsBetter', min: 55, max: 96, explanation: '离线 TopK 命中率稳定，问题不主要是完全召回缺失。' },
+        { id: 'citationAccuracy', label: '引用正确率', value: 78, unit: '%', trend: 'neutral', polarity: 'higherIsBetter', min: 45, max: 96, explanation: '权威来源加权和来源必引让引用质量回升，但仍受冲突上下文影响。' },
+        { id: 'contextConflictRate', label: '上下文冲突率', value: 18, unit: '%', trend: 'neutral', polarity: 'lowerIsBetter', min: 3, max: 45, explanation: '新旧政策和历史工单仍可能同时进入上下文。' },
+        { id: 'factualErrorRate', label: '事实错误率', value: 9.5, unit: '%', trend: 'worse', polarity: 'lowerIsBetter', min: 2, max: 24, explanation: '事实错误率高于目标，需要拆分重排、上下文冲突和回答约束。' },
+        { id: 'escalationRate', label: '拒答/升级率', value: 8, unit: '%', trend: 'neutral', polarity: 'lowerIsBetter', min: 2, max: 32, explanation: '来源必引会适度提升升级率，但能减少无来源回答。' },
+        { id: 'avgContextTokens', label: '平均上下文 Token', value: 5200, unit: 'tokens', trend: 'neutral', polarity: 'lowerIsBetter', min: 2200, max: 9800, explanation: '去重压缩后上下文规模可控。' },
+      ],
+      explanation: '基线代表先按版本和权威来源做重排，并要求回答必须引用来源。',
+    },
+    strategyControls: [
+      { id: 'retrievalScope', label: '召回范围', options: [
+        { id: 'broadRecall', label: '高召回宽口径', description: '尽量召回所有相似片段，避免漏召但容易带入旧版本和低可信来源。', routingRules: [], metricEffects: [{ metricId: 'recallCoverage', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 6, explanation: '宽口径提高 TopK 覆盖。' }, { metricId: 'contextConflictRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 10, explanation: '旧政策和低可信片段更容易混入上下文。' }] },
+        { id: 'versionFirst', label: '版本优先', description: '优先召回最新版本和有效期内片段。', routingRules: [], metricEffects: [{ metricId: 'citationAccuracy', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 5, explanation: '新版本片段优先进入候选集。' }, { metricId: 'contextConflictRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 5, explanation: '旧版本冲突减少。' }] },
+        { id: 'permissionFirst', label: '权限优先', description: '先按用户权限过滤资料，再进入召回和拼接。', routingRules: [], metricEffects: [{ metricId: 'recallCoverage', direction: 'down', magnitude: 'small', deltaMode: 'absolute', delta: 4, explanation: '权限过滤会减少可召回片段。' }, { metricId: 'escalationRate', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 6, explanation: '缺权限时更容易升级或拒答。' }] },
+      ] },
+      { id: 'rerankPolicy', label: '重排策略', options: [
+        { id: 'semanticFirst', label: '语义相似度优先', description: '主要按向量相似度排序，简单但不理解版本和来源权威性。', routingRules: [], metricEffects: [{ metricId: 'citationAccuracy', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 7, explanation: '旧但相似的片段可能排在前面。' }, { metricId: 'factualErrorRate', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 4, explanation: '错误来源进入上下文会放大事实错误。' }] },
+        { id: 'freshnessWeighted', label: '新鲜度加权', description: '把版本时间、有效期和发布状态纳入排序。', routingRules: [], metricEffects: [{ metricId: 'citationAccuracy', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 6, explanation: '新政策片段更容易被引用。' }, { metricId: 'contextConflictRate', direction: 'down', magnitude: 'small', deltaMode: 'absolute', delta: 3, explanation: '过期片段权重下降。' }] },
+        { id: 'authorityWeighted', label: '权威来源加权', description: '把制度正文、FAQ、历史工单等来源分级。', routingRules: [], metricEffects: [{ metricId: 'citationAccuracy', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 9, explanation: '制度正文和官方 FAQ 优先。' }, { metricId: 'factualErrorRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 3.5, explanation: '低可信来源影响下降。' }] },
+      ] },
+      { id: 'contextAssembly', label: '上下文构造', options: [
+        { id: 'rawTopK', label: 'TopK 原样拼接', description: '直接拼接前 K 个片段，保留信息多但冲突和 Token 成本高。', routingRules: [], metricEffects: [{ metricId: 'contextConflictRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 12, explanation: '冲突片段未经隔离。' }, { metricId: 'avgContextTokens', direction: 'up', magnitude: 'large', deltaMode: 'relative', delta: 0.24, explanation: '原样拼接增加上下文 Token。' }] },
+        { id: 'dedupCompressed', label: '去重压缩', description: '合并重复片段并保留关键约束，控制上下文长度。', routingRules: [], metricEffects: [{ metricId: 'avgContextTokens', direction: 'down', magnitude: 'medium', deltaMode: 'relative', delta: 0.16, explanation: '重复片段被压缩。' }, { metricId: 'contextConflictRate', direction: 'down', magnitude: 'small', deltaMode: 'absolute', delta: 3, explanation: '明显重复和旧片段减少。' }] },
+        { id: 'conflictIsolated', label: '冲突片段隔离', description: '把互相冲突的新旧政策显式标注并隔离，让回答层知道何时拒答或升级。', routingRules: [], metricEffects: [{ metricId: 'contextConflictRate', direction: 'down', magnitude: 'large', deltaMode: 'absolute', delta: 9, explanation: '冲突来源被显式分组。' }, { metricId: 'escalationRate', direction: 'up', magnitude: 'small', deltaMode: 'absolute', delta: 3, explanation: '真实冲突会触发升级。' }] },
+      ] },
+      { id: 'answerGuard', label: '回答约束', options: [
+        { id: 'looseGeneration', label: '宽松生成', description: '允许模型综合回答，不强制引用来源。', routingRules: [], metricEffects: [{ metricId: 'factualErrorRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 6, explanation: '缺少来源约束会放大幻觉和旧政策引用。' }, { metricId: 'escalationRate', direction: 'down', magnitude: 'small', deltaMode: 'absolute', delta: 3, explanation: '模型更少拒答，但不是质量提升。' }] },
+        { id: 'sourceRequired', label: '必须引用来源', description: '答案必须带来源，否则拒答或要求补检索。', routingRules: [], metricEffects: [{ metricId: 'citationAccuracy', direction: 'up', magnitude: 'medium', deltaMode: 'absolute', delta: 6, explanation: '来源约束提升引用正确率。' }, { metricId: 'factualErrorRate', direction: 'down', magnitude: 'medium', deltaMode: 'absolute', delta: 3, explanation: '无来源回答减少。' }] },
+        { id: 'refuseOnConflict', label: '冲突时拒答或升级', description: '检测到新旧版本冲突或权限不明时升级给人工或二次检索。', routingRules: [], metricEffects: [{ metricId: 'factualErrorRate', direction: 'down', magnitude: 'large', deltaMode: 'absolute', delta: 5, explanation: '冲突样本不再直接生成错误答案。' }, { metricId: 'escalationRate', direction: 'up', magnitude: 'large', deltaMode: 'absolute', delta: 10, explanation: '冲突样本会更多升级。' }] },
+      ] },
+    ],
+    events: [
+      { id: 'high-recall-wrong-citation', title: '召回高但引用错', symptom: '召回覆盖率升高，但引用正确率下降，回答引用旧政策。', triggerStrategyOptionIds: ['broadRecall', 'rawTopK'], correctDiagnosis: '宽口径召回和 TopK 原样拼接让新旧片段同时进入上下文，模型按更靠前或更强表述的旧片段回答。', investigationOrder: ['先按失败样本查看进入上下文的片段版本。', '核对重排是否有版本和权威来源特征。', '检查上下文拼接是否隔离冲突片段。'], missedRisks: ['召回覆盖率高不代表答案依据正确。', '旧版本片段可能因语义相似度更高而压过新政策。'], relatedConceptIds: ['semantic-space', 'context-window', 'trace'], nextStepRecommendations: ['加入版本优先或权威来源加权。', '用 Trace 展示片段版本、来源和排序。'] },
+      { id: 'semantic-loose-fact-error', title: '事实错误率上升', symptom: '语义相似度排序看似合理，但事实错误率持续升高。', triggerStrategyOptionIds: ['semanticFirst', 'looseGeneration'], correctDiagnosis: '重排没有权威性和版本权重，回答约束又缺少来源校验，模型会把相似但过期或低可信片段写成事实。', investigationOrder: ['按错误样本拆分重排错序和生成约束不足。', '检查答案是否有可追溯来源。', '把错误样本纳入 Eval 集。'], missedRisks: ['只调 prompt 无法修复错误来源排序。', '无来源回答会让评测和复盘失去证据。'], relatedConceptIds: ['system-prompt', 'eval', 'trace'], nextStepRecommendations: ['启用来源必引。', '将版本、权威性和失败样本加入评测。'] },
+      { id: 'over-refusal', title: '拒答过多', symptom: '事实错误下降，但拒答和人工升级显著增加。', triggerStrategyOptionIds: ['permissionFirst', 'refuseOnConflict'], correctDiagnosis: '权限过滤和冲突拒答过严，需要区分缺权限、资料冲突和真实无答案，否则会把可回答问题推给人工。', investigationOrder: ['先分型拒答原因。', '查看权限过滤前后的候选片段。', '评估冲突检测阈值是否过宽。'], missedRisks: ['拒答率下降不应以事实错误回升为代价。', '权限与冲突是两类问题，不能混成一个策略。'], relatedConceptIds: ['prompt-context', 'context-pollution', 'eval'], nextStepRecommendations: ['把拒答原因写入 Trace。', '为缺权限、资料冲突和无答案配置不同下一步。'] },
+    ],
+    reviewRubric: { prompt: '请判断 RAG 答案质量下降的主要来源，并说明如何按失败样本、召回、重排、上下文构造、回答约束和 Trace 顺序排查。', requiredFindings: ['必须区分召回缺失、重排错序、上下文冲突和生成约束不足。', '不能只回答调 prompt。', '必须说明如何用 Trace 还原片段、版本、来源和排序。'], acceptableActions: ['增加版本或权威来源加权。', '隔离冲突片段并要求来源引用。', '把失败样本沉淀到 Eval。'], nextStepRecommendations: ['回看 prompt-context、context-window、context-pollution、eval 和 trace。', '用失败样本驱动重排和上下文策略复盘。'] },
   },
 ];
 
