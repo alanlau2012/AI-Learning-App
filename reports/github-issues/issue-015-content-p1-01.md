@@ -31,7 +31,7 @@ cost-routing 诊断题干扰项 A/C/D 均为明显荒谬动作（全量切换、
 
 ### 5.1 截图（UI/UX 类必填）
 
-![cost-routing 诊断题选项](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-015-cost-routing-options.png)
+![cost-routing 诊断题选项](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-015-cost-routing-options.png)
 
 
 ### 5.2 代码 / 内容证据

@@ -29,7 +29,7 @@ ProfilePage 告警色硬编码（同 UI-P1-03）。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![同 #12](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-012-profile-danger-color.png)
+![同 #12](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-012-profile-danger-color.png)
 
 
 ### 5.2 代码 / 内容证据

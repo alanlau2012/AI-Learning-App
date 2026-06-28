@@ -31,7 +31,7 @@ ttft 多选题干三个数据点与 A/B/C 一一对应，D 明显错误，缺少
 
 ### 5.1 截图（UI/UX 类必填）
 
-![ttft 多选诊断题](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-019-ttft-multiple.png)
+![ttft 多选诊断题](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-019-ttft-multiple.png)
 
 
 ### 5.2 代码 / 内容证据

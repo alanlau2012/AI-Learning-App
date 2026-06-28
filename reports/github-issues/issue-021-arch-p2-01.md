@@ -29,7 +29,7 @@ ScenarioPage metricCard 状态色硬编码（同 UI-P1-04）。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![同 #13](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-013-scenario-metrical-hardcode.png)
+![同 #13](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-013-scenario-metrical-hardcode.png)
 
 
 ### 5.2 代码 / 内容证据

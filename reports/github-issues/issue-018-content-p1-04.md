@@ -30,7 +30,7 @@ permission-governance 题 A 33 字且为最长；B/C/D ≤16 字且为单一荒�
 
 ### 5.1 截图（UI/UX 类必填）
 
-![permission-governance 诊断题](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-018-permission-governance-options.png)
+![permission-governance 诊断题](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-018-permission-governance-options.png)
 
 
 ### 5.2 代码 / 内容证据

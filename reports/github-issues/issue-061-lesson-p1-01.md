@@ -30,7 +30,7 @@ agents-md 讲 definition 被 fitDefinition 截断，以「…在业务 Agent 平
 
 ### 5.1 截图（UI/UX 类必填）
 
-![agents-md 定义截断](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-061-agents-md-definition-truncated.png)
+![agents-md 定义截断](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-061-agents-md-definition-truncated.png)
 
 
 ### 5.2 代码 / 内容证据

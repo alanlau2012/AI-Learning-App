@@ -47,7 +47,7 @@
 
 ## 5. 证据
 ### 5.1 截图（UI/UX 类必填）
-![描述](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-NNN-slug.png)
+![描述](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-NNN-slug.png)
 
 ### 5.2 代码 / 内容证据（架构/内容类必填）
 - 文件:行号 + 片段或 Grep 结果

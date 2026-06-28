@@ -29,7 +29,7 @@ troubleshootingPath 可补 RACI/操作手册。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![ai-native-org 诊断题](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-031-ai-native-org-options.png)
+![ai-native-org 诊断题](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-031-ai-native-org-options.png)
 
 
 ### 5.2 代码 / 内容证据

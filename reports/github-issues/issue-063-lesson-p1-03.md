@@ -31,7 +31,7 @@ Glossary 术语 embedding / rag / model-routing 无同名 KnowledgePoint.id，IA
 
 ### 5.1 截图（UI/UX 类必填）
 
-![Glossary IA 不对齐](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-063-glossary-ia-mismatch.png)
+![Glossary IA 不对齐](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-063-glossary-ia-mismatch.png)
 
 
 ### 5.2 代码 / 内容证据

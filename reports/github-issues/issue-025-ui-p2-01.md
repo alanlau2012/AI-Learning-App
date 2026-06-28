@@ -30,7 +30,7 @@ HomePage primaryBtn hover 使用 `#1838b8` 硬编码。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![HomePage 主按钮 hover](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-025-home-primary-hover.png)
+![HomePage 主按钮 hover](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-025-home-primary-hover.png)
 
 
 ### 5.2 代码 / 内容证据

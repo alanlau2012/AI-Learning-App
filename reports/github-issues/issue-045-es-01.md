@@ -31,7 +31,7 @@ ScenariosPage 能力域/难度筛选组合至零结果时，页面渲染空 grid
 
 ### 5.1 截图（UI/UX 类必填）
 
-![场景筛选零结果无空态](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-045-scenarios-filter-empty.png)
+![场景筛选零结果无空态](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-045-scenarios-filter-empty.png)
 
 
 ### 5.2 代码 / 内容证据

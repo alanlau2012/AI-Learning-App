@@ -30,7 +30,7 @@ token-roi 选项 C 偏口号化，缺可执行步骤。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![token-roi 诊断题](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-030-token-roi-options.png)
+![token-roi 诊断题](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-030-token-roi-options.png)
 
 
 ### 5.2 代码 / 内容证据

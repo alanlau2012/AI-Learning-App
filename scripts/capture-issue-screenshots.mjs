@@ -175,6 +175,47 @@ const SHOTS = [
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     },
   },
+  {
+    name: 'issue-029-scenario-option-active.png',
+    path: '/scenarios/rag-answer-quality',
+    viewport: { width: 1440, height: 900 },
+    setup: async (page) => {
+      const strategyBtn = page.locator('button[aria-pressed="false"]').first();
+      if (await strategyBtn.count()) await strategyBtn.click();
+    },
+  },
+  {
+    name: 'issue-030-token-roi-options.png',
+    path: '/concepts/token-roi',
+    viewport: { width: 1440, height: 900 },
+    setup: async (page) => {
+      await page.locator('text=诊断题').first().scrollIntoViewIfNeeded();
+    },
+  },
+  {
+    name: 'issue-031-ai-native-org-options.png',
+    path: '/concepts/ai-native-org',
+    viewport: { width: 1440, height: 900 },
+    setup: async (page) => {
+      await page.locator('text=诊断题').first().scrollIntoViewIfNeeded();
+    },
+  },
+  {
+    name: 'issue-032-ttft-multiselect-label.png',
+    path: '/concepts/ttft',
+    viewport: { width: 1440, height: 900 },
+    setup: async (page) => {
+      await page.locator('text=诊断题').first().scrollIntoViewIfNeeded();
+    },
+  },
+  {
+    name: 'issue-041-sampling-terminology.png',
+    path: '/concepts/sampling',
+    viewport: { width: 1440, height: 900 },
+    setup: async (page) => {
+      await page.locator('text=诊断题').first().scrollIntoViewIfNeeded();
+    },
+  },
 ];
 
 const browser = await chromium.launch({ headless: true });

@@ -31,7 +31,7 @@ ScenarioPage metricCard 状态色（better/worse）使用 `#bed8ca / #f1d0a8 / #
 
 ### 5.1 截图（UI/UX 类必填）
 
-![ScenarioPage metricCard 硬编码色](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-013-scenario-metrical-hardcode.png)
+![ScenarioPage metricCard 硬编码色](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-013-scenario-metrical-hardcode.png)
 
 
 ### 5.2 代码 / 内容证据

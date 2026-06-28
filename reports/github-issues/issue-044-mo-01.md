@@ -33,7 +33,7 @@
 
 ### 5.1 截图（UI/UX 类必填）
 
-![390×844 BottomNav 布局](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-044-mobile-bottomnav-layout.png)
+![390×844 BottomNav 布局](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-044-mobile-bottomnav-layout.png)
 
 
 ### 5.2 代码 / 内容证据

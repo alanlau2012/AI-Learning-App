@@ -31,7 +31,7 @@ multi-agent 决策手册 executiveExplanation / decisionPoints 混入 git status
 
 ### 5.1 截图（UI/UX 类必填）
 
-![multi-agent 决策手册仓库用语](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-054-multi-agent-guide-repo-terms.png)
+![multi-agent 决策手册仓库用语](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-054-multi-agent-guide-repo-terms.png)
 
 
 ### 5.2 代码 / 内容证据

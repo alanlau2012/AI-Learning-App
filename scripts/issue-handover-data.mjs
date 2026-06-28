@@ -6,7 +6,7 @@
 export const AUDIT_COMMIT = '9a11d6941c1886bb095b26f836e7ec2754999e81';
 export const AUDIT_COMMIT_SHORT = '9a11d694';
 export const SCREENSHOT_BASE =
-  'https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628';
+  'https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628';
 
 /** @typedef {{ id: string; text: string; expected: string; actual: string }} CompareRow */
 /** @typedef {{ file?: string; quote?: string; grep?: string }} CodeEvidence */

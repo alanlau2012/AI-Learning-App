@@ -31,7 +31,7 @@
 
 ### 5.1 截图（UI/UX 类必填）
 
-![内容区底部 padding](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-052-content-padding-bottom.png)
+![内容区底部 padding](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-052-content-padding-bottom.png)
 
 
 ### 5.2 代码 / 内容证据

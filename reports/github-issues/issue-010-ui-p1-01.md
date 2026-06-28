@@ -32,7 +32,7 @@
 
 ### 5.1 截图（UI/UX 类必填）
 
-![诊断解析区告警背景硬编码](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-010-warning-soft-missing.png)
+![诊断解析区告警背景硬编码](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-010-warning-soft-missing.png)
 
 
 ### 5.2 代码 / 内容证据

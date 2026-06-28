@@ -30,7 +30,7 @@ UX 与评估公平性；见 #19。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![ttft 缺多选标注](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-032-ttft-multiselect-label.png)
+![ttft 缺多选标注](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-032-ttft-multiselect-label.png)
 
 
 ### 5.2 代码 / 内容证据

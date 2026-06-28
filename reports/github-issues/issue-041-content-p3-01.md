@@ -30,7 +30,7 @@ sampling 题 A 使用「低随机采样」非标准术语。
 
 ### 5.1 截图（UI/UX 类必填）
 
-![sampling 术语](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-041-sampling-terminology.png)
+![sampling 术语](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-041-sampling-terminology.png)
 
 
 ### 5.2 代码 / 内容证据

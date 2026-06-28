@@ -31,7 +31,7 @@
 
 ### 5.1 截图（UI/UX 类必填）
 
-![value-review-agent 最长选项泄漏](https://github.com/alanlau2012/AI-Learning-App/blob/main/output/qa/issues-20260628/issue-014-value-review-agent-options.png)
+![value-review-agent 最长选项泄漏](https://raw.githubusercontent.com/alanlau2012/AI-Learning-App/main/output/qa/issues-20260628/issue-014-value-review-agent-options.png)
 
 
 ### 5.2 代码 / 内容证据
