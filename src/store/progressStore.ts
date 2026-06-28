@@ -1,11 +1,11 @@
 /**
  * 唯一全局状态：用户学习进度（Zustand）。
  *
- * 持久化与迁移集中在 utils/progress.ts；这里只暴露页面动作。
+ * 持久化与迁移集中在 utils/progressCore.ts；这里只暴露页面动作。
  */
 import { create } from 'zustand';
 import type { UserProgress } from '../types';
-import { defaultProgress, loadProgress, saveProgress } from '../utils/progress';
+import { defaultProgress, loadProgress, saveProgress } from '../utils/progressCore';
 
 interface ProgressState extends UserProgress {
   toggleComplete: (conceptId: string) => void;

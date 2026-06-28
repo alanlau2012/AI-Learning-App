@@ -6,7 +6,7 @@
 import { NavLink } from 'react-router-dom';
 import { modules } from '../../data/modules';
 import { useProgressStore } from '../../store/progressStore';
-import { moduleProgress, overallProgress } from '../../utils/progress';
+import { moduleProgress, overallProgress } from '../../utils/progressCore';
 import { ProgressBar } from '../progress/ProgressBar';
 import styles from './Sidebar.module.css';
 

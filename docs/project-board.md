@@ -3,15 +3,15 @@
 > 多 Agent 协作的**单一事实来源**。任何 Agent 开工前先读此看板与 [AGENTS.md](../AGENTS.md) §0 / §5.1。
 > 状态枚举：`todo` / `in-progress` / `review` / `done` / `blocked`。每次推进任务须更新本表与“最后更新时间”。
 
-**最后更新时间**：2026-06-25 · 维护人：主开发 Agent（AI 工程负责人增强 Phase 1 MVP 封板）
+**最后更新时间**：2026-06-28 · 维护人：主开发 Agent（生产化发布收口）
 
 ## 1. 当前里程碑
 
-- **当前阶段**：**AI 工程负责人增强 Phase 1 MVP 已完成**。56 讲全部 `contentRevision: v2`；已完成 12 条决策手册、56 讲能力域映射、4 条角色路径、ConceptPage 工程决策章节、Profile 能力概览与 Search 能力域过滤。
+- **当前阶段**：**生产化发布候选已封板 / Web 可发布、桌面可内部试用分发**。56 讲全部 `contentRevision: v2`；已完成 17 条决策手册、56 讲能力域映射、4 条角色路径、ConceptPage 工程决策章节、Profile 能力概览/本周建议、Search/Glossary 能力域联动，以及场景演练库 R0+R1。
 - **当前上线内容**：**56 / 56 讲**；剩余 `stub`：**0**。地图无 stub。
 - **模块上线进度**：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`（全部满额）。
-- **验证**：`validate:content`、`typecheck`、`lint`、`build` PASS；Chromium 抽查 ConceptPage / Profile / Search 桌面与移动端 PASS，见 `reports/phase1-qa-report.md`。
-- **下一轮建议（均需 Owner 确认）**：Phase 2 `model-router` 独立场景演练、Phase 1B 剩余 5 条 `decisionGuide`、Glossary 能力域增强、完整 PWA 离线能力、桌面版图标/代码签名/自动更新。
+- **验证**：最新生产化验证以 `reports/release-readiness-20260628.md`、`reports/browser-regression-20260628.md`、`reports/security-readiness-20260628.md`、`reports/performance-budget-20260628.md`、`reports/desktop-release-20260628.md` 为准；历史 Phase 1/2/3 与场景库报告见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md`、`reports/scenario-library-r1-summary.md`。
+- **下一轮建议（均需 Owner 确认）**：场景演练 R2/R3、`/scenarios` 目录页、Profile 场景推荐与 `reviewScenarioIds`、完整 PWA 离线能力、桌面版图标/代码签名/自动更新、内容 P2/P3。
 - 后续内容（如样板回改）仍走流水线：`content/drafts/` → 审核复核 → 主开发合入 `src/data/*` → `npm run validate:content`。
 
 ## 2. 阶段任务板
@@ -25,6 +25,9 @@
 | GitHub P1 Content Repair | issue #3/#4：Trace/Tool Calling 敏感数据边界、Session 亲和 cache locality 口径 | 内容 Agent → 审核 Agent → 主开发 | done | `validate:content` + `typecheck` PASS | 见 `reports/github-p1-content-repair-summary.md` |
 | AI Leader P2-P3 | Phase 1B decisionGuide、model-router 场景演练、Profile/Glossary/Search 深化 | Product Architect -> Content & Validation -> Implementation | done | `validate:content` / `typecheck` / `lint` / `build` + browser smoke PASS | 见 `reports/phase2-phase3-qa-summary.md` |
 | AI Leader P0-P1 | PO/SPEC、12 条 `decisionGuide`、56 讲能力域、4 条角色路径、Concept/Profile/Search | Product Architect → Content & Validation → Implementation | done | `validate:content` / `typecheck` / `lint` / `build` + Chromium 抽查 PASS | 见 `reports/phase1-qa-report.md` |
+| Scenario Library R0+R1 | 通用场景 schema 最小扩展、`token-cost-spike` / `rag-answer-quality` 入库、Concept/Search 入口 | 主开发 Agent | done | `validate:content` / `typecheck` / `lint` / `build` + browser smoke PASS | 见 `reports/scenario-library-r1-summary.md` |
+| 2026-06-28 Content P1 Repair | 关闭内容专业审核 6 个 P1：Session Affinity、RAG 权限边界、Trace/路由记录、租户缓存隔离、诊断题形态泄漏 | 内容生产子 Agent → 主审 Agent | done | `validate:content` / `typecheck` / `git diff --check` PASS | 见 `reports/content-p1-repair-review-20260628.md` |
+| Production Readiness | 发布卫生、CSP、Electron 外链 allowlist、首包拆分、Web/桌面验证、release readiness 报告 | 主开发 Agent + 专项 Agent | done | 五项命令 + browser regression + desktop build/smoke PASS | 见 `reports/release-readiness-20260628.md` |
 
 ## 3. 内容生产流水线（draft → review → 入库）
 
@@ -77,6 +80,8 @@ src/data/concepts.ts 或 demoConcepts.ts ← 主开发按 content-schema §3 映
 |---|---|---|---|---|
 | P1-01 | Google Fonts 在受限网络下 console 报 `ERR_NETWORK_ACCESS_DENIED` | 演示观感 | done | 主开发 |
 | DSK-01 | Electron Builder 在中文工作区直接输出 `release/` 时 rename `win-unpacked.tmp` 触发 `EPERM` | 桌面打包 | done：使用临时 ASCII 输出目录后复制回 `release/` | 主开发 |
+| REL-01 | 已跟踪 `output/electron-user-data/*`、Electron `.err` 等运行时产物 | 发布卫生 | done：本轮从 Git 移除并补 `.gitignore` | 主开发 |
+| REL-02 | 生产发布前缺少当前 HEAD 的浏览器/桌面验证证据 | 发布门禁 | done：`browser-regression-20260628.md`、`desktop-release-20260628.md`、`release-readiness-20260628.md` 已补齐 | 主开发 + QA/桌面 Agent |
 
 ## 6. 高风险文件（修改需遵守所有权，见 AGENTS.md §5.1）
 

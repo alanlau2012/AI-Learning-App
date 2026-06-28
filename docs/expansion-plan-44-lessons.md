@@ -3,7 +3,7 @@
 > MVP 0.1 修复回合 1 封板后制定，MVP 0.2 Wave 1/2 已按实际执行重切为 **7 + 7** 两波，Wave 3 完成 M3 收口。后续继续按小批次扩展，**不一次性生成剩余 12 讲**。每批都走 `content/drafts/ → content/reviewed/ → 主开发合入 src/data/* → validate:content` 流水线，并以 [content-production-gate.md](content-production-gate.md) 为每讲入库硬门禁、以 [mvp-0.1-frozen-sample-standard.md](mvp-0.1-frozen-sample-standard.md) 为样板基线。
 > **Final Wave + backlog polish + GitHub P1 内容修复已完成：56 / 56 讲全部上线（全部 `contentRevision: v2`）**：M1 `10/10`、M2 `10/10`、M3 `8/8`、M4 `16/16`、M5 `6/6`、M6 `6/6`，地图无 stub；`trace` / `observability` / `token-roi` 治理动画已补齐；issue #3/#4 的 Trace/Tool Calling 敏感数据边界与 Session 亲和口径已修复。
 > 见 `reports/final-wave-summary.md`、`reports/backlog-polish-summary.md`、`reports/github-p1-content-repair-summary.md`；正文改版 v2 见 `reports/content-revision-platform-summary.md`。
-> **后续增强状态（2026-06-25）**：AI 工程负责人增强 Phase 1 MVP 已完成，不改变 56 讲登记与模块计数；新增 12 条决策手册、56 讲能力域映射、4 条角色路径与 Concept/Profile/Search 消费入口，见 `reports/phase1-qa-report.md`。
+> **后续增强状态（2026-06-28）**：AI 工程负责人增强 Phase 1/1B/2/3 与场景演练库 R0+R1 已完成，不改变 56 讲登记与模块计数；新增 17 条决策手册、56 讲能力域映射、4 条角色路径、Profile/Glossary/Search 增强与 3 个场景演练，见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md`、`reports/scenario-library-r1-summary.md`。2026-06-28 内容专业审核 6 个 P1 已关闭，见 `reports/content-p1-repair-review-20260628.md`。
 > 本计划不改 id/order/模块计数（`10/10/8/16/6/6`）。
 
 ---

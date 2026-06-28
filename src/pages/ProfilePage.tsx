@@ -73,6 +73,12 @@ export function ProfilePage() {
     .map((id) => conceptById.get(id))
     .filter((concept): concept is (typeof concepts)[number] => Boolean(concept));
 
+  function confirmClearAll() {
+    if (window.confirm('确认清空所有本地学习记录？此操作不会影响课程内容。')) {
+      clearAll();
+    }
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.header}>
@@ -321,7 +327,7 @@ export function ProfilePage() {
           <h2>清空学习记录</h2>
           <p>会清空完成、收藏、错题、复盘清单、最近访问和连续学习天数。</p>
         </div>
-        <button type="button" onClick={clearAll}>清空记录</button>
+        <button type="button" onClick={confirmClearAll}>清空记录</button>
       </section>
     </main>
   );

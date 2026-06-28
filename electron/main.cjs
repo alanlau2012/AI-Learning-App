@@ -46,8 +46,22 @@ function cleanupIsolatedRuntime() {
   }
 }
 
-function isExternalUrl(url) {
-  return /^(https?:|mailto:)/i.test(url);
+const allowedExternalHosts = new Set([
+  'github.com',
+  'www.github.com',
+  'gsap.com',
+  'www.gsap.com',
+]);
+
+function getAllowedExternalUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'mailto:') return url;
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    return allowedExternalHosts.has(parsed.hostname.toLowerCase()) ? url : null;
+  } catch {
+    return null;
+  }
 }
 
 function createMainWindow() {
@@ -86,16 +100,21 @@ function createMainWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (isExternalUrl(url)) {
-      shell.openExternal(url);
+    const externalUrl = getAllowedExternalUrl(url);
+    if (externalUrl) {
+      shell.openExternal(externalUrl);
     }
     return { action: 'deny' };
   });
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isExternalUrl(url)) return;
+    const externalUrl = getAllowedExternalUrl(url);
+    if (!externalUrl) {
+      if (/^(https?:|mailto:)/i.test(url)) event.preventDefault();
+      return;
+    }
     event.preventDefault();
-    shell.openExternal(url);
+    shell.openExternal(externalUrl);
   });
 
   mainWindow.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
