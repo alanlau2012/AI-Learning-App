@@ -93,7 +93,7 @@
 | 目录 | `output/qa/issues-20260628/` |
 | 命名 | `issue-{三位编号}-{slug}.png`（如 `issue-044-mobile-bottomnav-layout.png`） |
 | 视口 | 移动端 390×844；桌面 1440×900 |
-| 正文链接 | 仓库 `main` 分支 blob URL（截图须纳入 git 跟踪） |
+| 正文链接 | 仓库 `main` 分支 **raw** URL（`raw.githubusercontent.com/.../main/output/qa/...`；截图须 push 到 `main` 后 GitHub 才可渲染） |
 | 启动 | `scripts\start-local.cmd web` → http://127.0.0.1:5173/ |
 
 ---

@@ -185,7 +185,8 @@
 ## 9. GitHub Issues
 
 - **Issues 列表**：https://github.com/alanlau2012/AI-Learning-App/issues
-- **合计**：**59 条** open audit issues（#8–#66，含 #3/#4 历史项）
+- **合计**：**59 条** open audit issues（#8–#66；历史内容项 #3/#4 未纳入本次 v2 升级）
+- **v2 升级（2026-06-28）**：#8–#66 正文已按 [移交接手模板](../docs/issue-handover-template.md) 原地 `gh issue edit` 重写（保留编号）。正文草稿见 [reports/github-issues/](./github-issues/)，#↔本地 ID 映射见 [issue-tickets-github-index.md](./issue-tickets-github-index.md)，合理性复核见 [issue-tickets-rationality-review-20260628.md](./issue-tickets-rationality-review-20260628.md)。UI 证据截图 27 张：`output/qa/issues-20260628/`。批量更新脚本：[scripts/update-audit-github-issues.mjs](../scripts/update-audit-github-issues.mjs)（生成草稿：[scripts/generate-github-issue-bodies.mjs](../scripts/generate-github-issue-bodies.mjs)）。
 
 ### 9.1 第一轮 #8–#43（架构 + UI 视觉 + 诊断题）
 
