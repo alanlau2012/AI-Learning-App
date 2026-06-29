@@ -31,7 +31,12 @@ body {
 }
 
 ::selection {
-  background: #dfe3fb;
+  background: var(--color-selection);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 /* 标题：serif，教材感 */

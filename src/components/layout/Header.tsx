@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { conceptTitleById } from '../../data/conceptNav';
 import { modules } from '../../data/modules';
+import { scenarioTitleById } from '../../data/scenarioNav';
 import { useProgressStore } from '../../store/progressStore';
 import styles from './Header.module.css';
 
@@ -25,6 +26,12 @@ function buildBreadcrumb(pathname: string): string[] {
   if (conceptMatch) {
     const title = conceptTitleById[conceptMatch[1]];
     return title ? ['知识点', title] : ['知识点'];
+  }
+  if (pathname === '/scenarios') return ['场景演练'];
+  const scenarioMatch = pathname.match(/^\/scenarios\/([^/]+)$/);
+  if (scenarioMatch) {
+    const title = scenarioTitleById[scenarioMatch[1]];
+    return title ? ['场景演练', title] : ['场景演练'];
   }
   if (pathname === '/search') return ['搜索'];
   if (pathname === '/glossary') return ['术语'];

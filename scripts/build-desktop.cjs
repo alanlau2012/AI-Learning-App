@@ -26,8 +26,15 @@ const builderArgs = [
 ];
 
 const result = process.platform === 'win32'
-  ? spawnSync('cmd.exe', ['/d', '/s', '/c', `npx ${builderArgs.join(' ')}`], { stdio: 'inherit' })
-  : spawnSync('npx', builderArgs, { stdio: 'inherit', shell: false });
+  ? spawnSync('cmd.exe', ['/d', '/s', '/c', `npx ${builderArgs.join(' ')}`], {
+      stdio: 'inherit',
+      env: { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: 'false' },
+    })
+  : spawnSync('npx', builderArgs, {
+      stdio: 'inherit',
+      shell: false,
+      env: { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: 'false' },
+    });
 
 if (result.error) {
   console.error(result.error);

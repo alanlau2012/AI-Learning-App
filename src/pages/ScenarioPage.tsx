@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { concepts } from '../data/concepts';
+import { conceptById } from '../data/concepts';
 import { scenarioExerciseById } from '../data/scenarioExercises';
+import { useProgressStore } from '../store/progressStore';
 import {
   applyStrategyChange,
   deriveScenarioReview,
@@ -10,8 +11,6 @@ import {
 } from '../utils/scenarioSimulation';
 import type { ScenarioMetricTrend } from '../types';
 import styles from './ScenarioPage.module.css';
-
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
 const trendLabels: Record<ScenarioMetricTrend, string> = {
   better: '向好',
@@ -44,6 +43,12 @@ export function ScenarioPage() {
   const exercise = scenarioId ? scenarioExerciseById[scenarioId] : undefined;
   const [selectedStrategies, setSelectedStrategies] = useState<Record<string, string>>({});
   const [showReview, setShowReview] = useState(false);
+  const reviewPanelRef = useRef<HTMLElement | null>(null);
+  const completedScenarioIds = useProgressStore((s) => s.completedScenarioIds);
+  const reviewScenarioIds = useProgressStore((s) => s.reviewScenarioIds);
+  const completeScenario = useProgressStore((s) => s.completeScenario);
+  const toggleReviewScenario = useProgressStore((s) => s.toggleReviewScenario);
+  const recordScenarioVisit = useProgressStore((s) => s.recordScenarioVisit);
 
   const result = useMemo(() => {
     if (!exercise) return undefined;
@@ -54,6 +59,26 @@ export function ScenarioPage() {
     if (!exercise || !result) return undefined;
     return deriveScenarioReview(exercise, result);
   }, [exercise, result]);
+  const labels = exercise?.objectLabels ?? {
+    factsTitle: '请求队列',
+    secondaryTitle: '模型池负载',
+    controlTitle: '路由策略',
+  };
+  const entryConcept = exercise ? conceptById.get(exercise.entryConceptIds[0]) : undefined;
+  const factGroups = exercise?.facts ?? [];
+  const showRequestBreakdowns = Boolean(result?.requestBreakdowns.length);
+  const isCompleted = Boolean(exercise && completedScenarioIds.includes(exercise.id));
+  const isInReview = Boolean(exercise && reviewScenarioIds.includes(exercise.id));
+
+  useEffect(() => {
+    if (exercise) recordScenarioVisit(exercise.id);
+  }, [exercise, recordScenarioVisit]);
+
+  useEffect(() => {
+    if (showReview) {
+      reviewPanelRef.current?.focus();
+    }
+  }, [showReview]);
 
   if (!exercise || !result || !review) {
     return (
@@ -74,13 +99,24 @@ export function ScenarioPage() {
   };
 
   const resetScenario = () => {
+    if (!window.confirm('恢复基线会清空当前策略调整，是否继续？')) {
+      return;
+    }
     setSelectedStrategies(initializeScenarioState(exercise).selectedStrategies);
     setShowReview(false);
   };
 
+  const submitDiagnosis = () => {
+    completeScenario(exercise.id);
+    setShowReview(true);
+  };
+
   return (
     <main className={styles.page}>
-      <Link to="/concepts/multi-model-routing" className={styles.back}>返回多模型路由</Link>
+      <div className={styles.backLinks}>
+        <Link to="/scenarios" className={styles.back}>返回场景目录</Link>
+        <Link to={entryConcept ? `/concepts/${entryConcept.slug}` : '/'} className={styles.back}>返回相关知识点</Link>
+      </div>
 
       <section className={styles.header}>
         <span>Scenario Exercise</span>
@@ -88,12 +124,15 @@ export function ScenarioPage() {
           <div>
             <h1>{exercise.title}</h1>
             <p>{exercise.background}</p>
+            {exercise.initialSymptom && <p className={styles.symptom}>{exercise.initialSymptom}</p>}
           </div>
           <div className={styles.headerMeta}>
-            <strong>{exercise.requestTypes.length}</strong>
-            <span>请求类型</span>
-            <strong>{exercise.modelPool.length}</strong>
-            <span>候选模型</span>
+            <strong>{exercise.estimatedMinutes ?? 8}</strong>
+            <span>分钟</span>
+            <strong>{exercise.strategyControls.length}</strong>
+            <span>策略组</span>
+            <strong>{isCompleted ? '已完成' : '未完成'}</strong>
+            <span>演练状态</span>
           </div>
         </div>
         <div className={styles.relatedLinks}>
@@ -115,22 +154,39 @@ export function ScenarioPage() {
         <div className={styles.leftRail}>
           <section className={styles.panel}>
             <div className={styles.panelHeading}>
-              <h2>请求队列</h2>
-              <span>按流量权重</span>
+              <h2>{labels.factsTitle}</h2>
+              <span>{showRequestBreakdowns ? '按流量权重' : `${factGroups.length} 组事实`}</span>
             </div>
             <div className={styles.requestList}>
-              {result.requestBreakdowns.map((request) => (
+              {showRequestBreakdowns ? result.requestBreakdowns.map((request) => (
                 <article key={request.requestTypeId} className={styles.requestCard}>
                   <div className={styles.rowBetween}>
                     <h3>{request.requestLabel}</h3>
                     <span>{Math.round(request.volumeShare * 100)}%</span>
                   </div>
-                  <p>{request.decisionReasons.join('；')}</p>
+                  <p>{request.decisionReasons.join('，')}</p>
                   <dl>
-                    <div><dt>命中模型</dt><dd>{request.selectedModelLabel}</dd></div>
+                    <div><dt>命中对象</dt><dd>{request.selectedModelLabel}</dd></div>
                     <div><dt>SLA</dt><dd>{request.slaCondition === 'strict' ? '严格' : '常规'}</dd></div>
                     <div><dt>风险</dt><dd>{request.risks.length || '低'}</dd></div>
                   </dl>
+                </article>
+              )) : factGroups.map((fact) => (
+                <article key={fact.id} className={styles.requestCard}>
+                  <div className={styles.rowBetween}>
+                    <h3>{fact.title}</h3>
+                    {fact.weight !== undefined && <span>{Math.round(fact.weight * 100)}%</span>}
+                  </div>
+                  <p>{fact.description}</p>
+                  <dl>
+                    {fact.attributes.map((attribute) => (
+                      <div key={`${fact.id}-${attribute.label}`}>
+                        <dt>{attribute.label}</dt>
+                        <dd>{attribute.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {fact.risks && fact.risks.length > 0 && <p>{fact.risks.join(' ')}</p>}
                 </article>
               ))}
             </div>
@@ -138,20 +194,28 @@ export function ScenarioPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeading}>
-              <h2>模型池负载</h2>
-              <span>模拟分布</span>
+              <h2>{labels.secondaryTitle ?? '指标解释'}</h2>
+              <span>{result.modelLoad.length ? '模拟分布' : '当前指标'}</span>
             </div>
             <div className={styles.loadList}>
-              {result.modelLoad.map((load) => (
+              {result.modelLoad.length ? result.modelLoad.map((load) => (
                 <div key={load.modelId} className={styles.loadRow}>
                   <div className={styles.rowBetween}>
                     <span>{load.modelLabel}</span>
-                    <strong>{Math.round(load.volumeShare * 100)}%</strong>
+                    <strong>{Math.round(load.volumeShare)}%</strong>
                   </div>
                   <div className={styles.loadTrack}>
-                    <div style={{ width: `${Math.min(100, Math.round(load.volumeShare * 100))}%` }} />
+                    <div style={{ width: `${Math.min(100, Math.round(load.volumeShare))}%` }} />
                   </div>
                 </div>
+              )) : result.metrics.map((metric) => (
+                <article key={`metric-${metric.id}`} className={styles.requestCard}>
+                  <div className={styles.rowBetween}>
+                    <h3>{metric.label}</h3>
+                    <span>{trendLabels[metric.trend]}</span>
+                  </div>
+                  <p>{metric.explanation}</p>
+                </article>
               ))}
             </div>
           </section>
@@ -159,7 +223,7 @@ export function ScenarioPage() {
 
         <section className={styles.panel}>
           <div className={styles.panelHeading}>
-            <h2>路由策略</h2>
+            <h2>{labels.controlTitle}</h2>
             <span>第 {result.state.round + 1} 轮</span>
           </div>
           <div className={styles.controls}>
@@ -174,6 +238,7 @@ export function ScenarioPage() {
                         key={option.id}
                         type="button"
                         className={active ? `${styles.optionButton} ${styles.optionActive}` : styles.optionButton}
+                        aria-pressed={active}
                         onClick={() => changeStrategy(control.id, option.id)}
                       >
                         <strong>{option.label}</strong>
@@ -186,8 +251,8 @@ export function ScenarioPage() {
             ))}
           </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={() => setShowReview(true)}>
-              提交诊断
+            <button type="button" className={styles.primary} onClick={submitDiagnosis}>
+              {isCompleted ? '查看复盘' : '提交诊断'}
             </button>
             <button type="button" className={styles.secondary} onClick={resetScenario}>
               恢复基线
@@ -214,7 +279,12 @@ export function ScenarioPage() {
           </section>
 
           {showReview && (
-            <section className={`${styles.panel} ${styles.reviewPanel}`}>
+            <section
+              ref={reviewPanelRef}
+              className={`${styles.panel} ${styles.reviewPanel}`}
+              tabIndex={-1}
+              aria-live="polite"
+            >
               <div className={styles.panelHeading}>
                 <h2>复盘结论</h2>
                 {review.event && <span>{review.event.title}</span>}
@@ -234,6 +304,14 @@ export function ScenarioPage() {
               </ul>
               <div className={styles.relatedLinks}>
                 {review.relatedConceptIds.map(conceptLink)}
+              </div>
+              <div className={styles.reviewActions}>
+                <button type="button" className={styles.secondary} onClick={() => toggleReviewScenario(exercise.id)}>
+                  {isInReview ? '移出场景复盘' : '加入场景复盘'}
+                </button>
+                <Link to="/scenarios" className={styles.secondaryLink}>
+                  回到场景目录
+                </Link>
               </div>
             </section>
           )}

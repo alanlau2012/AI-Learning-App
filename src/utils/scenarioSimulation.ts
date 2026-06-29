@@ -182,9 +182,14 @@ export function evaluateScenarioStrategy(
       }
     : initializeScenarioState(exercise, stateOrSelection);
   const selectedOptions = getSelectedOptions(exercise, state.selectedStrategies);
+
+  if (!isModelRoutingExercise(exercise)) {
+    return evaluateGenericDeltaScenario(exercise, state, selectedOptions);
+  }
+
   const fallbackOption = selectedOptions.find(({ controlId }) => controlId === FALLBACK_CONTROL_ID)?.option;
   const modelLoads = calculateModelLoads(exercise, selectedOptions);
-  const requestBreakdowns = exercise.requestTypes.map((request) =>
+  const requestBreakdowns = (exercise.requestTypes ?? []).map((request) =>
     evaluateRequest(exercise, request, selectedOptions, modelLoads, fallbackOption),
   );
   const metrics = deriveMetrics(exercise, requestBreakdowns, selectedOptions);
@@ -228,6 +233,147 @@ export function deriveScenarioReview(
   };
 }
 
+function isModelRoutingExercise(exercise: ScenarioExercise): boolean {
+  return (exercise.type ?? 'modelRouting') === 'modelRouting' &&
+    Boolean(exercise.requestTypes?.length) &&
+    Boolean(exercise.modelPool?.length);
+}
+
+function evaluateGenericDeltaScenario(
+  exercise: ScenarioExercise,
+  state: ScenarioSimulationState,
+  selectedOptions: ReturnType<typeof getSelectedOptions>,
+): ScenarioSimulationResult {
+  const metrics = deriveGenericDeltaMetrics(exercise, selectedOptions);
+  const activeEvents = deriveActiveEvents(exercise, state.selectedStrategies, metrics);
+  const reviewSignals = deriveGenericReviewSignals(metrics, activeEvents);
+  const recommendations = deriveRecommendations(exercise, activeEvents, reviewSignals, selectedOptions);
+
+  return {
+    state,
+    metrics,
+    choices: [],
+    requestBreakdowns: [],
+    modelLoad: [],
+    activeEvents,
+    recommendations,
+    reviewSignals,
+    explanation: buildScenarioExplanation(exercise, selectedOptions, activeEvents),
+  };
+}
+
+function deriveGenericDeltaMetrics(
+  exercise: ScenarioExercise,
+  selectedOptions: ReturnType<typeof getSelectedOptions>,
+): ScenarioMetric[] {
+  const effectsByMetric = new Map<string, Array<{ optionLabel: string; effect: MetricEffect }>>();
+
+  for (const { option } of selectedOptions) {
+    for (const effect of option.metricEffects) {
+      const existing = effectsByMetric.get(effect.metricId) ?? [];
+      existing.push({ optionLabel: option.label, effect });
+      effectsByMetric.set(effect.metricId, existing);
+    }
+  }
+
+  return exercise.baseline.metrics.map((metric) => {
+    const effects = effectsByMetric.get(metric.id) ?? [];
+    let value = metric.value;
+    const explanationParts = [metric.explanation];
+
+    for (const { optionLabel, effect } of effects) {
+      value = applyMetricDelta(metric, value, effect);
+      explanationParts.push(`${optionLabel}: ${effect.explanation}`);
+    }
+
+    const roundedValue = metric.unit === 'tokens' || metric.unit === 'ms'
+      ? Math.round(value)
+      : round(value, 1);
+
+    return {
+      ...metric,
+      value: roundedValue,
+      trend: deriveGenericTrend(metric, roundedValue),
+      explanation: explanationParts.join(' '),
+    };
+  });
+}
+
+function applyMetricDelta(metric: ScenarioMetric, currentValue: number, effect: MetricEffect): number {
+  const magnitudeDelta = effect.magnitude === 'small' ? 0.05 : effect.magnitude === 'medium' ? 0.12 : 0.25;
+  const rawDelta = effect.delta ?? magnitudeDelta;
+  const mode = effect.deltaMode ?? 'relative';
+  const signedDelta = effect.direction === 'down' ? -rawDelta : effect.direction === 'up' ? rawDelta : 0;
+  const nextValue = mode === 'absolute'
+    ? currentValue + signedDelta
+    : currentValue * (1 + signedDelta);
+
+  return clamp(nextValue, metric.min ?? Number.NEGATIVE_INFINITY, metric.max ?? Number.POSITIVE_INFINITY);
+}
+
+function deriveGenericTrend(metric: ScenarioMetric, value: number): ScenarioMetricTrend {
+  const delta = value - metric.value;
+  const tolerance = metric.neutralTolerance ?? (metric.unit === 'tokens' || metric.unit === 'ms' ? 100 : 0.5);
+
+  if (Math.abs(delta) <= tolerance) {
+    return 'neutral';
+  }
+
+  const polarity = metric.polarity ?? inferMetricPolarity(metric.id);
+  return polarity === 'lowerIsBetter'
+    ? delta < 0 ? 'better' : 'worse'
+    : delta > 0 ? 'better' : 'worse';
+}
+
+function inferMetricPolarity(metricId: string): NonNullable<ScenarioMetric['polarity']> {
+  const lowerIsBetterPatterns = [
+    'cost',
+    'latency',
+    'p95',
+    'error',
+    'complaint',
+    'conflict',
+    'risk',
+    'escalation',
+    'retry',
+    'tokens',
+    'trafficShare',
+  ];
+  const normalized = metricId.toLowerCase();
+  return lowerIsBetterPatterns.some((pattern) => normalized.includes(pattern.toLowerCase()))
+    ? 'lowerIsBetter'
+    : 'higherIsBetter';
+}
+
+function deriveGenericReviewSignals(
+  metrics: ScenarioMetric[],
+  activeEvents: ScenarioEvent[],
+): ScenarioReviewSignal[] {
+  const signals: ScenarioReviewSignal[] = metrics
+    .filter((metric) => metric.trend === 'worse')
+    .slice(0, 3)
+    .map((metric) => ({
+      id: `metric-${metric.id}`,
+      severity: 'warning',
+      title: `${metric.label} needs review`,
+      detail: metric.explanation,
+      relatedMetricIds: [metric.id],
+      relatedRequestTypeIds: [],
+    }));
+
+  for (const event of activeEvents) {
+    signals.push({
+      id: `event-${event.id}`,
+      severity: 'info',
+      title: event.title,
+      detail: event.symptom,
+      relatedMetricIds: [],
+      relatedRequestTypeIds: [],
+    });
+  }
+
+  return signals;
+}
 function normalizeSelectedStrategies(
   exercise: ScenarioExercise,
   selectedStrategies: ScenarioStrategySelection,
@@ -378,14 +524,14 @@ function calculateModelLoads(
   exercise: ScenarioExercise,
   selectedOptions: ReturnType<typeof getSelectedOptions>,
 ): ScenarioModelLoad[] {
-  const rawLoads = new Map(exercise.modelPool.map((model) => [model.id, 0]));
+  const rawLoads = new Map((exercise.modelPool ?? []).map((model) => [model.id, 0]));
 
-  for (const request of exercise.requestTypes) {
+  for (const request of exercise.requestTypes ?? []) {
     const choice = chooseModelForRequest(exercise, request, selectedOptions);
     rawLoads.set(choice.targetModel.id, (rawLoads.get(choice.targetModel.id) ?? 0) + request.volumeShare);
   }
 
-  return exercise.modelPool.map((model) => {
+  return (exercise.modelPool ?? []).map((model) => {
     const volumeShare = rawLoads.get(model.id) ?? 0;
     const pressureStart = model.type === 'strong' ? 0.32 : model.type === 'restricted' ? 0.24 : 0.48;
     const queuePressure = clamp((volumeShare - pressureStart) / Math.max(pressureStart, 0.1), 0, 1);
@@ -591,8 +737,8 @@ function buildScenarioExplanation(
 
 function createDefaultMatch(exercise: ScenarioExercise, request: ScenarioRequestType): RuleMatchWithReason {
   const targetModel =
-    exercise.modelPool.find((model) => model.type === 'fast') ??
-    exercise.modelPool[0];
+    (exercise.modelPool ?? []).find((model) => model.type === 'fast') ??
+    (exercise.modelPool ?? [])[0];
 
   if (!targetModel) {
     throw new Error(`Scenario ${exercise.id} has no model pool entry for ${request.id}.`);
@@ -614,7 +760,7 @@ function createDefaultMatch(exercise: ScenarioExercise, request: ScenarioRequest
 }
 
 function findModel(exercise: ScenarioExercise, modelId: string): ScenarioModel | undefined {
-  return exercise.modelPool.find((model) => model.id === modelId);
+  return (exercise.modelPool ?? []).find((model) => model.id === modelId);
 }
 
 function ruleTarget(rule: {

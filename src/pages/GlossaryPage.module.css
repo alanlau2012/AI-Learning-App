@@ -127,6 +127,26 @@
   line-height: 1.65;
 }
 
+.indexNote {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.indexNote span {
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.indexNote p {
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .related {
   display: flex;
   align-content: start;
@@ -145,6 +165,19 @@
   border-color: var(--color-primary-border);
   background: var(--color-primary-soft);
   text-decoration: none;
+}
+
+.related .primaryRelated {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.primaryRelated span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 @media (max-width: 720px) {

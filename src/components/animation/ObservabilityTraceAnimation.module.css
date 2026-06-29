@@ -6,8 +6,8 @@
   margin: 0 auto;
   padding: 20px;
   border-radius: var(--radius-lg);
-  background: #1a1916;
-  color: #f7f3ea;
+  background: var(--anim-canvas-bg);
+  color: var(--anim-canvas-text);
 }
 
 .traceRail {
@@ -22,8 +22,8 @@
   min-height: 70px;
   padding: 10px 8px;
   border-radius: var(--radius);
-  border: 1px solid rgba(250, 249, 246, 0.15);
-  background: rgba(250, 249, 246, 0.04);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.15);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.04);
   transition: all 180ms ease;
 }
 
@@ -32,17 +32,17 @@
 .bridgeLabel {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .traceNode strong {
   font-size: 12px;
-  color: #f7f3ea;
+  color: var(--anim-canvas-text);
 }
 
 .traceNode.active {
-  border-color: #8ea2ff;
-  background: rgba(31, 64, 216, 0.24);
+  border-color: var(--anim-canvas-primary);
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.24);
 }
 
 .bridge {
@@ -55,14 +55,14 @@
   width: 54%;
   height: 2px;
   border-radius: 999px;
-  background: #6f6b62;
+  background: var(--anim-canvas-text-dim);
   opacity: 0.45;
   transition: all 180ms ease;
 }
 
 .bridgeLine.show {
   width: 82%;
-  background: #8fd3b0;
+  background: var(--anim-canvas-progress-soft);
   opacity: 1;
 }
 
@@ -77,26 +77,26 @@
   gap: 5px;
   padding: 10px;
   border-radius: var(--radius);
-  border: 1px solid rgba(250, 249, 246, 0.14);
-  background: rgba(250, 249, 246, 0.04);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.14);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.04);
   transition: all 180ms ease;
 }
 
 .metric strong {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #f7f3ea;
+  color: var(--anim-canvas-text);
 }
 
 .metric.active.quality {
-  border-color: rgba(46, 125, 88, 0.75);
-  background: rgba(46, 125, 88, 0.18);
+  border-color: rgb(var(--anim-canvas-progress-rgb) / 0.75);
+  background: rgb(var(--anim-canvas-progress-rgb) / 0.18);
 }
 
 .metric.active.latency,
 .metric.active.cost {
-  border-color: rgba(142, 162, 255, 0.72);
-  background: rgba(31, 64, 216, 0.18);
+  border-color: rgb(var(--anim-canvas-primary-soft-rgb) / 0.72);
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.18);
 }
 
 .alertStrip {
@@ -105,9 +105,9 @@
   gap: 8px;
   padding: 9px 10px;
   border-radius: var(--radius);
-  border: 1px dashed rgba(232, 148, 58, 0.45);
-  background: rgba(232, 148, 58, 0.07);
-  color: #ffe1bd;
+  border: 1px dashed rgb(var(--anim-canvas-warning-rgb) / 0.45);
+  background: rgb(var(--anim-canvas-warning-rgb) / 0.07);
+  color: var(--anim-canvas-warning-text);
   font-size: 11px;
   opacity: 0.4;
   transition: opacity 180ms ease;
@@ -121,8 +121,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e8943a;
-  box-shadow: 0 0 0 4px rgba(232, 148, 58, 0.16);
+  background: var(--anim-canvas-warning);
+  box-shadow: 0 0 0 4px rgb(var(--anim-canvas-warning-rgb) / 0.16);
 }
 
 .reduced * {

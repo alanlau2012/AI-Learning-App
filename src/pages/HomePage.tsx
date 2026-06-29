@@ -5,18 +5,16 @@
  */
 import { Link, useNavigate } from 'react-router-dom';
 import { modules } from '../data/modules';
-import { concepts } from '../data/concepts';
+import { conceptTitleById } from '../data/conceptNav';
 import { useProgressStore } from '../store/progressStore';
 import {
   getFirstPublishedConceptIdByModule,
   getContinueLearningConceptId,
   moduleProgress,
   overallProgress,
-} from '../utils/progress';
+} from '../utils/progressCore';
 import { ProgressBar } from '../components/progress/ProgressBar';
 import styles from './HomePage.module.css';
-
-const conceptById = new Map(concepts.map((c) => [c.id, c]));
 
 // 首页露出 4 条推荐路径（product-spec §5）
 const RECOMMENDED_PATHS = [
@@ -37,13 +35,9 @@ export function HomePage() {
   const completedSet = new Set(completedConceptIds);
   const continueId = getContinueLearningConceptId({
     completedConceptIds,
-    favoriteConceptIds,
-    wrongQuestionIds: [],
-      reviewConceptIds: [],
     lastVisitedConceptId,
-    studyStreakDays,
   });
-  const continueConcept = conceptById.get(continueId);
+  const continueConceptTitle = conceptTitleById[continueId];
 
   return (
     <div className={styles.home}>
@@ -66,13 +60,16 @@ export function HomePage() {
             className={styles.primaryBtn}
             onClick={() => navigate(`/concepts/${continueId}`)}
           >
-            {continueConcept
-              ? `继续学习 · ${continueConcept.title}`
+            {continueConceptTitle
+              ? `继续学习 · ${continueConceptTitle}`
               : '开始学习'}
             <span aria-hidden>→</span>
           </button>
           <Link to="/profile" className={styles.secondaryBtn}>
             查看我的学习
+          </Link>
+          <Link to="/scenarios" className={styles.secondaryBtn}>
+            进入场景演练
           </Link>
         </div>
         <div className={styles.heroRule} aria-hidden />
@@ -103,9 +100,9 @@ export function HomePage() {
         <div className={styles.pathGrid}>
           {RECOMMENDED_PATHS.map((p) => {
             const startConceptId = getFirstPublishedConceptIdByModule(p.moduleId);
-            const startConcept = startConceptId ? conceptById.get(startConceptId) : undefined;
+            const startConceptTitle = startConceptId ? conceptTitleById[startConceptId] : undefined;
 
-            if (!startConcept) {
+            if (!startConceptId || !startConceptTitle) {
               return (
                 <div key={p.moduleId} className={`${styles.pathCard} ${styles.pathDisabled}`}>
                   <span className={styles.pathName}>{p.name}</span>
@@ -116,10 +113,10 @@ export function HomePage() {
             }
 
             return (
-              <Link key={p.moduleId} to={`/concepts/${startConcept.slug}`} className={styles.pathCard}>
+              <Link key={p.moduleId} to={`/concepts/${startConceptId}`} className={styles.pathCard}>
                 <span className={styles.pathName}>{p.name}</span>
                 <span className={styles.pathDesc}>{p.desc}</span>
-                <span className={styles.pathMeta}>从 {startConcept.title} 开始</span>
+                <span className={styles.pathMeta}>从 {startConceptTitle} 开始</span>
               </Link>
             );
           })}

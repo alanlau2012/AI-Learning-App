@@ -60,25 +60,29 @@ flowchart TD
 ```ts
 interface UserProgress {
   completedConceptIds: string[];
+  completedScenarioIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
+  reviewConceptIds: string[];
+  reviewScenarioIds: string[];
   lastVisitedConceptId?: string;
+  lastVisitedScenarioId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
 }
 ```
 
-- 动作：标记/取消完成、收藏/取消收藏、记录错题、记录最近访问、计算模块完成度、清空记录。
-- 持久化：key 固定 `ai-learning-app-progress-v1`，写入结构带 `version` 字段：`{ version: 1, progress }`。
+- 动作：标记/取消知识点完成、记录场景完成、收藏/取消收藏、记录错题、维护知识点/场景复盘队列、记录最近访问、计算模块完成度、清空记录。
+- 持久化：key 固定 `ai-learning-app-progress-v1`，写入结构带 `version` 字段：`{ version: 2, progress }`。
 - 要求：页面刷新进度不丢失；解析失败时回退到默认空进度（容错）；提供清空学习记录。
 - 派生值（完成度百分比、模块 done/total、连续天数展示）在 selector/工具中计算，不冗余存储。
 
 ### 3.1 持久化版本与迁移策略
 
-字段演进时不得丢用户进度，迁移逻辑集中在 `utils/progress.ts`：
+字段演进时不得丢用户进度，迁移逻辑集中在 `utils/progressCore.ts`：
 
 ```ts
-export const CURRENT_PROGRESS_VERSION = 1;
+export const CURRENT_PROGRESS_VERSION = 2;
 
 // 读取入口：解析 → 校验 version → 迁移 → 兜底
 function loadProgress(): UserProgress {

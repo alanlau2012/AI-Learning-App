@@ -172,10 +172,13 @@ export interface DiagnosticOption {
 
 export interface UserProgress {
   completedConceptIds: string[];
+  completedScenarioIds: string[];
   favoriteConceptIds: string[];
   wrongQuestionIds: string[];
   reviewConceptIds: string[];
+  reviewScenarioIds: string[];
   lastVisitedConceptId?: string;
+  lastVisitedScenarioId?: string;
   lastStudyDate?: string;
   studyStreakDays: number;
 }
@@ -324,7 +327,7 @@ export interface ScenarioReviewRubric {
 ```
 
 `AnimationType` 的枚举值定义在 [animation-spec.md](animation-spec.md) §1，由 `types/index.ts` 统一导出。
-`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。`UserProgress.reviewConceptIds` 用于本周复盘清单，旧本地进度缺省时由 `loadProgress()` 归一化为空数组。
+`GlossaryTerm` 用于 `src/data/glossary.ts` 与 `/glossary` 页面，是术语索引的唯一类型来源。`UserProgress` 的版本与迁移策略见 [architecture.md](architecture.md) §3。`UserProgress.reviewConceptIds` 与 `reviewScenarioIds` 用于本周复盘清单，旧本地进度缺省时由 `loadProgress()` 归一化为空数组；`completedScenarioIds` 与 `lastVisitedScenarioId` 用于 Scenario Library R2 的场景完成和最近访问状态。
 
 ## 2. 字段级约束
 
@@ -352,6 +355,7 @@ export interface ScenarioReviewRubric {
 - `KnowledgePoint.capabilityDomains`：Phase 1 起正式导出的 56 个 Concept 均必填；`primary` 必须来自 `CapabilityDomain` 枚举；`secondary` 可选，存在时也必须来自枚举且不得等于 `primary`；每讲最多 2 个能力域。
 - `GlossaryTerm.capabilityDomains`：可选；存在时长度为 1–2，值必须来自同一 `CapabilityDomain` 枚举且不得重复。`/glossary` 展示能力域时必须从该字段读取，不得在页面硬编码。
 - `GlossaryTerm.confusedWith`：可选；用于“常被混淆概念 / 易混点”，存在时必须为非空字符串数组。Phase 3 DEV-11 起，至少 10 个核心术语应具备该字段。
+- `GlossaryTerm.id` 不要求与 `KnowledgePoint.id` 同名；无同名知识点时，该术语是“术语索引项”，`relatedConceptIds[0]` 作为主关联讲，其余作为相关知识点。
 - `KnowledgePoint.decisionGuide`：可选；Phase 1 MVP 至少 12 个通过审核的知识点必须具备。存在时内部字段均必填，最低长度如下：`applicableScenarios >= 2`、`nonApplicableScenarios >= 2`、`decisionSignals >= 3`、`tradeoffs >= 3`、`reviewQuestions >= 3`、`implementationChecklist >= 3`。
 - `DecisionScenario.signals`、`ReviewQuestion.goodAnswerSignals` 均至少 1 条非空字符串。
 - `ArchitectureTradeoff.dimension` 只能是 `cost / latency / quality / reliability / observability / security / operability`。
@@ -371,6 +375,24 @@ export interface ScenarioReviewRubric {
 - `events.length >= 3`；每个事件必须有非空 `title / symptom / correctDiagnosis`，`triggerStrategyOptionIds` 必须引用存在的策略 option，`investigationOrder >= 3`，`missedRisks >= 2`，`relatedConceptIds >= 2`，`nextStepRecommendations >= 2`。
 - `reviewRubric.prompt` 必填；`requiredFindings >= 3`、`acceptableActions >= 3`、`nextStepRecommendations >= 2`，所有字符串均不能为空。
 - 场景数据只能使用本地模拟请求、模型、策略、指标和事件；不得调用真实模型 API，不得包含真实客户、真实成本或真实供应商敏感数据。
+
+### 2.3 ScenarioExercise v2 R0+R1 extension
+
+R1 keeps `model-router` compatible and adds a generic scenario path for non-routing exercises.
+
+- `ScenarioExercise.type` is required for new scenarios. Existing `model-router` is treated as `modelRouting` when omitted.
+- Supported R1 types are `modelRouting`, `costGovernance`, and `ragQuality`; the broader enum is reserved for later R2/R3 work.
+- `ScenarioMetric.id` is a string. References are validated per scenario instead of by a fixed global metric enum.
+- `ScenarioMetric` may define `polarity`, `neutralTolerance`, `min`, and `max`. `polarity` defaults to `lowerIsBetter` for cost/latency/escalation/complaint/error/conflict/risk metrics and `higherIsBetter` otherwise.
+- `MetricEffect` supports `deltaMode?: 'relative' | 'absolute'` and `delta?: number`. Missing `delta` falls back to `small=5%`, `medium=12%`, `large=25%`.
+- `MetricEffect.metricId` must reference `baseline.metrics[].id` in the same scenario.
+- `requestTypes` and `modelPool` are required only when `type === 'modelRouting'`. Non-routing scenarios must provide `facts.length >= 3` and `baseline.metrics.length >= 4`.
+- Non-routing strategy options may keep `routingRules: []`; model-routing options must keep valid routing rule references.
+- Each new scenario must set `capabilityDomains`, `initialSymptom`, and `objectLabels.factsTitle/controlTitle`; `objectLabels.secondaryTitle` is optional.
+- `triggerStrategyOptionIds` must reference real option ids in the same scenario.
+- `events[].relatedConceptIds` must reference real `KnowledgePoint.id` values.
+- R1 strategy controls remain one selected option per control. `minSelect/maxSelect` are future extension fields and must not imply group-level multiselect in R1.
+- `modelRouting` keeps the existing physical simulator; `costGovernance`, `ragQuality`, and other non-routing types use `baseline.metrics + selected metricEffects` for deterministic metric values and explanations.
 ## 3. 56 讲写作模板 → 权威 schema 映射
 
 56 讲 PDF 的写作字段需转换为权威 schema：
@@ -591,7 +613,7 @@ const kvCache: KnowledgePoint = {
 2. **id / slug 唯一**：全局唯一、kebab-case；首版 `slug === id`。
 3. **moduleId 合法**：∈ `{m1..m6}`；`LearningModule.conceptIds` 与该模块概念集合及 `order` 完全一致。
 4. **order 连续**：每个模块内 `order` 从 1 起连续、唯一。
-5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。Glossary 能力域必须引用合法 `CapabilityDomain`；`confusedWith` 存在时必须是非空字符串数组。
+5. **关联无悬空**：`relatedConceptIds`、`diagnosticQuestion.relatedConceptIds`、`GlossaryTerm.relatedConceptIds` 的每一项都指向已存在的 `KnowledgePoint.id`。Glossary 能力域必须引用合法 `CapabilityDomain`；`confusedWith` 存在时必须是非空字符串数组。无同名知识点的术语必须通过 `relatedConceptIds[0]` 提供主关联讲。
 6. **contentStatus 合法**：∈ `{stub, demo, mvp}`。
 7. **诊断题结构**（当存在 `diagnosticQuestion` 时）：`correctOptionIds` ⊆ `options[].id`；`single` 长度为 1、`multiple` ≥ 1；`options.length >= 2`。
 

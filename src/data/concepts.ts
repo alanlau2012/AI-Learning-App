@@ -135,5 +135,5 @@ export const concepts: KnowledgePoint[] = baseConcepts.map((concept) => {
   };
 });
 
-
+export const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 

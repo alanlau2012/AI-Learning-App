@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { concepts } from '../data/concepts';
+import { conceptById, concepts } from '../data/concepts';
 import { getHyperframeMaterialsForConcept } from '../data/hyperframes';
 import { modules } from '../data/modules';
 import { scenarioExercises } from '../data/scenarioExercises';
@@ -17,7 +17,6 @@ import { useProgressStore } from '../store/progressStore';
 import { isPublishedConcept } from '../utils/progress';
 import styles from './ConceptPage.module.css';
 
-const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 const orderedPublishedConcepts = modules
   .flatMap((module) => module.conceptIds)
   .map((id) => conceptById.get(id))
@@ -26,7 +25,8 @@ const orderedPublishedConcepts = modules
 
 const scenarioEntriesByConceptId = new Map<string, typeof scenarioExercises>();
 scenarioExercises.forEach((scenario) => {
-  scenario.entryConceptIds.forEach((conceptId) => {
+  const conceptIds = new Set([...scenario.entryConceptIds, ...scenario.relatedConceptIds]);
+  conceptIds.forEach((conceptId) => {
     const existing = scenarioEntriesByConceptId.get(conceptId) ?? [];
     scenarioEntriesByConceptId.set(conceptId, [...existing, scenario]);
   });
@@ -115,15 +115,18 @@ export function ConceptPage() {
         <section className={styles.scenarioCallout} aria-label="场景演练">
           <div>
             <span className={styles.scenarioLabel}>场景演练</span>
-            <h2>{conceptScenarios[0].title}</h2>
-            <p>把这一讲放进模型路由策略画布，观察成本、P95、成功率、升级率和风险拦截率的取舍。</p>
+            <h2>把这个知识点放进生产诊断</h2>
+            <p>从相关场景进入，观察策略调整如何改变指标和复盘结论。</p>
           </div>
-          <Link to={`/scenarios/${conceptScenarios[0].id}`}>
-            进入演练
-          </Link>
+          <div className={styles.scenarioLinks}>
+            {conceptScenarios.map((scenario) => (
+              <Link key={scenario.id} to={`/scenarios/${scenario.id}`}>
+                {scenario.title}
+              </Link>
+            ))}
+          </div>
         </section>
-      )}
-      <ConceptSection index={1} title="为什么重要">
+      )}      <ConceptSection index={1} title="为什么重要">
         {concept.whyItMatters ? (
           <RichText text={concept.whyItMatters} />
         ) : (

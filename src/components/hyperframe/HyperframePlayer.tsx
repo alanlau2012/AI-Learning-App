@@ -85,6 +85,10 @@ export function HyperframePlayer({ material }: HyperframePlayerProps) {
       command,
       seconds,
     };
+    // Security note: Hyperframe materials are repo-local static files loaded in a
+    // sandboxed iframe without allow-same-origin, so the child has an opaque
+    // origin. Keep targetOrigin as "*" and constrain trust through source,
+    // message shape, material id, CSP frame-src 'self', and sandbox attributes.
     contentWindow.postMessage(message, '*');
   }, [material.id]);
 
@@ -105,6 +109,7 @@ export function HyperframePlayer({ material }: HyperframePlayerProps) {
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
       if (event.source !== iframeRef.current?.contentWindow) return;
+      if (event.origin !== 'null' && event.origin !== window.location.origin) return;
       if (!isHyperframeEventMessage(event.data)) return;
       if (event.data.materialId !== material.id) return;
 

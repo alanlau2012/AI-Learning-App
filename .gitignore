@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+*.err
 *.err.log
 *.out.log
 npm-debug.log*
@@ -13,6 +14,11 @@ node_modules
 dist
 dist-ssr
 release
+output/electron-user-data/
+output/qa/browser-regression-*/
+output/**/*.log
+output/**/*.err
+output/**/*.tmp
 *.local
 
 # Editor directories and files

@@ -32,6 +32,11 @@ const routes = [
         lazy: () => import('../pages/ConceptPage').then((m) => ({ Component: m.ConceptPage })),
       },
       {
+        path: 'scenarios',
+        hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
+        lazy: () => import('../pages/ScenariosPage').then((m) => ({ Component: m.ScenariosPage })),
+      },
+      {
         path: 'scenarios/:scenarioId',
         hydrateFallbackElement: <div aria-live="polite">页面加载中...</div>,
         lazy: () => import('../pages/ScenarioPage').then((m) => ({ Component: m.ScenarioPage })),

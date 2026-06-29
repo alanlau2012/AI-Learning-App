@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ProgressBar } from '../components/progress/ProgressBar';
 import { modules } from '../data/modules';
 import { useProgressStore } from '../store/progressStore';
-import { moduleProgress } from '../utils/progress';
+import { moduleProgress } from '../utils/progressCore';
 import styles from './ModulesPage.module.css';
 
 export function ModulesPage() {

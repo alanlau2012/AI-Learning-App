@@ -4,16 +4,16 @@
 
 ## 0. 当前状态快照（交接必读）
 
-截至 **2026-06-25**：
+截至 **2026-06-28**：
 
-- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合 + AI 工程负责人增强 Phase 1 MVP**；当前提交前基线以 `git log -1` / 后续提交为准。
-- 已封板范围：**AI 工程负责人增强 Phase 1 MVP** 已完成：12 条 `decisionGuide` 入库并在 ConceptPage 展示；56 讲 `capabilityDomains` 入库并驱动 Profile / Search；4 条 `rolePaths` 入库；Profile 显示能力域、角色路径和下一步行动；Search 支持能力域过滤与 `decisionGuide` 命中。
+- 当前代码基线：正文改版 v2 之上完成 **Final Wave 全量上线 + backlog polish + Electron 桌面版 MVP + GitHub P1 内容修复回合 + AI 工程负责人增强 Phase 1/1B/2/3 + 场景演练库 R0+R1+R2 + 2026-06-28 内容 P1 修复 + 生产化发布收口 + GitHub issue Stabilization R0/R1/R2 修复**；当前提交前基线以 `git log -1` / 后续提交为准。
+- 已封板范围：**AI 工程负责人增强 Phase 1/1B/2/3 + 场景演练库 R2** 已完成：17 条 `decisionGuide` 入库并在 ConceptPage 展示；56 讲 `capabilityDomains` 入库并驱动 Profile / Search；4 条 `rolePaths` 入库；Profile 显示能力域、角色路径、下一步行动、本周建议、判断偏差、已完成场景与场景复盘；Search 支持能力域过滤、Glossary/决策手册命中；`model-router`、`token-cost-spike`、`rag-answer-quality`、`agent-tool-failure`、`trace-not-diagnostic` 五个场景演练已上线，`/scenarios` 目录页已上线。
 - 当前上线内容：**56 / 56 讲**（全部已发布讲均为 v2）；剩余 `stub`：**0**。地图无 stub。
 - 已上线模块进度：M1 `10/10`，M2 `10/10`，M3 `8/8`，M4 `16/16`，M5 `6/6`，M6 `6/6`。
-- 验证：Phase 1 MVP 已运行 `cmd /c npm run validate:content`、`typecheck`、`lint`、`build` 全部 PASS；Chromium 抽查 ConceptPage / Profile / Search 桌面与移动端 PASS，见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md` 与 `output/qa/phase1-*.png`。此前桌面版见 `reports/desktop-electron-mvp-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`，P1 内容修复见 `reports/github-p1-content-repair-summary.md`。
+- 验证：Scenario Library R2 以 `reports/scenario-library-r2-summary-20260628.md`、`reports/scenario-library-r2-browser-qa-20260628.md`、`reports/scenario-library-r2-ux-qa-20260628.md`、`reports/scenario-library-r2-performance-20260628.md`、`reports/scenario-library-r2-release-gate-20260628.md` 为准；生产化收口以 `reports/release-readiness-20260628.md`、`reports/browser-regression-20260628.md`、`reports/security-readiness-20260628.md`、`reports/performance-budget-20260628.md`、`reports/desktop-release-20260628.md` 为准；GitHub issue Stabilization 以 `reports/github-issues-triage-20260628.md`、`reports/stabilization-r0-summary-20260628.md`、`reports/stabilization-r0-browser-regression-20260628.md`、`reports/stabilization-r1-summary-20260628.md`、`reports/stabilization-r1-browser-regression-20260628.md`、`reports/stabilization-r2-issue-closures-20260628.md` 为准；历史 Phase 1/2/3 验证见 `reports/phase1-qa-report.md`、`reports/phase2-phase3-qa-summary.md`、`reports/scenario-library-r1-summary.md`。此前桌面版见 `reports/desktop-electron-mvp-summary.md`，backlog polish 见 `reports/backlog-polish-summary.md`，Final Wave 见 `reports/final-wave-summary.md`，GitHub P1 内容修复见 `reports/github-p1-content-repair-summary.md`，2026-06-28 内容 P1 关闭见 `reports/content-p1-repair-review-20260628.md`。
 - 诊断题批级配平：Final Wave 12 题正确答案 A/B/C/D = 3/3/3/3。
-- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径；AI 工程负责人 Phase 1 的决策手册、能力域、角色路径、Profile 与 Search。
-- 下一轮建议（均需 Owner 确认）：Phase 2 `model-router` 独立场景演练（`SCHEMA-03` / `DATA-06` / `DEV-05` 起步）、Phase 1B 剩余 5 条 `decisionGuide`（`multi-agent` / `eval` / `observability` / `trace` / `permission-governance`）、Glossary 能力域增强、完整 PWA（Service Worker / 离线缓存）、桌面版图标/代码签名/自动更新。
+- 已补齐：`observability-trace`（Trace / Observability）、`token-roi-flow`（Token ROI）、基础 PWA manifest、Google Fonts 外链移除、路由级 code splitting、Electron Windows 桌面发行通道；`trace`/`tool-calling` 敏感数据最小化边界与 `session-affinity` cache locality 口径；AI 工程负责人增强的决策手册、能力域、角色路径、Profile、Search、Glossary；场景演练库 R0+R1+R2 的五场景目录、完成状态、复盘队列与 LocalStorage v2 迁移；生产化收口新增基础 CSP、Electron 外链 allowlist、首包性能拆分和运行时缓存清理。
+- 下一轮建议（均需 Owner 确认）：Stabilization R3（剩余 P2/P3：glossary 正文对齐、#53 UX 长尾、#38 scenarioSimulation 拆分取舍）、场景演练 R3（`multi-agent-stuck`、场景目录排序/搜索、场景完成状态在更多入口露出）、完整 PWA（Service Worker / 离线缓存）、桌面版图标/代码签名/自动更新。
 
 ## 1. 项目一句话定位
 
@@ -109,6 +109,9 @@ content/drafts/<id>.md   →   content/reviewed/<id>.md   →   src/data/concept
 
 ```bash
 npm install            # 安装依赖
+scripts\start-local.cmd web              # Windows 首选：启动 Web 开发版（http://127.0.0.1:5173/）
+scripts\start-local.cmd electron         # Windows 首选：启动 Electron 桌面开发版（自带 Vite）
+scripts\start-local.cmd electron-attach  # Web 已在 5173 运行时，仅启动 Electron 并连接现有 Web
 npm run dev            # 本地开发
 npm run build          # Web 生产构建
 npm run dev:desktop    # Electron 桌面版开发运行

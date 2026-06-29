@@ -7,8 +7,8 @@
   margin: 0 auto;
   padding: 18px;
   border-radius: var(--radius-lg);
-  background: #1a1916;
-  color: #f7f3ea;
+  background: var(--anim-canvas-bg);
+  color: var(--anim-canvas-text);
 }
 
 .svg {
@@ -18,30 +18,30 @@
 
 /* Token 方块 */
 .tok rect {
-  fill: rgba(250, 249, 246, 0.05);
-  stroke: rgba(250, 249, 246, 0.2);
+  fill: rgb(var(--anim-canvas-paper-rgb) / 0.05);
+  stroke: rgb(var(--anim-canvas-paper-rgb) / 0.2);
   stroke-width: 1.5;
   transition: fill 180ms ease, stroke 180ms ease;
 }
 
 .tok.enter rect {
-  fill: rgba(142, 162, 255, 0.1);
-  stroke: rgba(142, 162, 255, 0.5);
+  fill: rgb(var(--anim-canvas-primary-soft-rgb) / 0.1);
+  stroke: rgb(var(--anim-canvas-primary-soft-rgb) / 0.5);
 }
 
 .tok.current rect {
-  fill: rgba(31, 64, 216, 0.3);
-  stroke: #8ea2ff;
+  fill: rgb(var(--anim-canvas-primary-rgb) / 0.3);
+  stroke: var(--anim-canvas-primary);
   stroke-width: 2;
 }
 
 .tok.evidence rect {
-  stroke: rgba(46, 125, 88, 0.7);
+  stroke: rgb(var(--anim-canvas-progress-rgb) / 0.7);
 }
 
 .tok.conflict rect {
-  fill: rgba(232, 148, 58, 0.22);
-  stroke: #e8943a;
+  fill: rgb(var(--anim-canvas-warning-rgb) / 0.22);
+  stroke: var(--anim-canvas-warning);
   stroke-width: 2;
 }
 
@@ -55,24 +55,24 @@
 }
 
 .arc.link {
-  stroke: #8ea2ff;
+  stroke: var(--anim-canvas-primary);
 }
 
 .arc.warn {
-  stroke: #e8943a;
+  stroke: var(--anim-canvas-warning);
 }
 
 .arc.good {
-  stroke: #2e7d58;
+  stroke: var(--anim-canvas-progress);
 }
 
 .arc.faded {
-  stroke: rgba(250, 249, 246, 0.2);
+  stroke: rgb(var(--anim-canvas-paper-rgb) / 0.2);
 }
 
 /* 标签 */
 .tag {
-  fill: #b4b0a6;
+  fill: var(--anim-canvas-text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
   text-anchor: middle;
@@ -80,11 +80,11 @@
 }
 
 .tag.tagGood {
-  fill: #8fd3b0;
+  fill: var(--anim-canvas-progress-soft);
 }
 
 .tag.tagWarn {
-  fill: #f0c089;
+  fill: var(--anim-canvas-warning-soft);
 }
 
 .tag.faded {
@@ -92,7 +92,7 @@
 }
 
 .axis {
-  fill: #6f6b62;
+  fill: var(--anim-canvas-text-dim);
   font-family: var(--font-mono);
   font-size: 10px;
   text-anchor: middle;
@@ -109,7 +109,7 @@
 .wLabel {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
   padding-bottom: 2px;
 }
 
@@ -124,16 +124,16 @@
 .wBar {
   flex: 1;
   border-radius: 2px 2px 0 0;
-  background: rgba(142, 162, 255, 0.5);
+  background: rgb(var(--anim-canvas-primary-soft-rgb) / 0.5);
   transition: height 200ms ease, background-color 180ms ease;
 }
 
 .wBar.good {
-  background: #2e7d58;
+  background: var(--anim-canvas-progress);
 }
 
 .wBar.warn {
-  background: #e8943a;
+  background: var(--anim-canvas-warning);
 }
 
 .reduced * {

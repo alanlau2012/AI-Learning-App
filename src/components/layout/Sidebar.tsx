@@ -6,15 +6,10 @@
 import { NavLink } from 'react-router-dom';
 import { modules } from '../../data/modules';
 import { useProgressStore } from '../../store/progressStore';
-import { moduleProgress, overallProgress } from '../../utils/progress';
+import { moduleProgress, overallProgress } from '../../utils/progressCore';
 import { ProgressBar } from '../progress/ProgressBar';
+import { primaryNavItems } from './navItems';
 import styles from './Sidebar.module.css';
-
-const PRIMARY_NAV = [
-  { to: '/', label: '首页', end: true },
-  { to: '/profile', label: '我的学习' },
-  { to: '/search', label: '搜索' },
-];
 
 export function Sidebar() {
   const completedConceptIds = useProgressStore((s) => s.completedConceptIds);
@@ -32,7 +27,7 @@ export function Sidebar() {
       </div>
 
       <nav className={styles.primaryNav}>
-        {PRIMARY_NAV.map((item) => (
+        {primaryNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

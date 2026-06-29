@@ -6,8 +6,8 @@
   margin: 0 auto;
   padding: 20px;
   border-radius: var(--radius-lg);
-  background: #1a1916;
-  color: #f7f3ea;
+  background: var(--anim-canvas-bg);
+  color: var(--anim-canvas-text);
 }
 
 .flow {
@@ -24,26 +24,26 @@
   align-content: start;
   padding: 10px 8px;
   border-radius: var(--radius);
-  border: 1px solid rgba(250, 249, 246, 0.16);
-  background: rgba(250, 249, 246, 0.04);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.16);
+  background: rgb(var(--anim-canvas-paper-rgb) / 0.04);
   transition: all 180ms ease;
 }
 
 .node.active {
-  border-color: #8ea2ff;
-  background: rgba(31, 64, 216, 0.24);
+  border-color: var(--anim-canvas-primary);
+  background: rgb(var(--anim-canvas-primary-rgb) / 0.24);
 }
 
 .tag {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .title {
   font-size: 12px;
   font-weight: 600;
-  color: #f7f3ea;
+  color: var(--anim-canvas-text);
 }
 
 .fields {
@@ -55,10 +55,10 @@
 .field {
   padding: 1px 5px;
   border-radius: 3px;
-  border: 1px solid rgba(250, 249, 246, 0.16);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.16);
   font-family: var(--font-mono);
   font-size: 9px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 /* 补丁：scope 边框约束 */
@@ -69,12 +69,12 @@
 .scopeMark {
   font-family: var(--font-mono);
   font-size: 9px;
-  color: #8fd3b0;
+  color: var(--anim-canvas-progress-soft);
 }
 
 .arrow {
   align-self: center;
-  color: #6f6b62;
+  color: var(--anim-canvas-text-dim);
   font-family: var(--font-mono);
   font-size: 12px;
 }
@@ -86,10 +86,10 @@
   gap: 8px;
   padding: 8px 10px;
   border-radius: var(--radius);
-  border: 1px dashed rgba(232, 148, 58, 0.4);
-  background: rgba(232, 148, 58, 0.06);
+  border: 1px dashed rgb(var(--anim-canvas-warning-rgb) / 0.4);
+  background: rgb(var(--anim-canvas-warning-rgb) / 0.06);
   font-size: 11px;
-  color: #ffe1bd;
+  color: var(--anim-canvas-warning-text);
   opacity: 0.35;
   transition: opacity 180ms ease;
 }
@@ -101,7 +101,7 @@
 .loopArrow {
   font-family: var(--font-mono);
   font-size: 16px;
-  color: #e8943a;
+  color: var(--anim-canvas-warning);
 }
 
 /* 质量回流 */
@@ -111,7 +111,7 @@
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 12px;
-  border-top: 1px solid rgba(250, 249, 246, 0.1);
+  border-top: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.1);
   opacity: 0.4;
   transition: opacity 180ms ease;
 }
@@ -123,29 +123,29 @@
 .reflowArrow {
   font-family: var(--font-mono);
   font-size: 14px;
-  color: #8fd3b0;
+  color: var(--anim-canvas-progress-soft);
 }
 
 .reflowTag {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
 }
 
 .sink {
   padding: 3px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(250, 249, 246, 0.16);
+  border: 1px solid rgb(var(--anim-canvas-paper-rgb) / 0.16);
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #b4b0a6;
+  color: var(--anim-canvas-text-muted);
   transition: all 180ms ease;
 }
 
 .sink.lit {
-  border-color: rgba(46, 125, 88, 0.7);
-  background: rgba(46, 125, 88, 0.16);
-  color: #dff1e7;
+  border-color: rgb(var(--anim-canvas-progress-rgb) / 0.7);
+  background: rgb(var(--anim-canvas-progress-rgb) / 0.16);
+  color: var(--anim-canvas-progress-text);
 }
 
 .reduced * {

@@ -1,0 +1,201 @@
+.page {
+  max-width: var(--content-max-home);
+  margin: 0 auto;
+  padding: 48px var(--content-padding-x) 64px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 30px;
+  align-items: end;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--color-title);
+}
+
+.header > span,
+.cardTopline,
+.cardFooter,
+.filters button,
+.concepts span {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.header > span {
+  color: var(--color-primary);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 12px 0 0;
+  font-size: clamp(32px, 4vw, 46px);
+  line-height: 1.15;
+}
+
+.header p {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--color-text);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.stats {
+  display: grid;
+  gap: 3px;
+  padding: 16px;
+  border-left: 2px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.stats strong {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  color: var(--color-primary);
+}
+
+.stats span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+
+.filters button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.filters button:hover,
+.filters .activeFilter {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.emptyState h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.emptyState p {
+  margin: 0 0 14px;
+  color: var(--color-muted);
+}
+
+.emptyState button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+  text-decoration: none;
+}
+
+.cardTopline,
+.cardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: var(--color-muted);
+}
+
+.card h2 {
+  margin: 0;
+  color: var(--color-title);
+  font-size: 22px;
+}
+
+.card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.domainList,
+.concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.domainList span {
+  padding: 4px 8px;
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.concepts span {
+  color: var(--color-muted);
+}
+
+.cardFooter {
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.cardFooter strong {
+  color: var(--color-title);
+}
+
+.cardFooter em {
+  color: var(--color-progress);
+  font-style: normal;
+}
+
+@media (max-width: 780px) {
+  .page {
+    padding: 34px 20px 56px;
+  }
+
+  .header,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

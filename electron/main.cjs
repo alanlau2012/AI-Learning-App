@@ -5,20 +5,23 @@ const path = require('node:path');
 
 const isDev = Boolean(process.env.ELECTRON_DEV_SERVER_URL) && !process.env.ELECTRON_FORCE_PROD;
 const isSmokeTest = process.argv.includes('--smoke-test');
+const localProfileRoot = process.env.ELECTRON_LOCAL_PROFILE_ROOT;
 const appBackground = '#faf9f6';
-let smokeProfileRoot;
-let ownsSmokeProfileRoot = false;
+let isolatedProfileRoot;
+let ownsIsolatedProfileRoot = false;
 
-function configureSmokeRuntime() {
-  if (!isSmokeTest) return;
+function configureIsolatedRuntime() {
+  if (!isSmokeTest && !localProfileRoot) return;
 
-  smokeProfileRoot = process.env.ELECTRON_SMOKE_PROFILE_ROOT;
-  if (!smokeProfileRoot) {
-    smokeProfileRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-learning-app-smoke-'));
-    ownsSmokeProfileRoot = true;
+  isolatedProfileRoot = localProfileRoot || process.env.ELECTRON_SMOKE_PROFILE_ROOT;
+  if (!isolatedProfileRoot) {
+    isolatedProfileRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-learning-app-smoke-'));
+    ownsIsolatedProfileRoot = true;
+  } else {
+    ownsIsolatedProfileRoot = process.env.ELECTRON_LOCAL_CLEANUP_PROFILE === '1';
   }
-  const userDataDir = path.join(smokeProfileRoot, 'userData');
-  const sessionDataDir = path.join(smokeProfileRoot, 'sessionData');
+  const userDataDir = path.join(isolatedProfileRoot, 'userData');
+  const sessionDataDir = path.join(isolatedProfileRoot, 'sessionData');
   fs.mkdirSync(userDataDir, { recursive: true });
   fs.mkdirSync(sessionDataDir, { recursive: true });
 
@@ -34,17 +37,31 @@ function configureSmokeRuntime() {
   app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 }
 
-function cleanupSmokeRuntime() {
-  if (!smokeProfileRoot || !ownsSmokeProfileRoot) return;
+function cleanupIsolatedRuntime() {
+  if (!isolatedProfileRoot || !ownsIsolatedProfileRoot) return;
   try {
-    fs.rmSync(smokeProfileRoot, { recursive: true, force: true });
+    fs.rmSync(isolatedProfileRoot, { recursive: true, force: true });
   } catch {
-    // Best-effort cleanup only; smoke result should not depend on temp deletion.
+    // Best-effort cleanup only; runtime result should not depend on temp deletion.
   }
 }
 
-function isExternalUrl(url) {
-  return /^(https?:|mailto:)/i.test(url);
+const allowedExternalHosts = new Set([
+  'github.com',
+  'www.github.com',
+  'gsap.com',
+  'www.gsap.com',
+]);
+
+function getAllowedExternalUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'mailto:') return url;
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    return allowedExternalHosts.has(parsed.hostname.toLowerCase()) ? url : null;
+  } catch {
+    return null;
+  }
 }
 
 function createMainWindow() {
@@ -83,16 +100,21 @@ function createMainWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (isExternalUrl(url)) {
-      shell.openExternal(url);
+    const externalUrl = getAllowedExternalUrl(url);
+    if (externalUrl) {
+      shell.openExternal(externalUrl);
     }
     return { action: 'deny' };
   });
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isExternalUrl(url)) return;
+    const externalUrl = getAllowedExternalUrl(url);
+    if (!externalUrl) {
+      if (/^(https?:|mailto:)/i.test(url)) event.preventDefault();
+      return;
+    }
     event.preventDefault();
-    shell.openExternal(url);
+    shell.openExternal(externalUrl);
   });
 
   mainWindow.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
@@ -109,7 +131,7 @@ function createMainWindow() {
 }
 
 app.setName('AI \u5de5\u7a0b\u5b66\u4e60');
-configureSmokeRuntime();
+configureIsolatedRuntime();
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
@@ -128,4 +150,4 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('quit', cleanupSmokeRuntime);
+app.on('quit', cleanupIsolatedRuntime);

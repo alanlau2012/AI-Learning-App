@@ -323,7 +323,11 @@ function CopyHeader({
           {buttonLabel}
         </button>
         <span className={styles.copyStatus} aria-live="polite">
-          {status === 'failed' ? '复制失败，请手动选择' : ''}
+          {status === 'copied'
+            ? '已复制到剪贴板'
+            : status === 'failed'
+              ? '复制失败，请手动选择'
+              : ''}
         </span>
       </div>
     </div>

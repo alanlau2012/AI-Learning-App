@@ -18,8 +18,8 @@ export function AppShell() {
         <main className={styles.content}>
           <Outlet />
         </main>
+        <BottomNav />
       </div>
-      <BottomNav />
     </div>
   );
 }
