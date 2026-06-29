@@ -75,7 +75,44 @@
 .moduleNav {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
+}
+.moduleGroup {
+  display: flex;
+  flex-direction: column;
+}
+.moduleHeader {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px;
+}
+.moduleToggle {
+  width: 24px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.moduleToggle:hover {
+  background-color: var(--color-surface-soft);
+  color: var(--color-primary);
+}
+.moduleToggle:disabled {
+  cursor: default;
+  color: var(--color-faint);
+}
+.moduleToggle:disabled:hover {
+  background: transparent;
+  color: var(--color-faint);
 }
 .moduleItem {
   display: grid;
@@ -111,6 +148,53 @@
   font-family: var(--font-mono);
   font-size: 11.5px;
   color: var(--color-muted);
+}
+.conceptTree {
+  margin: 3px 0 7px 36px;
+  padding-left: 10px;
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conceptItem {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 14px;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 26px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.conceptItem:hover {
+  background-color: var(--color-surface-soft);
+  text-decoration: none;
+}
+.conceptItemActive {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.conceptOrder {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-faint);
+}
+.conceptTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.conceptDone {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-progress);
+  text-align: right;
 }
 
 /* 底部总进度 */
