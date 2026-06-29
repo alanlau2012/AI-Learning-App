@@ -632,235 +632,235 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="text-to-answer" data-width="1920" data-height="1080" data-start="0" data-duration="55">
-      <section id="scene-intro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
-        <div class="grain" data-layout-ignore=""></div>
-        <div class="ghost" data-word="LLM" data-layout-ignore="" aria-hidden="true"></div>
-        <div class="scene-content">
-          <div class="top-row">
-            <div class="eyebrow">AI 应用工程学习 APP</div>
-            <div class="progress-line mono">
-              <span class="done"></span><span></span><span></span><span></span><span></span>
-              <b>00 / 55s</b>
+    <div data-hf-id="hf-c0zx" id="root" data-composition-id="text-to-answer" data-width="1920" data-height="1080" data-start="0" data-duration="55">
+      <section data-hf-id="hf-5gck" id="scene-intro" class="scene" data-layout-allow-overflow="" data-layout-allow-overlap="">
+        <div data-hf-id="hf-ryn8" class="grain" data-layout-ignore=""></div>
+        <div data-hf-id="hf-2na8" class="ghost" data-word="LLM" data-layout-ignore="" aria-hidden="true"></div>
+        <div data-hf-id="hf-cn5c" class="scene-content">
+          <div data-hf-id="hf-2m2a" class="top-row">
+            <div data-hf-id="hf-j31o" class="eyebrow">AI 应用工程学习 APP</div>
+            <div data-hf-id="hf-11nx" class="progress-line mono">
+              <span data-hf-id="hf-tgkx" class="done"></span><span data-hf-id="hf-uckh"></span><span data-hf-id="hf-l73p"></span><span data-hf-id="hf-me0s"></span><span data-hf-id="hf-lzpr"></span>
+              <b data-hf-id="hf-exan">00 / 55s</b>
             </div>
           </div>
-          <main class="intro-main">
-            <h1>一句话如何连续变成模型回答</h1>
-            <p class="lede">从自然语言、Token、Embedding 到 KV Cache 与自回归 Decode，回答是一条连续发生的推理链路。</p>
-            <div class="route mono">
-              <span class="route-chip">Token</span>
-              <span class="arrow">-&gt;</span>
-              <span class="route-chip">Embedding</span>
-              <span class="arrow">-&gt;</span>
-              <span class="route-chip">Prefill + Attention</span>
-              <span class="arrow">-&gt;</span>
-              <span class="route-chip">KV Cache</span>
-              <span class="arrow">-&gt;</span>
-              <span class="route-chip">Decode Loop</span>
+          <main data-hf-id="hf-1h7k" class="intro-main">
+            <h1 data-hf-id="hf-1rcm">一句话如何连续变成模型回答</h1>
+            <p data-hf-id="hf-4z0b" class="lede">从自然语言、Token、Embedding 到 KV Cache 与自回归 Decode，回答是一条连续发生的推理链路。</p>
+            <div data-hf-id="hf-atpk" class="route mono">
+              <span data-hf-id="hf-i35k" class="route-chip">Token</span>
+              <span data-hf-id="hf-v5dr" class="arrow">-&gt;</span>
+              <span data-hf-id="hf-qops" class="route-chip">Embedding</span>
+              <span data-hf-id="hf-6nzz" class="arrow">-&gt;</span>
+              <span data-hf-id="hf-jadu" class="route-chip">Prefill + Attention</span>
+              <span data-hf-id="hf-69oy" class="arrow">-&gt;</span>
+              <span data-hf-id="hf-cl04" class="route-chip">KV Cache</span>
+              <span data-hf-id="hf-5vdx" class="arrow">-&gt;</span>
+              <span data-hf-id="hf-2oel" class="route-chip">Decode Loop</span>
             </div>
           </main>
         </div>
       </section>
 
-      <section id="scene-pipeline" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
-        <div class="grain" data-layout-ignore=""></div>
-        <div class="ghost" data-word="PIPELINE" data-layout-ignore="" aria-hidden="true"></div>
-        <div class="scene-content">
-          <div class="top-row">
-            <div class="eyebrow">01 / 连续推理链路</div>
-            <div class="progress-line mono">
-              <span class="done"></span><span class="done"></span><span class="done"></span><span></span><span></span>
-              <b>Token -&gt; KV Cache -&gt; 输出</b>
+      <section data-hf-id="hf-sk8k" id="scene-pipeline" class="scene" data-layout-allow-overflow="" data-layout-allow-overlap="">
+        <div data-hf-id="hf-3obg" class="grain" data-layout-ignore=""></div>
+        <div data-hf-id="hf-0w69" class="ghost" data-word="PIPELINE" data-layout-ignore="" aria-hidden="true"></div>
+        <div data-hf-id="hf-o0eg" class="scene-content">
+          <div data-hf-id="hf-k9va" class="top-row">
+            <div data-hf-id="hf-cegd" class="eyebrow">01 / 连续推理链路</div>
+            <div data-hf-id="hf-vk9t" class="progress-line mono">
+              <span data-hf-id="hf-veat" class="done"></span><span data-hf-id="hf-wl7w" class="done"></span><span data-hf-id="hf-w6wv" class="done"></span><span data-hf-id="hf-n6mu"></span><span data-hf-id="hf-msbt"></span>
+              <b data-hf-id="hf-3j0k">Token -&gt; KV Cache -&gt; 输出</b>
             </div>
           </div>
-          <div class="split">
-            <div>
-              <h2>先把一句话变成模型能计算的流。</h2>
-              <p class="caption">不是一帧一帧跳过去，而是输入 Token 持续进入计算图；Self-Attention 和 KV Cache 在 Prefill 与 Decode 中持续参与。</p>
+          <div data-hf-id="hf-hgc8" class="split">
+            <div data-hf-id="hf-yeow">
+              <h2 data-hf-id="hf-sk8n">先把一句话变成模型能计算的流。</h2>
+              <p data-hf-id="hf-z2d4" class="caption">不是一帧一帧跳过去，而是输入 Token 持续进入计算图；Self-Attention 和 KV Cache 在 Prefill 与 Decode 中持续参与。</p>
             </div>
-            <div class="panel pipeline-board">
-              <div class="flow-lane">
-                <div class="mini-block">
-                  <span class="lane-title">input_text</span>
-                  <div class="input-text">把这份合同的关键条款讲清楚</div>
+            <div data-hf-id="hf-xjrn" class="panel pipeline-board">
+              <div data-hf-id="hf-91of" class="flow-lane">
+                <div data-hf-id="hf-d9kh" class="mini-block">
+                  <span data-hf-id="hf-dk8s" class="lane-title">input_text</span>
+                  <div data-hf-id="hf-3g4f" class="input-text">把这份合同的关键条款讲清楚</div>
                 </div>
-                <div class="mini-block">
-                  <span class="lane-title">tokenizer</span>
-                  <div class="token-flow">
-                    <span class="token wide">把这份</span>
-                    <span class="token narrow">合</span>
-                    <span class="token mid">同的</span>
-                    <span class="token wide">关键条款</span>
-                    <span class="token mid">讲清楚</span>
+                <div data-hf-id="hf-xtwl" class="mini-block">
+                  <span data-hf-id="hf-kzjb" class="lane-title">tokenizer</span>
+                  <div data-hf-id="hf-zts8" class="token-flow">
+                    <span data-hf-id="hf-zdtb" class="token wide">把这份</span>
+                    <span data-hf-id="hf-ylf7" class="token narrow">合</span>
+                    <span data-hf-id="hf-cz2q" class="token mid">同的</span>
+                    <span data-hf-id="hf-wp8f" class="token wide">关键条款</span>
+                    <span data-hf-id="hf-o6hz" class="token mid">讲清楚</span>
                   </div>
                 </div>
               </div>
 
-              <div class="transformer-core">
-                <div class="core-card" id="embedding-card">
-                  <p class="core-title">ID / Embedding / Position</p>
-                  <div class="ids">
-                    <span class="token-id">#312</span>
-                    <span class="token-id">#88</span>
-                    <span class="token-id">#1490</span>
-                    <span class="token-id">#203</span>
-                    <span class="token-id">pos 01-05</span>
+              <div data-hf-id="hf-glpb" class="transformer-core">
+                <div data-hf-id="hf-nz2g" class="core-card" id="embedding-card">
+                  <p data-hf-id="hf-gy2y" class="core-title">ID / Embedding / Position</p>
+                  <div data-hf-id="hf-c1ha" class="ids">
+                    <span data-hf-id="hf-y5qj" class="token-id">#312</span>
+                    <span data-hf-id="hf-8mg3" class="token-id">#88</span>
+                    <span data-hf-id="hf-5j7j" class="token-id">#1490</span>
+                    <span data-hf-id="hf-qf46" class="token-id">#203</span>
+                    <span data-hf-id="hf-7i41" class="token-id">pos 01-05</span>
                   </div>
-                  <div class="vector-row" aria-hidden="true">
-                    <span class="vector" style="height: 48px"></span>
-                    <span class="vector" style="height: 86px"></span>
-                    <span class="vector" style="height: 62px"></span>
-                    <span class="vector" style="height: 104px"></span>
-                    <span class="vector" style="height: 72px"></span>
+                  <div data-hf-id="hf-jyvr" class="vector-row" aria-hidden="true">
+                    <span data-hf-id="hf-lfrb" class="vector" style="height: 48px"></span>
+                    <span data-hf-id="hf-8lnx" class="vector" style="height: 86px"></span>
+                    <span data-hf-id="hf-9cpz" class="vector" style="height: 62px"></span>
+                    <span data-hf-id="hf-pr30" class="vector" style="height: 104px"></span>
+                    <span data-hf-id="hf-u64o" class="vector" style="height: 72px"></span>
                   </div>
                 </div>
-                <div class="core-card" id="attention-card">
-                  <p class="core-title">Prefill / Self-Attention</p>
-                  <div class="prefill-stack">
-                    <span class="prefill-bar" style="height: 72px"></span>
-                    <span class="prefill-bar" style="height: 110px"></span>
-                    <span class="prefill-bar" style="height: 94px"></span>
-                    <span class="prefill-bar" style="height: 132px"></span>
-                    <span class="prefill-bar" style="height: 84px"></span>
+                <div data-hf-id="hf-6i3b" class="core-card" id="attention-card">
+                  <p data-hf-id="hf-4jf1" class="core-title">Prefill / Self-Attention</p>
+                  <div data-hf-id="hf-esp3" class="prefill-stack">
+                    <span data-hf-id="hf-y2hp" class="prefill-bar" style="height: 72px"></span>
+                    <span data-hf-id="hf-wocw" class="prefill-bar" style="height: 110px"></span>
+                    <span data-hf-id="hf-g091" class="prefill-bar" style="height: 94px"></span>
+                    <span data-hf-id="hf-d0vw" class="prefill-bar" style="height: 132px"></span>
+                    <span data-hf-id="hf-rcei" class="prefill-bar" style="height: 84px"></span>
                   </div>
-                  <div class="qkv-grid">
-                    <span class="qkv">Q</span>
-                    <span class="qkv">K</span>
-                    <span class="qkv">V</span>
+                  <div data-hf-id="hf-tiwj" class="qkv-grid">
+                    <span data-hf-id="hf-ywng" class="qkv">Q</span>
+                    <span data-hf-id="hf-okoq" class="qkv">K</span>
+                    <span data-hf-id="hf-zayh" class="qkv">V</span>
                   </div>
-                  <svg class="att-lines" viewBox="0 0 360 94" aria-label="注意力权重">
-                    <path class="att-link" d="M 28 66 Q 142 4 330 66" stroke="#1f40d8" stroke-width="5" fill="none" opacity="0.75" />
-                    <path class="att-link" d="M 50 76 Q 170 24 306 76" stroke="#2e7d58" stroke-width="9" fill="none" opacity="0.8" />
-                    <path class="att-link" d="M 84 82 Q 186 44 280 82" stroke="#c9d2fb" stroke-width="4" fill="none" opacity="0.8" />
+                  <svg data-hf-id="hf-6zq4" class="att-lines" viewBox="0 0 360 94" aria-label="注意力权重">
+                    <path data-hf-id="hf-6rss" class="att-link" d="M 28 66 Q 142 4 330 66" stroke="#1f40d8" stroke-width="5" fill="none" opacity="0.75" />
+                    <path data-hf-id="hf-fzij" class="att-link" d="M 50 76 Q 170 24 306 76" stroke="#2e7d58" stroke-width="9" fill="none" opacity="0.8" />
+                    <path data-hf-id="hf-209a" class="att-link" d="M 84 82 Q 186 44 280 82" stroke="#c9d2fb" stroke-width="4" fill="none" opacity="0.8" />
                   </svg>
                 </div>
-                <div class="core-card" id="cache-card">
-                  <p class="core-title">KV Cache</p>
-                  <div class="cache-grid">
-                    <span class="cache-cell">K1 / V1</span>
-                    <span class="cache-cell">K2 / V2</span>
-                    <span class="cache-cell">K3 / V3</span>
-                    <span class="cache-cell">K4 / V4</span>
-                    <span class="cache-cell">K5 / V5</span>
-                    <span class="cache-cell">ready</span>
+                <div data-hf-id="hf-8akn" class="core-card" id="cache-card">
+                  <p data-hf-id="hf-38io" class="core-title">KV Cache</p>
+                  <div data-hf-id="hf-df2b" class="cache-grid">
+                    <span data-hf-id="hf-k55o" class="cache-cell">K1 / V1</span>
+                    <span data-hf-id="hf-t3re" class="cache-cell">K2 / V2</span>
+                    <span data-hf-id="hf-vh1g" class="cache-cell">K3 / V3</span>
+                    <span data-hf-id="hf-31ty" class="cache-cell">K4 / V4</span>
+                    <span data-hf-id="hf-219g" class="cache-cell">K5 / V5</span>
+                    <span data-hf-id="hf-rnw5" class="cache-cell">ready</span>
                   </div>
                 </div>
               </div>
 
-              <div class="decode-loop">
-                <div class="prob-board">
-                  <div class="prob-row">
-                    <span class="prob-label">首先</span>
-                    <span class="prob-track"><span class="prob-fill" style="width: 78%"></span></span>
-                    <span class="prob-label">0.78</span>
+              <div data-hf-id="hf-tohl" class="decode-loop">
+                <div data-hf-id="hf-h3au" class="prob-board">
+                  <div data-hf-id="hf-i4v6" class="prob-row">
+                    <span data-hf-id="hf-dy27" class="prob-label">首先</span>
+                    <span data-hf-id="hf-pkse" class="prob-track"><span data-hf-id="hf-4k4y" class="prob-fill" style="width: 78%"></span></span>
+                    <span data-hf-id="hf-1k8w" class="prob-label">0.78</span>
                   </div>
-                  <div class="prob-row">
-                    <span class="prob-label">关注</span>
-                    <span class="prob-track"><span class="prob-fill" style="width: 62%; background: #2e7d58"></span></span>
-                    <span class="prob-label">0.62</span>
+                  <div data-hf-id="hf-ycjq" class="prob-row">
+                    <span data-hf-id="hf-v8pu" class="prob-label">关注</span>
+                    <span data-hf-id="hf-65ia" class="prob-track"><span data-hf-id="hf-cysc" class="prob-fill" style="width: 62%; background: #2e7d58"></span></span>
+                    <span data-hf-id="hf-h0vv" class="prob-label">0.62</span>
                   </div>
-                  <div class="prob-row">
-                    <span class="prob-label">付款</span>
-                    <span class="prob-track"><span class="prob-fill" style="width: 52%; background: #e8943a"></span></span>
-                    <span class="prob-label">0.52</span>
+                  <div data-hf-id="hf-yqur" class="prob-row">
+                    <span data-hf-id="hf-yx87" class="prob-label">付款</span>
+                    <span data-hf-id="hf-6jtb" class="prob-track"><span data-hf-id="hf-rm2s" class="prob-fill" style="width: 52%; background: #e8943a"></span></span>
+                    <span data-hf-id="hf-hsjo" class="prob-label">0.52</span>
                   </div>
                 </div>
-                <div>
-                  <span class="lane-title">decode_loop</span>
-                  <div class="answer-rail">
-                    <span class="answer-token">首先</span>
-                    <span class="answer-token">关注</span>
-                    <span class="answer-token">付款</span>
-                    <span class="answer-token">周期</span>
-                    <span class="answer-token">。</span>
+                <div data-hf-id="hf-y7yw">
+                  <span data-hf-id="hf-z3mn" class="lane-title">decode_loop</span>
+                  <div data-hf-id="hf-345n" class="answer-rail">
+                    <span data-hf-id="hf-vz59" class="answer-token">首先</span>
+                    <span data-hf-id="hf-cr8w" class="answer-token">关注</span>
+                    <span data-hf-id="hf-h8at" class="answer-token">付款</span>
+                    <span data-hf-id="hf-v2jm" class="answer-token">周期</span>
+                    <span data-hf-id="hf-t07v" class="answer-token">。</span>
                   </div>
                 </div>
               </div>
-              <div class="feedback-arrow" aria-hidden="true"></div>
-              <span class="flow-dot" data-layout-ignore="" aria-hidden="true"></span>
+              <div data-hf-id="hf-461o" class="feedback-arrow" aria-hidden="true"></div>
+              <span data-hf-id="hf-ig4h" class="flow-dot" data-layout-ignore="" aria-hidden="true"></span>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="scene-cache" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
-        <div class="grain" data-layout-ignore=""></div>
-        <div class="ghost" data-word="CACHE" data-layout-ignore="" aria-hidden="true"></div>
-        <div class="scene-content">
-          <div class="top-row">
-            <div class="eyebrow">02 / Prefill 与 Decode 的分工</div>
-            <div class="progress-line mono">
-              <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span></span>
-              <b>首字前写入，首字后复用</b>
+      <section data-hf-id="hf-eel4" id="scene-cache" class="scene" data-layout-allow-overflow="" data-layout-allow-overlap="">
+        <div data-hf-id="hf-2hed" class="grain" data-layout-ignore=""></div>
+        <div data-hf-id="hf-j9zj" class="ghost" data-word="CACHE" data-layout-ignore="" aria-hidden="true"></div>
+        <div data-hf-id="hf-mthd" class="scene-content">
+          <div data-hf-id="hf-ko6b" class="top-row">
+            <div data-hf-id="hf-2pmr" class="eyebrow">02 / Prefill 与 Decode 的分工</div>
+            <div data-hf-id="hf-wr6w" class="progress-line mono">
+              <span data-hf-id="hf-xdty" class="done"></span><span data-hf-id="hf-wzix" class="done"></span><span data-hf-id="hf-y6g0" class="done"></span><span data-hf-id="hf-xs4z" class="done"></span><span data-hf-id="hf-nz8w"></span>
+              <b data-hf-id="hf-xddl">首字前写入，首字后复用</b>
             </div>
           </div>
-          <div class="split">
-            <div>
-              <h2>KV Cache 不是最后一步，而是边算边积累。</h2>
-              <p class="caption">Prefill 一次性处理全部输入并写入历史 K/V；Decode 每生成一个新 Token，只追加新状态并复用已有缓存。</p>
+          <div data-hf-id="hf-wu6o" class="split">
+            <div data-hf-id="hf-x11t">
+              <h2 data-hf-id="hf-5jxb">KV Cache 不是最后一步，而是边算边积累。</h2>
+              <p data-hf-id="hf-0la6" class="caption">Prefill 一次性处理全部输入并写入历史 K/V；Decode 每生成一个新 Token，只追加新状态并复用已有缓存。</p>
             </div>
-            <div class="panel pipeline-board">
-              <div class="metric-strip">
-                <div class="metric">TTFT 主要受 <strong>Prefill 长度</strong></div>
-                <div class="metric">TPOT 主要看 <strong>Decode 每步</strong></div>
-                <div class="metric">缓存收益来自 <strong>复用历史 K/V</strong></div>
+            <div data-hf-id="hf-n5ir" class="panel pipeline-board">
+              <div data-hf-id="hf-7lht" class="metric-strip">
+                <div data-hf-id="hf-qdob" class="metric">TTFT 主要受 <strong data-hf-id="hf-8bh3">Prefill 长度</strong></div>
+                <div data-hf-id="hf-zfay" class="metric">TPOT 主要看 <strong data-hf-id="hf-nu3w">Decode 每步</strong></div>
+                <div data-hf-id="hf-ufh4" class="metric">缓存收益来自 <strong data-hf-id="hf-8qyf">复用历史 K/V</strong></div>
               </div>
-              <div class="transformer-core">
-                <div class="core-card">
-                  <p class="core-title">Prefill: 全量输入</p>
-                  <div class="prefill-stack">
-                    <span class="prefill-bar" style="height: 76px"></span>
-                    <span class="prefill-bar" style="height: 124px"></span>
-                    <span class="prefill-bar" style="height: 98px"></span>
-                    <span class="prefill-bar" style="height: 142px"></span>
-                    <span class="prefill-bar" style="height: 106px"></span>
+              <div data-hf-id="hf-efkv" class="transformer-core">
+                <div data-hf-id="hf-4wfw" class="core-card">
+                  <p data-hf-id="hf-o122" class="core-title">Prefill: 全量输入</p>
+                  <div data-hf-id="hf-yktj" class="prefill-stack">
+                    <span data-hf-id="hf-qr2x" class="prefill-bar" style="height: 76px"></span>
+                    <span data-hf-id="hf-6659" class="prefill-bar" style="height: 124px"></span>
+                    <span data-hf-id="hf-ppqx" class="prefill-bar" style="height: 98px"></span>
+                    <span data-hf-id="hf-e8bx" class="prefill-bar" style="height: 142px"></span>
+                    <span data-hf-id="hf-b7o5" class="prefill-bar" style="height: 106px"></span>
                   </div>
                 </div>
-                <div class="core-card">
-                  <p class="core-title">Cache locality</p>
-                  <div class="cache-grid">
-                    <span class="cache-cell">prefix K/V</span>
-                    <span class="cache-cell">history K/V</span>
-                    <span class="cache-cell">new K/V</span>
-                    <span class="cache-cell">reuse</span>
-                    <span class="cache-cell">append</span>
-                    <span class="cache-cell">serve</span>
+                <div data-hf-id="hf-dv3o" class="core-card">
+                  <p data-hf-id="hf-nq28" class="core-title">Cache locality</p>
+                  <div data-hf-id="hf-zv2b" class="cache-grid">
+                    <span data-hf-id="hf-5lia" class="cache-cell">prefix K/V</span>
+                    <span data-hf-id="hf-58uu" class="cache-cell">history K/V</span>
+                    <span data-hf-id="hf-mj2c" class="cache-cell">new K/V</span>
+                    <span data-hf-id="hf-bxoq" class="cache-cell">reuse</span>
+                    <span data-hf-id="hf-g8de" class="cache-cell">append</span>
+                    <span data-hf-id="hf-5rfd" class="cache-cell">serve</span>
                   </div>
                 </div>
-                <div class="core-card">
-                  <p class="core-title">Decode: 一次一个</p>
-                  <div class="answer-rail">
-                    <span class="answer-token">首先</span>
-                    <span class="answer-token">关注</span>
-                    <span class="answer-token">付款</span>
-                    <span class="answer-token">周期</span>
+                <div data-hf-id="hf-co6l" class="core-card">
+                  <p data-hf-id="hf-n25i" class="core-title">Decode: 一次一个</p>
+                  <div data-hf-id="hf-3ei3" class="answer-rail">
+                    <span data-hf-id="hf-2o9t" class="answer-token">首先</span>
+                    <span data-hf-id="hf-chjc" class="answer-token">关注</span>
+                    <span data-hf-id="hf-a461" class="answer-token">付款</span>
+                    <span data-hf-id="hf-jkhy" class="answer-token">周期</span>
                   </div>
                 </div>
               </div>
-              <p class="note">工程排查要拆开首字前和首字后：输入长不一定影响每步 TPOT，输出长一定增加 Decode 循环次数。</p>
-              <span class="flow-dot" data-layout-ignore="" aria-hidden="true"></span>
+              <p data-hf-id="hf-yasr" class="note">工程排查要拆开首字前和首字后：输入长不一定影响每步 TPOT，输出长一定增加 Decode 循环次数。</p>
+              <span data-hf-id="hf-0jed" class="flow-dot" data-layout-ignore="" aria-hidden="true"></span>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="scene-outro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
-        <div class="grain" data-layout-ignore=""></div>
-        <div class="ghost" data-word="ANSWER" data-layout-ignore="" aria-hidden="true"></div>
-        <div class="scene-content closing">
-          <div class="eyebrow">结论</div>
-          <div class="closing-title">模型回答是一条连续工程链路，不是一瞬间的理解。</div>
-          <div class="closing-grid">
-            <div class="closing-item"><b>01</b>自然语言先被切成 Token，并映射为编号与向量。</div>
-            <div class="closing-item"><b>02</b>Prefill 中 Self-Attention 处理全量输入，并写入 KV Cache。</div>
-            <div class="closing-item"><b>03</b>首 Token 由概率分布和采样策略选出。</div>
-            <div class="closing-item"><b>04</b>Decode 循环复用缓存、追加新 Token，直到形成回答。</div>
+      <section data-hf-id="hf-3r8r" id="scene-outro" class="scene" data-layout-allow-overflow="" data-layout-allow-overlap="">
+        <div data-hf-id="hf-2vpe" class="grain" data-layout-ignore=""></div>
+        <div data-hf-id="hf-0v39" class="ghost" data-word="ANSWER" data-layout-ignore="" aria-hidden="true"></div>
+        <div data-hf-id="hf-uk3h" class="scene-content closing">
+          <div data-hf-id="hf-pst8" class="eyebrow">结论</div>
+          <div data-hf-id="hf-jt6l" class="closing-title">模型回答是一条连续工程链路，不是一瞬间的理解。</div>
+          <div data-hf-id="hf-gxky" class="closing-grid">
+            <div data-hf-id="hf-7a3w" class="closing-item"><b data-hf-id="hf-27a2">01</b>自然语言先被切成 Token，并映射为编号与向量。</div>
+            <div data-hf-id="hf-z685" class="closing-item"><b data-hf-id="hf-2ll3">02</b>Prefill 中 Self-Attention 处理全量输入，并写入 KV Cache。</div>
+            <div data-hf-id="hf-2ojn" class="closing-item"><b data-hf-id="hf-2zw4">03</b>首 Token 由概率分布和采样策略选出。</div>
+            <div data-hf-id="hf-gol7" class="closing-item"><b data-hf-id="hf-3e75">04</b>Decode 循环复用缓存、追加新 Token，直到形成回答。</div>
           </div>
         </div>
       </section>
 
-      <div id="wipe-a" class="wipe" data-layout-ignore=""></div>
-      <div id="wipe-b" class="wipe" data-layout-ignore=""></div>
+      <div data-hf-id="hf-7wyx" id="wipe-a" class="wipe" data-layout-ignore=""></div>
+      <div data-hf-id="hf-bv2y" id="wipe-b" class="wipe" data-layout-ignore=""></div>
     </div>
 
     <script>
@@ -936,7 +936,7 @@
       tl.from("#scene-outro .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, 51.75);
       tl.from("#scene-outro .closing-title", { x: -44, opacity: 0, duration: 0.68, ease: "expo.out" }, 51.9);
       tl.from("#scene-outro .closing-item", { y: 28, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 52.45);
-      tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.5, ease: "power2.in" }, 54.45);
+      tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.55, ease: "power2.in" }, 54.45);
 
       window.__timelines["text-to-answer"] = tl;
     </script>
