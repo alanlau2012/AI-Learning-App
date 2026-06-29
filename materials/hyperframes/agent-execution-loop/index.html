@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Agent ???????????</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "IBM Plex Sans"; src: url("fonts/ibm-plex-sans-300.woff2") format("woff2"); font-weight: 300; font-style: normal; }
+      @font-face { font-family: "IBM Plex Sans"; src: url("fonts/ibm-plex-sans-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "IBM Plex Sans"; src: url("fonts/ibm-plex-sans-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "IBM Plex Serif"; src: url("fonts/ibm-plex-serif-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "IBM Plex Serif"; src: url("fonts/ibm-plex-serif-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm-plex-mono-700.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      * { box-sizing: border-box; }
+      body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #faf9f6; color: #34322c; font-family: "IBM Plex Sans", "Microsoft YaHei", sans-serif; }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #faf9f6; }
+      .scene { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; background-color: #faf9f6; }
+      .scene:not(#scene-intro) { opacity: 0; }
+      .scene-content { position: relative; z-index: 2; width: 100%; height: 100%; padding: 96px 120px; display: flex; flex-direction: column; gap: 34px; }
+      .grain { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-image: radial-gradient(circle at 18% 22%, rgba(31,64,216,0.08), rgba(31,64,216,0) 290px), radial-gradient(circle at 82% 78%, rgba(46,125,88,0.08), rgba(46,125,88,0) 330px), linear-gradient(90deg, rgba(231,227,217,0.42) 1px, rgba(250,249,246,0) 1px), linear-gradient(180deg, rgba(231,227,217,0.36) 1px, rgba(250,249,246,0) 1px); background-size: auto, auto, 120px 120px, 120px 120px; }
+      .ghost { position: absolute; right: -22px; bottom: 18px; z-index: 1; color: rgba(31,64,216,0.06); font-family: "IBM Plex Serif", Georgia, serif; font-size: 164px; font-weight: 700; letter-spacing: 0; white-space: nowrap; pointer-events: none; }
+      .mono, .eyebrow, .progress-line, .chip, .card-label, .metric, .tag { font-family: "IBM Plex Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+      .top-row { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+      .eyebrow { color: #1f40d8; font-size: 22px; font-weight: 700; }
+      .progress-line { display: flex; align-items: center; gap: 12px; color: #5f5b53; font-size: 18px; }
+      .progress-line b { color: #34322c; }
+      .progress-line span { display: inline-block; width: 54px; height: 4px; border-radius: 2px; background: #dad6cb; }
+      .progress-line .done { background: #1f40d8; }
+      h1, h2, .closing-title { margin: 0; max-width: 1260px; color: #1a1916; font-family: "IBM Plex Serif", Georgia, serif; font-weight: 700; letter-spacing: 0; }
+      h1 { font-size: 104px; line-height: 1.05; }
+      h2 { font-size: 72px; line-height: 1.08; }
+      .lede, .caption, .note { margin: 0; max-width: 940px; color: #34322c; font-size: 28px; line-height: 1.45; }
+      .note { color: #5f5b53; font-size: 23px; }
+      .intro-main, .closing { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; }
+      .route { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; max-width: 1240px; }
+      .chip, .tag { border: 1px solid #c9d2fb; background: #ebeefe; color: #1f40d8; border-radius: 6px; padding: 12px 18px; font-size: 22px; font-weight: 700; }
+      .arrow { color: #5f5b53; font-size: 28px; }
+      .split { flex: 1; display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 58px; align-items: center; }
+      .panel { border: 1px solid #e7e3d9; border-radius: 8px; background: #ffffff; box-shadow: 0 12px 36px rgba(52,50,44,0.07); }
+      .board { padding: 38px; display: grid; gap: 24px; }
+      .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .cardlet { min-height: 126px; padding: 20px; border: 1px solid #e7e3d9; border-radius: 7px; background: #faf9f6; display: grid; align-content: space-between; gap: 14px; }
+      .cardlet:nth-child(1) { border-color: rgba(46,125,88,0.28); background: #e8f2ec; }
+      .cardlet:nth-child(3) { border-color: rgba(232,148,58,0.32); background: #fff7ec; }
+      .card-label { color: #5f5b53; font-size: 18px; }
+      .card-title { color: #1a1916; font-size: 25px; line-height: 1.18; }
+      .flow-line { position: relative; height: 74px; border-radius: 37px; background: #f2efe7; overflow: hidden; }
+      .flow-line i { position: absolute; top: 0; left: 0; height: 100%; border-radius: 37px; background: #1f40d8; width: 68%; transform-origin: left center; }
+      .flow-line i.green { top: 18px; left: 22%; height: 38px; width: 42%; background: #2e7d58; }
+      .tag-row { display: flex; gap: 12px; flex-wrap: wrap; }
+      .metric-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .metric { padding: 16px; border-radius: 7px; background: #f2efe7; color: #34322c; font-size: 20px; text-align: center; }
+      .closing-title { font-size: 80px; line-height: 1.12; }
+      .closing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1180px; }
+      .closing-item { padding: 24px; border-radius: 8px; border: 1px solid #e7e3d9; background: #ffffff; font-size: 24px; color: #34322c; }
+      .wipe { position: absolute; inset: 0; z-index: 50; width: 1920px; height: 1080px; pointer-events: none; transform: translateX(-1920px); }
+      #wipe-a { background: #1f40d8; }
+      #wipe-b { background: #2e7d58; }
+
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="agent-execution-loop" data-width="1920" data-height="1080" data-start="0" data-duration="46">
+      <section id="scene-intro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">AGENT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">AI ?????? APP</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>00 / 46s</b></div>
+          </div>
+          <main class="intro-main">
+            <h1>Agent ???????????</h1>
+            <p class="lede">Agent ?????????????????????????????</p>
+            <div class="route"><span class="chip">??</span><span class="arrow">-&gt;</span><span class="chip">???</span><span class="arrow">-&gt;</span><span class="chip">??</span><span class="arrow">-&gt;</span><span class="chip">??</span></div>
+          </main>
+        </div>
+      </section>
+
+      <section id="scene-1" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">GOAL</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">01 / ????</div>
+            <div class="progress-line"><span class="done"></span><span></span><span></span><span></span><b>what</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>????????????</h2>
+              <p class="caption">???????????? Agent ??????????</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">????</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">???</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">????</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">??</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">what</div><div class="metric">limit</div><div class="metric">done</div><div class="metric">guard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-2" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">CONTEXT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">02 / ?????</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>pin</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>Agent ?????????</h2>
+              <p class="caption">???????????????????????</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">????</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">pin</div><div class="metric">rank</div><div class="metric">summarize</div><div class="metric">verify</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-3" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">OBSERVE</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">03 / Observe</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span></span><span></span><b>read</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>Agent ????????</h2>
+              <p class="caption">?????????????????????????</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">repo</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">trace</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">ticket</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">state</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">read</div><div class="metric">inspect</div><div class="metric">collect</div><div class="metric">frame</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-4" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">ACT</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">04 / Plan / Act</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>step</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>??????????</h2>
+              <p class="caption">???????????????? trace?</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">plan</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">tool call</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">result</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">trace</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">step</div><div class="metric">args</div><div class="metric">output</div><div class="metric">span</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-5" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">CHECK</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">05 / Check</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span></span><b>pass</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>??????????</h2>
+              <p class="caption">??????????????????????</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">??</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">pass</div><div class="metric">policy</div><div class="metric">approve</div><div class="metric">stop</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-6" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">MULTI</div>
+        <div class="scene-content">
+          <div class="top-row">
+            <div class="eyebrow">06 / Multi-Agent</div>
+            <div class="progress-line"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><b>draft</b></div>
+          </div>
+          <div class="split">
+            <div>
+              <h2>?? Agent ???????</h2>
+              <p class="caption">?????????????????????</p>
+            </div>
+            <div class="panel board">
+              <div class="card-grid">
+                <div class="cardlet"><span class="card-label">01</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">02</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">03</span><span class="card-title">??</span></div><div class="cardlet"><span class="card-label">04</span><span class="card-title">??</span></div>
+              </div>
+              <div class="flow-line"><i></i><i class="green"></i></div>
+              <div class="metric-strip">
+                <div class="metric">draft</div><div class="metric">review</div><div class="metric">verify</div><div class="metric">merge</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="scene-outro" class="scene" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="grain" data-layout-ignore=""></div>
+        <div class="ghost" data-layout-ignore="" aria-hidden="true">DONE</div>
+        <div class="scene-content closing">
+          <div class="eyebrow">??</div>
+          <div class="closing-title">Agent ??????????????????</div>
+          <div class="closing-grid"><div class="closing-item">????</div><div class="closing-item">?????</div><div class="closing-item">?????</div><div class="closing-item">?????</div></div>
+        </div>
+      </section>
+      <div id="wipe-a" class="wipe" data-layout-ignore=""></div>
+      <div id="wipe-b" class="wipe" data-layout-ignore=""></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: "power2.out", overwrite: "auto" } });
+      function enter(scene, at) {
+        tl.from(scene + " .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, at + 0.12);
+        tl.from(scene + " h1, " + scene + " h2, " + scene + " .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, at + 0.24);
+        tl.from(scene + " .lede, " + scene + " .caption", { y: 30, opacity: 0, duration: 0.54, ease: "sine.out", stagger: 0.08 }, at + 0.48);
+        tl.from(scene + " .panel, " + scene + " .route, " + scene + " .closing-grid", { scale: 0.96, opacity: 0, duration: 0.6, ease: "back.out(1.35)" }, at + 0.58);
+        tl.from(scene + " .progress-line", { x: 32, opacity: 0, duration: 0.36, ease: "power4.out" }, at + 0.22);
+      }
+      function push(oldScene, newScene, at) {
+        tl.set(newScene, { x: 1920, opacity: 1, zIndex: 4 }, at - 0.01);
+        tl.set(oldScene, { zIndex: 3 }, at - 0.01);
+        tl.to(oldScene, { x: -1920, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.fromTo(newScene, { x: 1920, opacity: 1 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, at);
+        tl.set(oldScene, { opacity: 0 }, at + 0.52);
+      }
+      function blockSwap(oldScene, newScene, at) {
+        tl.set("#wipe-a", { x: -1920 }, at - 0.01);
+        tl.set("#wipe-b", { x: -1920 }, at - 0.01);
+        tl.to("#wipe-a", { x: 0, duration: 0.25, ease: "power3.inOut" }, at);
+        tl.to("#wipe-b", { x: 0, duration: 0.25, ease: "power3.inOut" }, at + 0.06);
+        tl.set(oldScene, { opacity: 0 }, at + 0.2);
+        tl.set(newScene, { opacity: 1, x: 0, zIndex: 4 }, at + 0.2);
+        tl.to("#wipe-a", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.28);
+        tl.to("#wipe-b", { x: 1920, duration: 0.25, ease: "power3.inOut" }, at + 0.34);
+      }
+      function blurSwap(oldScene, newScene, at) {
+        tl.set(newScene, { opacity: 0, x: 0, zIndex: 4 }, at - 0.01);
+        tl.to(oldScene, { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.55, ease: "power2.inOut" }, at);
+        tl.fromTo(newScene, { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.58, ease: "power2.inOut" }, at + 0.1);
+      }
+      enter("#scene-intro", 0);
+      tl.from("#scene-intro .chip", { y: 20, opacity: 0, duration: 0.42, ease: "power2.out", stagger: 0.08 }, 1.25);
+      tl.from("#scene-intro .arrow", { opacity: 0, scale: 0.8, duration: 0.28, ease: "power4.out", stagger: 0.08 }, 1.42);
+      push("#scene-intro", "#scene-1", 3.2);
+      enter("#scene-1", 3.72);
+      tl.from("#scene-1 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 4.55);
+      tl.from("#scene-1 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 5.17);
+      tl.from("#scene-1 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 5.60);
+      push("#scene-1", "#scene-2", 8.7);
+      enter("#scene-2", 9.22);
+      tl.from("#scene-2 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 10.05);
+      tl.from("#scene-2 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 10.67);
+      tl.from("#scene-2 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 11.10);
+      push("#scene-2", "#scene-3", 14.2);
+      enter("#scene-3", 14.72);
+      tl.from("#scene-3 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 15.55);
+      tl.from("#scene-3 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 16.17);
+      tl.from("#scene-3 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 16.60);
+      blockSwap("#scene-3", "#scene-4", 19.7);
+      enter("#scene-4", 20.42);
+      tl.from("#scene-4 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 21.25);
+      tl.from("#scene-4 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 21.87);
+      tl.from("#scene-4 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 22.30);
+      push("#scene-4", "#scene-5", 25.0);
+      enter("#scene-5", 25.52);
+      tl.from("#scene-5 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 26.35);
+      tl.from("#scene-5 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 26.97);
+      tl.from("#scene-5 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 27.40);
+      push("#scene-5", "#scene-6", 31.0);
+      enter("#scene-6", 31.52);
+      tl.from("#scene-6 .cardlet", { y: 28, opacity: 0, duration: 0.38, ease: "power3.out", stagger: 0.07 }, 32.35);
+      tl.from("#scene-6 .flow-line i", { scaleX: 0, duration: 0.58, ease: "expo.out", stagger: 0.1 }, 32.97);
+      tl.from("#scene-6 .metric", { y: 18, opacity: 0, duration: 0.34, ease: "sine.out", stagger: 0.06 }, 33.40);
+      blurSwap("#scene-6", "#scene-outro", 42.8);
+      tl.from("#scene-outro .eyebrow", { y: -24, opacity: 0, duration: 0.42, ease: "power3.out" }, 43.58);
+      tl.from("#scene-outro .closing-title", { x: -46, opacity: 0, duration: 0.68, ease: "expo.out" }, 43.72);
+      tl.from("#scene-outro .closing-item", { y: 28, opacity: 0, duration: 0.42, ease: "power3.out", stagger: 0.08 }, 44.18);
+      tl.to("#scene-outro .scene-content", { opacity: 0, duration: 0.5, ease: "power2.in" }, 45.25);
+      window.__timelines["agent-execution-loop"] = tl;
+    </script>
+  </body>
+</html>
