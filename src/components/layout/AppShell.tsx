@@ -7,6 +7,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
+import { PWAUpdatePrompt } from './PWAUpdatePrompt';
 import styles from './AppShell.module.css';
 
 export function AppShell() {
@@ -20,6 +21,7 @@ export function AppShell() {
         </main>
         <BottomNav />
       </div>
+      <PWAUpdatePrompt />
     </div>
   );
 }

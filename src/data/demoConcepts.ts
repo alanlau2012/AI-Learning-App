@@ -36,52 +36,49 @@ const rawDemoConcepts: KnowledgePoint[] = [
     ],
     "animation": {
       "type": "token-flow",
-      "title": "从文本到 Token 再到成本与时延",
+      "title": "一句话如何连续变成模型回答",
       "steps": [
         {
           "id": "s1",
           "title": "用户输入文本",
-          "description": "业务问题进入模型链路时仍是自然语言，系统需要先把它转换为可计算、可计量的单位。",
-          "highlightTargets": [
-            "input-text"
-          ]
+          "description": "业务问题进入模型链路时仍是自然语言，系统先把它转成模型可计算的单位。",
+          "highlightTargets": ["input-text"]
         },
         {
           "id": "s2",
-          "title": "分词器切分",
-          "description": "文本被切成多个 Token；一个 Token 不等于一个字或一个词，不同语言和符号会出现不同颗粒度。",
-          "highlightTargets": [
-            "tokenizer",
-            "tokens"
-          ]
+          "title": "分词器切成 Token",
+          "description": "文本被切成多个不等长 Token；后续窗口、成本和时延都围绕这些 Token 计量。",
+          "highlightTargets": ["tokenizer", "tokens"]
         },
         {
           "id": "s3",
-          "title": "映射为编号和向量",
-          "description": "每个 Token 映射为词表编号，再进入向量表示；后续计算面对的是编号序列和向量，而不是原始文字。",
-          "highlightTargets": [
-            "token-ids",
-            "embeddings"
-          ]
+          "title": "Token 映射为 Embedding",
+          "description": "每个 Token 映射为编号、向量和位置信号，进入 Transformer 时已不是原始文字。",
+          "highlightTargets": ["token-ids", "embedding", "position"]
         },
         {
           "id": "s4",
-          "title": "输入 Token 影响 Prefill",
-          "description": "输入 Token 越多，Prefill 区域越长，首字前等待和缓存写入压力同步增加。",
-          "highlightTargets": [
-            "prefill",
-            "ttft"
-          ]
+          "title": "Prefill 处理完整输入",
+          "description": "首字前要处理全部输入 Token，输入越长，Prefill 与 TTFT 压力越高。",
+          "highlightTargets": ["prefill", "ttft"]
         },
         {
           "id": "s5",
+          "title": "Self-Attention 建立关系",
+          "description": "当前位置通过 Q/K/V 和注意力权重读取历史 Token，形成可用于预测的内部状态。",
+          "highlightTargets": ["self-attention", "attention", "qkv"]
+        },
+        {
+          "id": "s6",
+          "title": "KV Cache 保存历史状态",
+          "description": "Prefill 产生的历史 Key/Value 被缓存，后续 Decode 可复用它们而不是每步重算全部上下文。",
+          "highlightTargets": ["kv-cache", "cache"]
+        },
+        {
+          "id": "s7",
           "title": "输出 Token 逐个生成",
-          "description": "输出 Token 按时间轴一个个出现，说明总回答时长和输出计费会随着生成长度增加。",
-          "highlightTargets": [
-            "decode",
-            "output-tokens",
-            "cost"
-          ]
+          "description": "模型每次从概率分布里选出下一个 Token；输出越长，Decode 循环和计费越多。",
+          "highlightTargets": ["decode-loop", "output-tokens", "cost"]
         }
       ]
     },
@@ -2050,13 +2047,15 @@ const rawDemoConcepts: KnowledgePoint[] = [
     ],
     "animation": {
       "type": "token-flow",
-      "title": "逐 Token 生成与输出成本",
+      "title": "自回归 Decode 与 KV Cache 复用",
       "steps": [
-        { "id": "s1", "title": "输入进入上下文", "description": "用户问题先作为上下文进入模型链路，后续生成都基于这段上下文展开。", "highlightTargets": ["input-text"] },
-        { "id": "s2", "title": "上下文被拆成 Token", "description": "模型面对的是 token 序列；后续每一步都会在这个序列后追加新 token。", "highlightTargets": ["tokens"] },
-        { "id": "s3", "title": "Prefill 准备首个输出", "description": "首个输出前先处理完整输入上下文，建立可用于生成的内部状态。", "highlightTargets": ["prefill"] },
-        { "id": "s4", "title": "Decode 逐个预测", "description": "模型每次只选择下一个 token，被选中的 token 会立刻成为下一步预测的上下文。", "highlightTargets": ["decode", "output-tokens"] },
-        { "id": "s5", "title": "输出越长成本越高", "description": "生成越长，Decode 循环次数越多，完整回答耗时和输出成本都会上升。", "highlightTargets": ["output-tokens", "cost"] }
+        { "id": "s1", "title": "输入进入上下文", "description": "用户问题先进入模型链路，后续生成都基于这段上下文展开。", "highlightTargets": ["input-text"] },
+        { "id": "s2", "title": "上下文被拆成 Token", "description": "模型面对的是 Token 序列；每一步生成都会在序列末尾追加新 Token。", "highlightTargets": ["tokenizer", "tokens"] },
+        { "id": "s3", "title": "Prefill 建立初始状态", "description": "首个输出前先处理完整输入上下文，并形成可复用的 Key/Value 状态。", "highlightTargets": ["prefill", "embedding"] },
+        { "id": "s4", "title": "Self-Attention 读取历史", "description": "当前生成位置通过注意力读取历史 Token，决定下一步预测依赖哪些信息。", "highlightTargets": ["self-attention", "attention", "qkv"] },
+        { "id": "s5", "title": "KV Cache 被后续步骤复用", "description": "Decode 不必每轮重算全部历史，而是复用已有 KV Cache 并追加新 Token 的状态。", "highlightTargets": ["kv-cache", "cache"] },
+        { "id": "s6", "title": "Decode 逐个预测", "description": "模型每次只选择下一个 Token，被选中的 Token 会立刻成为下一步预测的上下文。", "highlightTargets": ["first-token", "sampling"] },
+        { "id": "s7", "title": "输出越长成本越高", "description": "生成越长，Decode 循环次数越多，完整回答耗时和输出成本都会上升。", "highlightTargets": ["decode-loop", "output-tokens", "cost"] }
       ]
     },
     "enterpriseCase": {

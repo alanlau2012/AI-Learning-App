@@ -1,115 +1,154 @@
+import type { CSSProperties } from 'react';
 import type { AnimationCanvasProps } from './types';
 import styles from './TokenFlowAnimation.module.css';
 
-function on(targets: string[] | undefined, key: string): boolean {
-  return targets?.includes(key) ?? false;
+function on(targets: string[] | undefined, ...keys: string[]): boolean {
+  return keys.some((key) => targets?.includes(key)) ?? false;
 }
 
 function cls(...names: Array<string | false | undefined>): string {
   return names.filter(Boolean).join(' ');
 }
 
-/** 颗粒度不均的 Token（宽度差异表达：一个 Token 不等于一个字/词）。 */
-const TOKEN_CELLS = [34, 18, 46, 24, 30, 16, 40];
-const ID_CHIPS = ['312', '88', '5×2', '1490', '7', '203', '64'];
+const INPUT_TOKENS = [
+  { label: '把这份', width: 58 },
+  { label: '合', width: 30 },
+  { label: '同的', width: 46 },
+  { label: '关键条款', width: 74 },
+  { label: '讲清楚', width: 62 },
+];
 
-/**
- * token-flow：文本 → 分词 → 编号/向量 → Prefill/TTFT → Decode/成本。
- * 用「阶段推进」让前序阶段保持已完成态，当前阶段高亮，呈现 Token 在
- * 计算/计费链路里的流动，而不是把一句话切成几个方块。
- */
-export function TokenFlowAnimation({ step, reducedMotion }: AnimationCanvasProps) {
-  const t = step.highlightTargets;
+const TOKEN_IDS = ['#312', '#88', '#1490', '#203', '#64'];
+const OUTPUT_TOKENS = ['首先', '关注', '付款', '周期', '。'];
 
-  const textOn = on(t, 'input-text');
-  const tokenizeOn = on(t, 'tokenizer') || on(t, 'tokens');
-  const idsOn = on(t, 'token-ids') || on(t, 'embeddings');
-  const prefillOn = on(t, 'prefill') || on(t, 'ttft');
-  const ttftOn = on(t, 'ttft');
-  const decodeOn = on(t, 'decode') || on(t, 'output-tokens') || on(t, 'cost');
-  const costOn = on(t, 'cost');
+function phaseFromTargets(targets: string[] | undefined, stepIndex: number): number {
+  if (on(targets, 'decode-loop', 'output-tokens', 'cost', 'decode')) return 7;
+  if (on(targets, 'first-token', 'sampling', 'logits')) return 6;
+  if (on(targets, 'kv-cache', 'cache')) return 5;
+  if (on(targets, 'attention', 'self-attention', 'qkv')) return 4;
+  if (on(targets, 'prefill', 'ttft')) return 3;
+  if (on(targets, 'embedding', 'embeddings', 'token-ids', 'position')) return 2;
+  if (on(targets, 'tokenizer', 'tokens')) return 1;
+  return Math.max(0, Math.min(stepIndex, 7));
+}
 
-  // 阶段号：用于「已到达即保持」的渐进式呈现
-  const phase = decodeOn ? 5 : prefillOn ? 4 : idsOn ? 3 : tokenizeOn ? 2 : 1;
+export function TokenFlowAnimation({
+  step,
+  stepIndex,
+  reducedMotion,
+}: AnimationCanvasProps) {
+  const targets = step.highlightTargets;
+  const phase = phaseFromTargets(targets, stepIndex);
   const reached = (n: number) => phase >= n;
+  const active = (n: number) => phase === n;
+  const flowing = !reducedMotion && phase > 0;
 
   return (
-    <div className={cls(styles.canvas, reducedMotion && styles.reduced)}>
-      {/* 1 · 原始文本 */}
-      <div className={styles.stage}>
-        <span className={styles.label}>文本</span>
-        <div className={cls(styles.textBubble, textOn && styles.active, phase >= 3 && styles.spent)}>
+    <div
+      className={cls(styles.canvas, reducedMotion && styles.reduced)}
+      style={{ '--flow-phase': phase } as CSSProperties}
+    >
+      <div className={styles.inputRow}>
+        <div className={cls(styles.inputBubble, active(0) && styles.active)}>
           把这份合同的关键条款讲清楚
         </div>
-      </div>
-      <div className={cls(styles.flow, reached(2) && styles.lit)} aria-hidden>↓ 分词</div>
-
-      {/* 2 · 分词为 Token（颗粒度不均） */}
-      <div className={styles.stage}>
-        <span className={styles.label}>Token</span>
-        <div className={styles.tokens}>
-          {TOKEN_CELLS.map((w, i) => (
-            <i
-              key={i}
-              style={{ width: w }}
-              className={cls(styles.tok, reached(2) && styles.filled, tokenizeOn && styles.active)}
-            />
-          ))}
+        <div className={cls(styles.arrow, reached(1) && styles.done)} aria-hidden>
+          -&gt;
         </div>
-      </div>
-      <div className={cls(styles.flow, reached(3) && styles.lit)} aria-hidden>↓ 编号 / 向量</div>
-
-      {/* 3 · 映射为编号与向量 */}
-      <div className={styles.stage}>
-        <span className={styles.label}>编号 / 向量</span>
-        <div className={styles.idRow}>
-          {ID_CHIPS.map((id, i) => (
-            <span key={i} className={cls(styles.idChip, idsOn && styles.active, reached(3) && styles.filled)}>
-              {id}
+        <div className={styles.tokenStrip}>
+          {INPUT_TOKENS.map((token) => (
+            <span
+              key={token.label}
+              className={cls(styles.token, reached(1) && styles.done, active(1) && styles.active)}
+              style={{ width: token.width }}
+            >
+              {token.label}
             </span>
           ))}
         </div>
-        <div className={styles.vecRow} aria-hidden>
-          {ID_CHIPS.map((_, i) => (
-            <span key={i} className={cls(styles.vec, reached(3) && styles.filled, idsOn && styles.active)} />
-          ))}
-        </div>
       </div>
 
-      {/* 4 · 输入 Token 压在首字前：Prefill 占用 + TTFT */}
-      <div className={cls(styles.meter, !reached(4) && styles.dormant)}>
-        <span className={styles.label}>首字前</span>
-        <div className={styles.barRow}>
-          <span className={styles.barTag}>Prefill 占用</span>
-          <div className={styles.track}>
-            <div className={cls(styles.prefillFill, prefillOn && styles.active)} />
-          </div>
-        </div>
-        <div className={styles.barRow}>
-          <span className={styles.barTag}>TTFT</span>
-          <div className={styles.track}>
-            <div className={cls(styles.ttftFill, ttftOn && styles.active)} />
-          </div>
-        </div>
-      </div>
+      <div className={styles.pipeline} aria-label="Token 到模型回答的连续链路">
+        <span className={cls(styles.flowDot, flowing && styles.running)} aria-hidden />
 
-      {/* 5 · 输出 Token 逐个生成：Decode 时长 + 成本 */}
-      <div className={cls(styles.meter, !reached(5) && styles.dormant)}>
-        <span className={styles.label}>首字后</span>
-        <div className={styles.outRow}>
-          <span className={styles.barTag}>输出</span>
-          <div className={styles.outSeq}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <i key={i} className={cls(styles.outTok, decodeOn && styles.active)} />
+        <section className={cls(styles.stage, reached(2) && styles.done, active(2) && styles.active)}>
+          <span className={styles.stageTitle}>Embedding</span>
+          <div className={styles.idRow}>
+            {TOKEN_IDS.map((id) => (
+              <span key={id}>{id}</span>
             ))}
           </div>
-        </div>
-        <div className={styles.barRow}>
-          <span className={styles.barTag}>成本</span>
-          <div className={styles.track}>
-            <div className={cls(styles.costFill, costOn && styles.active)} />
+          <div className={styles.vectorRow} aria-hidden>
+            <i style={{ height: 18 }} />
+            <i style={{ height: 30 }} />
+            <i style={{ height: 24 }} />
+            <i style={{ height: 34 }} />
+            <i style={{ height: 22 }} />
           </div>
-        </div>
+          <span className={styles.microLabel}>+ position</span>
+        </section>
+
+        <section className={cls(styles.stage, reached(3) && styles.done, active(3) && styles.active)}>
+          <span className={styles.stageTitle}>Prefill</span>
+          <div className={styles.prefillBars} aria-hidden>
+            <i style={{ height: 28 }} />
+            <i style={{ height: 46 }} />
+            <i style={{ height: 38 }} />
+            <i style={{ height: 54 }} />
+            <i style={{ height: 34 }} />
+          </div>
+          <span className={styles.microLabel}>全量输入一次算完</span>
+        </section>
+
+        <section className={cls(styles.stage, reached(4) && styles.done, active(4) && styles.active)}>
+          <span className={styles.stageTitle}>Self-Attention</span>
+          <div className={styles.qkvRow}>
+            <span>Q</span>
+            <span>K</span>
+            <span>V</span>
+          </div>
+          <svg className={styles.attentionLines} viewBox="0 0 160 52" aria-hidden>
+            <path d="M 14 38 Q 80 2 146 38" />
+            <path d="M 30 44 Q 86 18 132 44" />
+          </svg>
+          <span className={styles.microLabel}>当前 token 看历史</span>
+        </section>
+
+        <section className={cls(styles.stage, reached(5) && styles.done, active(5) && styles.active)}>
+          <span className={styles.stageTitle}>KV Cache</span>
+          <div className={styles.cacheGrid}>
+            {['K1/V1', 'K2/V2', 'K3/V3', 'K4/V4'].map((cell) => (
+              <span key={cell}>{cell}</span>
+            ))}
+          </div>
+          <span className={styles.microLabel}>历史状态可复用</span>
+        </section>
+
+        <section className={cls(styles.stage, reached(6) && styles.done, active(6) && styles.active)}>
+          <span className={styles.stageTitle}>Next Token</span>
+          <div className={styles.probRows}>
+            <span style={{ '--p': '78%' } as CSSProperties}>首先</span>
+            <span style={{ '--p': '62%' } as CSSProperties}>关注</span>
+            <span style={{ '--p': '46%' } as CSSProperties}>付款</span>
+          </div>
+          <span className={styles.microLabel}>logits / sampling</span>
+        </section>
+
+        <section className={cls(styles.stage, reached(7) && styles.done, active(7) && styles.active)}>
+          <span className={styles.stageTitle}>Decode Loop</span>
+          <div className={styles.outputRow}>
+            {OUTPUT_TOKENS.map((token, index) => (
+              <span
+                key={token}
+                className={cls(reached(7) && styles.reveal)}
+                style={{ transitionDelay: `${index * 90}ms` }}
+              >
+                {token}
+              </span>
+            ))}
+          </div>
+          <span className={styles.microLabel}>新 token 接回上下文</span>
+        </section>
       </div>
     </div>
   );
