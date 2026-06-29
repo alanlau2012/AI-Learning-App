@@ -71,6 +71,7 @@ function createMainWindow() {
     minWidth: 1024,
     minHeight: 720,
     backgroundColor: appBackground,
+    icon: path.join(__dirname, '..', 'build-resources', 'icon-512.png'),
     show: false,
     webPreferences: {
       nodeIntegration: false,

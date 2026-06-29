@@ -148,6 +148,7 @@
 
 .primary,
 .secondary,
+.previous,
 .next {
   display: inline-flex;
   align-items: center;
@@ -180,13 +181,22 @@
   color: var(--color-primary);
 }
 
-.next {
+.lessonNav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   margin-left: auto;
+}
+
+.previous,
+.next {
   border: 1px solid var(--color-primary-border);
   background: var(--color-primary-soft);
   color: var(--color-primary);
 }
 
+.previous:hover,
 .next:hover {
   text-decoration: none;
 }
@@ -206,7 +216,15 @@
     width: 100%;
   }
 
-  .next {
+  .lessonNav {
     margin-left: 0;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .previous,
+  .next {
+    flex: 1 1 220px;
+    justify-content: center;
   }
 }

@@ -48,6 +48,10 @@ export function ConceptPage() {
     if (concept && isPublishedConcept(concept)) recordVisit(concept.id);
   }, [concept, recordVisit]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [concept?.id]);
+
   if (!concept) {
     return (
       <main className={styles.page}>
@@ -64,6 +68,8 @@ export function ConceptPage() {
   const favorite = favoriteConceptIds.includes(concept.id);
   const inReviewList = reviewConceptIds.includes(concept.id);
   const conceptIndex = orderedPublishedConcepts.findIndex((item) => item.id === concept.id);
+  const previousConcept =
+    conceptIndex > 0 ? orderedPublishedConcepts[conceptIndex - 1] : undefined;
   const nextConcept =
     conceptIndex >= 0 ? orderedPublishedConcepts[conceptIndex + 1] : orderedPublishedConcepts[0];
   const hasEnterpriseCase = Object.values(concept.enterpriseCase).some(Boolean);
@@ -240,10 +246,20 @@ export function ConceptPage() {
           onClick={() => toggleReviewConcept(concept.id)}
         >
           {inReviewList ? '移出本周复盘' : '加入本周复盘'}
-        </button>        {nextConcept && (
-          <Link to={`/concepts/${nextConcept.slug}`} className={styles.next}>
-            下一个 · {nextConcept.title} →
-          </Link>
+        </button>
+        {(previousConcept || nextConcept) && (
+          <nav className={styles.lessonNav} aria-label="知识点前后导航">
+            {previousConcept && (
+              <Link to={`/concepts/${previousConcept.slug}`} className={styles.previous}>
+                ← 上一个 · {previousConcept.title}
+              </Link>
+            )}
+            {nextConcept && (
+              <Link to={`/concepts/${nextConcept.slug}`} className={styles.next}>
+                下一个 · {nextConcept.title} →
+              </Link>
+            )}
+          </nav>
         )}
       </footer>
     </main>
